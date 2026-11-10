@@ -5,9 +5,10 @@ import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { EmpireShell } from "./empire-shell";
 import { ArrowRight, Crown, Splatter, Star4 } from "./zine";
-import { dockEvents, eras, kindColors, type DockEvent } from "@/lib/data";
+import { artSrc } from "@/lib/art";
+import { timelineEvents, eras, kindColors, type TimelineEvent } from "@/lib/data";
 
-function KindBadge({ kind }: { kind: DockEvent["kind"] }) {
+function KindBadge({ kind }: { kind: TimelineEvent["kind"] }) {
   return (
     <span
       className="px-2 py-0.5 font-brush text-[10px]"
@@ -24,7 +25,7 @@ function EventCard({
   onSelect,
   list,
 }: {
-  ev: DockEvent;
+  ev: TimelineEvent;
   selected: boolean;
   onSelect: () => void;
   list: boolean;
@@ -37,7 +38,7 @@ function EventCard({
       >
         <div className="relative h-14 w-24 shrink-0 overflow-hidden rounded-sm">
           <Image
-            src={ev.image}
+            src={artSrc(ev.image)}
             alt=""
             fill
             className="object-cover"
@@ -66,7 +67,7 @@ function EventCard({
     >
       <div className="relative h-28 overflow-hidden">
         <Image
-          src={ev.image}
+          src={artSrc(ev.image)}
           alt=""
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -103,13 +104,13 @@ function EventDetail({
   onSelect,
   onClose,
 }: {
-  ev: DockEvent;
+  ev: TimelineEvent;
   onSelect: (id: string) => void;
   onClose?: () => void;
 }) {
   const [copied, setCopied] = useState(false);
   const era = eras.find((e) => e.id === ev.era);
-  const related = dockEvents.filter((e) => ev.related.includes(e.id));
+  const related = timelineEvents.filter((e) => ev.related.includes(e.id));
 
   async function share() {
     const url = `${window.location.origin}/dock?event=${ev.id}`;
@@ -151,7 +152,7 @@ function EventDetail({
       <div className="flex-1 overflow-y-auto">
         <div className="relative h-40">
           <Image
-            src={ev.image}
+            src={artSrc(ev.image)}
             alt=""
             fill
             className="object-cover"
@@ -246,13 +247,13 @@ export function Dock() {
   const [view, setView] = useState<"grid" | "list">("grid");
   const [selectedId, setSelectedId] = useState<string | null>(() => {
     const id = params.get("event");
-    return dockEvents.some((e) => e.id === id) ? id : "moonwitness-born";
+    return timelineEvents.some((e) => e.id === id) ? id : "moonwitness-born";
   });
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const q = query.trim().toLowerCase();
   const visible = useMemo(() => {
-    let list = dockEvents.filter((e) => era === "all" || e.era === era);
+    let list = timelineEvents.filter((e) => era === "all" || e.era === era);
     if (q)
       list = list.filter((e) =>
         `${e.title} ${e.excerpt} ${e.body} ${e.tags.join(" ")} ${e.location}`
@@ -264,7 +265,7 @@ export function Dock() {
     );
   }, [era, q, sort]);
 
-  const selected = dockEvents.find((e) => e.id === selectedId) ?? null;
+  const selected = timelineEvents.find((e) => e.id === selectedId) ?? null;
 
   function select(id: string) {
     setSelectedId(id);
@@ -302,7 +303,7 @@ export function Dock() {
           <div className="text-right">
             <div className="font-brush text-5xl text-[var(--yellow)]">
               {visible.length}
-              <span className="text-2xl text-zinc-400">/{dockEvents.length}</span>
+              <span className="text-2xl text-zinc-400">/{timelineEvents.length}</span>
             </div>
             <div className="text-[10px] tracking-widest text-zinc-400">EVENTS VISIBLE</div>
           </div>
@@ -459,7 +460,7 @@ export function Dock() {
                 </span>
               </h2>
               <span className="text-[11px] text-zinc-500">
-                Showing {visible.length} of {dockEvents.length} events
+                Showing {visible.length} of {timelineEvents.length} events
               </span>
             </div>
             {visible.length === 0 ? (

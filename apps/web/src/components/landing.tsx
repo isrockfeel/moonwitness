@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { dockEvents, witnesses, kindColors } from "@/lib/data";
+import { artSrc } from "@/lib/art";
+import { timelineEvents, witnesses, kindColors } from "@/lib/data";
 import { ArrowRight, Bolt, Crown, PlayIcon, PauseIcon, Smiley, Splatter, Star4 } from "./zine";
 import { SiteNav } from "./site-nav";
 
@@ -221,7 +222,7 @@ function CrewConstellation() {
 function ArchiveStrip() {
   const ref = useRef<HTMLDivElement>(null);
   const scroll = (dir: number) => ref.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
-  const items = dockEvents.slice(0, 8);
+  const items = timelineEvents.slice(0, 8);
 
   return (
     <div className="relative">
@@ -234,7 +235,7 @@ function ArchiveStrip() {
           >
             <div className="relative h-28 overflow-hidden">
               <Image
-                src={ev.image}
+                src={artSrc(ev.image)}
                 alt=""
                 fill
                 className="object-cover grayscale transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0"

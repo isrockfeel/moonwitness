@@ -1,0 +1,21 @@
+{
+  "name": "@moonwitness/types",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf .turbo node_modules"
+  },
+  "devDependencies": {
+    "@moonwitness/eslint-config": "workspace:*",
+    "@moonwitness/typescript-config": "workspace:*",
+    "eslint": "^9.39.0",
+    "typescript": "^5.9.3"
+  }
+}

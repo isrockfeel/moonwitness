@@ -1,9 +1,25 @@
-export type Era = {
-  id: string;
-  name: string;
-  years: string;
-  tagline: string;
-  color: string;
+import type {
+  Era,
+  EventKind,
+  FeedItem,
+  MissionAlert,
+  Module,
+  Project,
+  TimelineEvent,
+  Witness,
+  Workflow,
+} from "@moonwitness/types";
+
+export type {
+  Era,
+  EventKind,
+  FeedItem,
+  MissionAlert,
+  Module,
+  Project,
+  TimelineEvent,
+  Witness,
+  Workflow,
 };
 
 export const eras: Era[] = [
@@ -44,24 +60,7 @@ export const eras: Era[] = [
   },
 ];
 
-export type DockEvent = {
-  id: string;
-  kind: "PROJECT" | "STORY" | "SIGNAL" | "WORLD" | "PEOPLE" | "RESEARCH";
-  date: string;
-  era: string;
-  title: string;
-  excerpt: string;
-  body: string;
-  location: string;
-  tags: string[];
-  sources: number;
-  notes: number;
-  image: string;
-  imagePosition?: string;
-  related: string[];
-};
-
-export const dockEvents: DockEvent[] = [
+export const timelineEvents: TimelineEvent[] = [
   {
     id: "moonwitness-born",
     kind: "PROJECT",
@@ -74,7 +73,7 @@ export const dockEvents: DockEvent[] = [
     tags: ["Founding", "Project", "Community"],
     sources: 12,
     notes: 3,
-    image: "/art/city-shadow.png",
+    image: "city-shadow",
     imagePosition: "70% 40%",
     related: ["the-batteries", "zill-joins"],
   },
@@ -90,7 +89,7 @@ export const dockEvents: DockEvent[] = [
     tags: ["Story", "City", "Energy"],
     sources: 8,
     notes: 5,
-    image: "/art/hero-witness.png",
+    image: "hero-witness",
     imagePosition: "20% 30%",
     related: ["moonwitness-born", "skyline-broadcast"],
   },
@@ -106,7 +105,7 @@ export const dockEvents: DockEvent[] = [
     tags: ["Signal", "Unverified", "Sky"],
     sources: 15,
     notes: 7,
-    image: "/art/crew-rooftop.png",
+    image: "crew-rooftop",
     imagePosition: "50% 20%",
     related: ["the-batteries", "the-fracture"],
   },
@@ -122,7 +121,7 @@ export const dockEvents: DockEvent[] = [
     tags: ["World", "Event", "Networks"],
     sources: 25,
     notes: 11,
-    image: "/art/signal-tunnel.png",
+    image: "signal-tunnel",
     imagePosition: "50% 45%",
     related: ["skyline-broadcast", "zill-joins"],
   },
@@ -138,7 +137,7 @@ export const dockEvents: DockEvent[] = [
     tags: ["People", "Creator", "Field Notes"],
     sources: 6,
     notes: 4,
-    image: "/art/hero-witness.png",
+    image: "hero-witness",
     imagePosition: "35% 20%",
     related: ["the-fracture", "allahhi-promise"],
   },
@@ -154,7 +153,7 @@ export const dockEvents: DockEvent[] = [
     tags: ["Research", "Community", "Mapping"],
     sources: 18,
     notes: 9,
-    image: "/art/city-shadow.png",
+    image: "city-shadow",
     imagePosition: "80% 60%",
     related: ["zill-joins", "pendeta-online"],
   },
@@ -170,7 +169,7 @@ export const dockEvents: DockEvent[] = [
     tags: ["Story", "Faith", "Night Shift"],
     sources: 9,
     notes: 6,
-    image: "/art/crew-rooftop.png",
+    image: "crew-rooftop",
     imagePosition: "30% 55%",
     related: ["allahhi-promise", "cities-never-sleep"],
   },
@@ -186,7 +185,7 @@ export const dockEvents: DockEvent[] = [
     tags: ["Signal", "Relay", "Global"],
     sources: 24,
     notes: 12,
-    image: "/art/city-shadow.png",
+    image: "city-shadow",
     imagePosition: "55% 30%",
     related: ["skyline-broadcast", "pendeta-online"],
   },
@@ -202,7 +201,7 @@ export const dockEvents: DockEvent[] = [
     tags: ["Story", "Audio", "Isolation"],
     sources: 7,
     notes: 8,
-    image: "/art/signal-tunnel.png",
+    image: "signal-tunnel",
     imagePosition: "50% 60%",
     related: ["the-fracture", "the-other-side"],
   },
@@ -218,7 +217,7 @@ export const dockEvents: DockEvent[] = [
     tags: ["World", "Archive", "Memory"],
     sources: 14,
     notes: 5,
-    image: "/art/hero-witness.png",
+    image: "hero-witness",
     imagePosition: "60% 45%",
     related: ["voices-in-the-fog", "brighter-question"],
   },
@@ -234,7 +233,7 @@ export const dockEvents: DockEvent[] = [
     tags: ["Research", "Impact", "Data"],
     sources: 31,
     notes: 14,
-    image: "/art/crew-rooftop.png",
+    image: "crew-rooftop",
     imagePosition: "50% 35%",
     related: ["the-other-side", "shadow-grows"],
   },
@@ -250,7 +249,7 @@ export const dockEvents: DockEvent[] = [
     tags: ["Signal", "Crew", "Milestone"],
     sources: 11,
     notes: 7,
-    image: "/art/city-shadow.png",
+    image: "city-shadow",
     imagePosition: "75% 55%",
     related: ["brighter-question", "new-worlds"],
   },
@@ -266,28 +265,19 @@ export const dockEvents: DockEvent[] = [
     tags: ["Project", "Expansion", "Future"],
     sources: 5,
     notes: 2,
-    image: "/art/crew-rooftop.png",
+    image: "crew-rooftop",
     imagePosition: "60% 25%",
     related: ["shadow-grows"],
   },
 ];
 
-export const kindColors: Record<DockEvent["kind"], string> = {
+export const kindColors: Record<EventKind, string> = {
   PROJECT: "#ff2d78",
   STORY: "#2ea8ff",
   SIGNAL: "#ffd21f",
   WORLD: "#a855f7",
   PEOPLE: "#ff2d78",
   RESEARCH: "#2ea8ff",
-};
-
-export type Module = {
-  id: string;
-  name: string;
-  description: string;
-  color: string;
-  icon: string;
-  stats: { label: string; value: number; color: string }[];
 };
 
 export const modules: Module[] = [
@@ -370,16 +360,6 @@ export const modules: Module[] = [
   },
 ];
 
-export type Project = {
-  id: string;
-  title: string;
-  status: "Active" | "Writing" | "Research" | "Planning";
-  progress: number;
-  color: string;
-  image: string;
-  imagePosition: string;
-};
-
 export const projects: Project[] = [
   {
     id: "batteries",
@@ -387,7 +367,7 @@ export const projects: Project[] = [
     status: "Active",
     progress: 72,
     color: "#2ea8ff",
-    image: "/art/hero-witness.png",
+    image: "hero-witness",
     imagePosition: "25% 25%",
   },
   {
@@ -396,7 +376,7 @@ export const projects: Project[] = [
     status: "Writing",
     progress: 58,
     color: "#2ea8ff",
-    image: "/art/crew-rooftop.png",
+    image: "crew-rooftop",
     imagePosition: "30% 50%",
   },
   {
@@ -405,7 +385,7 @@ export const projects: Project[] = [
     status: "Research",
     progress: 34,
     color: "#ffd21f",
-    image: "/art/city-shadow.png",
+    image: "city-shadow",
     imagePosition: "80% 55%",
   },
   {
@@ -414,17 +394,10 @@ export const projects: Project[] = [
     status: "Planning",
     progress: 18,
     color: "#a855f7",
-    image: "/art/hero-witness.png",
+    image: "hero-witness",
     imagePosition: "40% 15%",
   },
 ];
-
-export type Workflow = {
-  id: string;
-  name: string;
-  detail: string;
-  status: "Running" | "Queued" | "Paused";
-};
 
 export const initialWorkflows: Workflow[] = [
   {
@@ -454,8 +427,6 @@ export const initialWorkflows: Workflow[] = [
   },
 ];
 
-export type FeedItem = { id: string; text: string; ago: string; color: string };
-
 export const feedItems: FeedItem[] = [
   {
     id: "f-1",
@@ -479,23 +450,11 @@ export const feedItems: FeedItem[] = [
   },
 ];
 
-export type Alert = { id: string; text: string; ago: string; level: "high" | "medium" | "low" };
-
-export const initialAlerts: Alert[] = [
+export const initialAlerts: MissionAlert[] = [
   { id: "a-1", text: "High volume of signals from MENA region", ago: "12m ago", level: "high" },
   { id: "a-2", text: "Source verification needed for 3 items", ago: "1h ago", level: "medium" },
   { id: "a-3", text: "Publishing queue delayed (2 items)", ago: "3h ago", level: "low" },
 ];
-
-export type Witness = {
-  id: string;
-  name: string;
-  place: string;
-  x: number;
-  y: number;
-  quote: string;
-  signals: number;
-};
 
 export const witnesses: Witness[] = [
   {

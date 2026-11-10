@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@moonwitness/ui", "@moonwitness/core"],
+  transpilePackages: [
+    "@moonwitness/ui",
+    "@moonwitness/core",
+    "@moonwitness/types",
+    "@moonwitness/assets",
+  ],
   reactStrictMode: true,
   poweredByHeader: false,
 };

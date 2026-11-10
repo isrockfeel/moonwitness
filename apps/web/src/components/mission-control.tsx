@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { EmpireShell } from "./empire-shell";
 import { ArrowRight, Bolt, Crown, Splatter, Star4 } from "./zine";
+import { artSrc } from "@/lib/art";
 import {
   feedItems,
   initialAlerts,
@@ -316,7 +317,7 @@ export function MissionControl() {
                 >
                   <div className="relative h-20 overflow-hidden">
                     <Image
-                      src={p.image}
+                      src={artSrc(p.image)}
                       alt=""
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
