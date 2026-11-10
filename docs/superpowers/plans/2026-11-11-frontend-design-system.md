@@ -155,7 +155,7 @@ Fase 0 di spec (`git init` + commit baseline) **sudah selesai**: `d2af4e7`, spec
 - Consumes: tidak ada.
 - Produces: 12 screenshot pembanding bernama `.verify/phase0/<route>-<lebar>.png` yang dipakai gerbang Task 10, 11, 12, 13.
 
-- [ ] **Step 1: Tambah `.verify/` ke `.gitignore`**
+- [x] **Step 1: Tambah `.verify/` ke `.gitignore`**
 
 Tambahkan di akhir `.gitignore`:
 
@@ -165,7 +165,7 @@ Tambahkan di akhir `.gitignore`:
 .verify/
 ```
 
-- [ ] **Step 2: Build produksi lalu jalankan server**
+- [x] **Step 2: Build produksi lalu jalankan server**
 
 ```bash
 pnpm --filter @moonwitness/web build
@@ -174,7 +174,7 @@ pnpm --filter @moonwitness/web start -p 4317 &
 
 Tunggu sampai log `Ready` muncul. Login dulu ke `/shadow` dengan `admin` / `admin123` supaya `/mission-control` dan `/dock` bisa dibuka (sesi disimpan di `localStorage` key `mw-session`).
 
-- [ ] **Step 3: Ambil 12 screenshot**
+- [x] **Step 3: Ambil 12 screenshot**
 
 Untuk setiap pasangan route × viewport, set ukuran viewport lalu screenshot full page ke `.verify/phase0/`:
 
@@ -195,7 +195,9 @@ Untuk setiap pasangan route × viewport, set ukuran viewport lalu screenshot ful
 
 Catat juga angka yang jadi pembanding gerbang: `document.documentElement.scrollWidth` pada 390px untuk keempat route (harus ≤ 390).
 
-- [ ] **Step 4: Matikan server**
+> **Terekam 2026-11-11 (Task 0 selesai).** 12 screenshot ada di `.verify/phase0/`. `scrollWidth` @390px: `landing` 380, `shadow` 380, `mission-control` 380, `dock` 380 — semua ≤ 390. Di 768/1440 angka 758/1430 adalah lebar minus scrollbar, bukan overflow. Console: **0 error / 0 warning** di keempat route (dijaring lewat listener `console` + `pageerror`, bukan dibaca manual). Dua temuan baseline yang jadi pekerjaan fase 3: `document.querySelector("main")` **tidak ada** di `/` (landing) saja — `/shadow`, `/mission-control`, dan `/dock` sudah punya `<main>` (dua terakhir lewat `EmpireShell`), jadi Task 15 hanya perlu membungkus section landing; dan `/shadow` tidak punya `metadata` sendiri — `<title>`-nya masih judul default root layout ("Moonwitness — People. Places. Stories. Another side of reality."), itu urusan Task 18.
+
+- [x] **Step 4: Matikan server**
 
 ```bash
 netstat -ano | grep :4317
@@ -204,7 +206,7 @@ taskkill //PID <pid> //F
 
 Jangan lanjut ke task berikutnya sebelum port 4317 benar-benar bebas.
 
-- [ ] **Step 5: Commit (hanya `.gitignore`)**
+- [x] **Step 5: Commit (hanya `.gitignore`)**
 
 ```bash
 git add .gitignore
