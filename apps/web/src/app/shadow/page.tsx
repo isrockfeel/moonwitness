@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowRight, Crown, EyeIcon, Smiley, Splatter, Star4 } from "@moonwitness/ui/icons";
+import { Grain, Tape, ZineInput } from "@moonwitness/ui";
 import { authenticate } from "@/lib/auth";
 
 export default function ShadowPage() {
@@ -52,7 +53,8 @@ export default function ShadowPage() {
   }
 
   return (
-    <div className="grain relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden">
+      <Grain />
       <Image
         src="/art/city-shadow.png"
         alt=""
@@ -89,8 +91,8 @@ export default function ShadowPage() {
       <main className="relative z-10 mx-auto flex min-h-[calc(100vh-8rem)] max-w-7xl items-center px-4 py-10 sm:px-8">
         <div className="w-full max-w-md">
           <div className="zine-card-rough relative p-7 sm:p-9">
-            <span className="tape -top-3 left-10 -rotate-6" />
-            <span className="tape -top-2 right-8 rotate-3" />
+            <Tape className="-top-3 left-10 -rotate-6" />
+            <Tape className="-top-2 right-8 rotate-3" />
             <Crown className="absolute right-6 top-6 h-6 w-9 rotate-12 text-[var(--yellow)]" />
 
             <h1 className="font-brush text-4xl leading-tight text-white sm:text-5xl">
@@ -108,7 +110,7 @@ export default function ShadowPage() {
                 >
                   Email or Username
                 </label>
-                <input
+                <ZineInput
                   id="email"
                   type="text"
                   autoComplete="username"
@@ -117,7 +119,7 @@ export default function ShadowPage() {
                   placeholder="Enter your email or username"
                   aria-invalid={!!errors.identifier}
                   aria-describedby={errors.identifier ? "email-error" : undefined}
-                  className="zine-input rounded-md px-4 py-3 text-sm"
+                  className="rounded-md px-4 py-3 text-sm"
                 />
                 {errors.identifier && (
                   <p id="email-error" role="alert" className="mt-1.5 text-xs text-[var(--red)]">
@@ -134,7 +136,7 @@ export default function ShadowPage() {
                   Password
                 </label>
                 <div className="relative">
-                  <input
+                  <ZineInput
                     id="password"
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
@@ -143,7 +145,7 @@ export default function ShadowPage() {
                     placeholder="Enter your password"
                     aria-invalid={!!errors.password}
                     aria-describedby={errors.password ? "password-error" : undefined}
-                    className="zine-input rounded-md px-4 py-3 pr-12 text-sm"
+                    className="rounded-md px-4 py-3 pr-12 text-sm"
                   />
                   <button
                     type="button"

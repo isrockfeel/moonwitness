@@ -1,7 +1,12 @@
 export { cn } from "./cn";
-export { Button, type ButtonProps } from "./button";
-export { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./card";
-export { Badge, type BadgeProps } from "./badge";
+export { SOURCE_PROBE_CLASS } from "./probe";
 
-/** Kelas bukti untuk gerbang @source (Task 4 Step 6-8). Dipakai ZineBadge di Task 6. */
-export const SOURCE_PROBE_CLASS = "tracking-[0.18em]";
+export { ZineButton, type ZineButtonProps, type ZineTone } from "./primitives/zine-button";
+export { Sticker, type StickerProps, type StickerTone } from "./primitives/sticker";
+export { Tape } from "./primitives/tape";
+export { ZineCard, ZineCardRough } from "./primitives/zine-card";
+export { ZineBadge, type ZineBadgeProps } from "./primitives/zine-badge";
+export { ZineInput } from "./primitives/zine-input";
+export { ZineImage, type ZineImageProps } from "./primitives/zine-image";
+export { Marquee, type MarqueeProps } from "./primitives/marquee";
+export { Halftone, Grain, type HalftoneProps } from "./primitives/texture";

@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { artSrc } from "@/lib/art";
 import { timelineEvents, witnesses, kindColors } from "@/lib/data";
 import { ArrowRight, Bolt, Crown, PlayIcon, PauseIcon, Smiley, Splatter, Star4 } from "@moonwitness/ui/icons";
+import { Grain, Halftone, Tape } from "@moonwitness/ui";
 import { SiteNav } from "./site-nav";
 
 function TransmissionCard() {
@@ -195,7 +196,7 @@ function CrewConstellation() {
 
       <div className="flex flex-col gap-4">
         <div className="zine-card relative flex-1 p-5" aria-live="polite">
-          <span className="tape -top-3 left-1/2 -translate-x-1/2 -rotate-3" />
+          <Tape className="-top-3 left-1/2 -translate-x-1/2 -rotate-3" />
           <div className="flex items-center gap-3">
             <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[var(--pink)] bg-[var(--panel-2)] font-brush text-xl text-[var(--pink)]">
               {selected.name[0]}
@@ -294,8 +295,9 @@ export function Landing() {
       {/* HERO */}
       <section
         id="home"
-        className="grain relative flex min-h-[92vh] items-center overflow-hidden pt-16"
+        className="relative flex min-h-[92vh] items-center overflow-hidden pt-16"
       >
+        <Grain />
         <Image
           src="/art/hero-witness.png"
           alt="A witness in a magenta jacket looking up at the moon over the neon city"
@@ -322,7 +324,7 @@ export function Landing() {
               PEOPLE. PLACES. STORIES. ANOTHER SIDE OF REALITY.
             </div>
             <div className="sticker mt-6 max-w-md rotate-[-1.5deg] p-5">
-              <span className="tape -top-3 left-8 -rotate-6" />
+              <Tape className="-top-3 left-8 -rotate-6" />
               <p className="font-hand text-xl font-bold leading-snug sm:text-2xl">
                 A global story network for curious humans. Different people. Same moon. Bigger
                 perspectives.
@@ -459,7 +461,7 @@ export function Landing() {
         id="crew"
         className="relative scroll-mt-20 border-y-2 border-[var(--line)] bg-[var(--panel)] py-20"
       >
-        <div className="halftone-pink pointer-events-none absolute inset-0 opacity-30" />
+        <Halftone tone="pink" className="pointer-events-none absolute inset-0 opacity-30" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -510,8 +512,9 @@ export function Landing() {
       {/* ABOUT / JOIN */}
       <section
         id="about"
-        className="grain relative scroll-mt-20 overflow-hidden border-t-2 border-[var(--line)]"
+        className="relative scroll-mt-20 overflow-hidden border-t-2 border-[var(--line)]"
       >
+        <Grain />
         <Image
           src="/art/crew-rooftop.png"
           alt=""

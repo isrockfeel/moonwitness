@@ -1356,7 +1356,7 @@ function Grain(props: HTMLAttributes<HTMLSpanElement>): JSX.Element
 
 Tidak ada `ZineLink`, walaupun 8 dari 14 pemakai `btn-zine` adalah `<Link>`. Alasannya: paket tidak boleh mengimpor `next/link`, dan `<a>` polos kehilangan client-side navigation. Pemakai itu tetap menulis `<Link className="btn-zine ...">` di app — kelas CSS-nya tersedia global dari `base.css`, jadi tidak ada yang hilang.
 
-- [ ] **Step 1: Tambah dependensi paket**
+- [x] **Step 1: Tambah dependensi paket**
 
 `packages/ui/package.json` — ganti blok `dependencies`:
 
@@ -1370,7 +1370,7 @@ Tidak ada `ZineLink`, walaupun 8 dari 14 pemakai `btn-zine` adalah `<Link>`. Ala
 
 lalu `pnpm install`.
 
-- [ ] **Step 2: `zine-button.tsx`**
+- [x] **Step 2: `zine-button.tsx`**
 
 ```tsx
 import type { ButtonHTMLAttributes } from "react";
@@ -1400,7 +1400,7 @@ export function ZineButton({ tone = "pink", className, type = "button", ...props
 }
 ```
 
-- [ ] **Step 3: `sticker.tsx`, `tape.tsx`, `zine-card.tsx`, `texture.tsx`**
+- [x] **Step 3: `sticker.tsx`, `tape.tsx`, `zine-card.tsx`, `texture.tsx`**
 
 ```tsx
 // sticker.tsx
@@ -1482,7 +1482,7 @@ export function Grain({ className, ...props }: HTMLAttributes<HTMLSpanElement>) 
 }
 ```
 
-- [ ] **Step 4: `zine-badge.tsx` dan `zine-input.tsx`**
+- [x] **Step 4: `zine-badge.tsx` dan `zine-input.tsx`**
 
 ```tsx
 // zine-badge.tsx
@@ -1516,7 +1516,7 @@ export function ZineInput({ className, ...props }: InputHTMLAttributes<HTMLInput
 }
 ```
 
-- [ ] **Step 5: `zine-image.tsx`**
+- [x] **Step 5: `zine-image.tsx`**
 
 ```tsx
 import { ARTWORK } from "@moonwitness/assets";
@@ -1556,7 +1556,7 @@ export function ZineImage({ art, alt, className, sizes = "100vw", eager = false 
 
 Parent pemakai wajib `relative` dengan tinggi pasti — persis pola `next/image fill` yang digantikannya.
 
-- [ ] **Step 6: `marquee.tsx`**
+- [x] **Step 6: `marquee.tsx`**
 
 Markup landing sekarang (baris 361-384) menduplikasi isi dua kali karena keyframe menggeser `-50%`. Komponen ini mengambil alih duplikasi itu; kelas teks (`font-brush text-lg text-white`) tetap di container luar karena `font-family`/`color` diwarisi ke bawah.
 
@@ -1586,7 +1586,7 @@ export function Marquee({ children, className, ...props }: MarqueeProps) {
 
 Pemakai kedua muncul di fase 4 (strip "PRIVATE // CREATE · CURATE · DEPLOY" di hero Shadow Command Center, §6.1) — itu sebabnya komponen ini layak ada meski sekarang hanya satu pemakai.
 
-- [ ] **Step 7: Konstanta bukti + `packages/ui/src/index.ts`**
+- [x] **Step 7: Konstanta bukti + `packages/ui/src/index.ts`**
 
 Buat `packages/ui/src/probe.ts`:
 
@@ -1622,7 +1622,7 @@ export { Halftone, Grain, type HalftoneProps } from "./primitives/texture";
 
 Komposit ditambahkan ke file ini di Task 7-9 (file ditambah, bukan ditulis ulang).
 
-- [ ] **Step 8: Hapus komponen scaffold lama**
+- [x] **Step 8: Hapus komponen scaffold lama**
 
 Sudah diverifikasi nol pemakai di seluruh repo. Pastikan ulang sebelum menghapus:
 
@@ -1637,7 +1637,7 @@ Expected: keduanya 0 baris (atau hanya kecocokan yang jelas bukan komponen lama)
 git rm packages/ui/src/button.tsx packages/ui/src/card.tsx packages/ui/src/badge.tsx
 ```
 
-- [ ] **Step 9: Adopsi primitif di app (hanya yang 1:1)**
+- [x] **Step 9: Adopsi primitif di app (hanya yang 1:1)**
 
 Ganti markup app dengan komponen, **tanpa mengubah kelas lain** yang menyertainya:
 
@@ -1668,7 +1668,9 @@ Untuk `grain`, satu contoh lengkap (`dock.tsx:281`):
 
 `.grain::after` tadinya menutupi element itu sendiri; sekarang menutupi span `absolute inset-0` di dalam parent yang sama. Hasil render identik. **`btn-zine`, `sticker`, `zine-card`, `zine-card-rough` sengaja belum dikonversi di task ini** — konversinya dilakukan bersama pemecahan file (Task 11-13) supaya satu file tidak disentuh dua kali untuk hal yang sama.
 
-- [ ] **Step 10: Pipeline + bukti gerbang + bukti visual**
+> **Cacat plan #2, sudah diperbaiki saat eksekusi.** Baris "semua `<input className="zine-input ...">` (5 situs)" salah kategori. `grep -rn "zine-input" apps/web/src` memang menghasilkan 5 baris, tapi yang di `dock.tsx:349` adalah `<select id="dock-sort">` (dropdown Sort: Newest/Oldest), bukan `<input>`. `ZineInput` merender `<input>`, jadi memakainya di sana menghapus dropdown dan seluruh opsi sort. Yang dilakukan: **4 situs `<input>` dikonversi** (`shadow/page.tsx` email + password, `empire-shell.tsx` pencarian, `site-nav.tsx` pencarian overlay) dan `<select>` dibiarkan memakai kelas mentah `zine-input` — kelas itu tetap global dari `base.css`, jadi tampilannya sama. Kalau nanti tetap ingin komponen, yang dibutuhkan adalah `ZineSelect` terpisah, bukan memaksa `ZineInput`.
+
+- [x] **Step 10: Pipeline + bukti gerbang + bukti visual**
 
 ```bash
 pnpm turbo run lint typecheck build
@@ -1677,11 +1679,24 @@ grep -o '\.18em' apps/web/.next/static/css/*.css
 
 Expected: pipeline hijau dan grep menemukan `.18em` (bukti `@source` masih bekerja setelah primitif pindah).
 
-Lalu SHOT ke `.verify/phase1-task6/` dan bandingkan dengan `.verify/phase0/`: tidak boleh ada perbedaan. Yang paling mungkin berubah tanpa disadari: noise `grain` hilang (span tidak `absolute`), tape bergeser (parent kehilangan `relative`), input kehilangan border pink saat focus.
+Tercatat: **11/11 task sukses** dan `grep -o '\.18em' apps/web/.next/static/css/*.css` = **3 kecocokan**. Gerbang grep Step 8 juga diuji terhadap masukan yang seharusnya cocok (`grep -rn "\bButton\b|\bCard\b|\bBadge\b" packages/ui/src` → 6 kecocokan), jadi angka 0 di `apps/web/src` berarti benar-benar "tidak ada pemakai", bukan pola yang mati.
 
-Matikan server.
+Bukti visual pakai gerbang empat bukti, dan khusus task ini bukti utamanya adalah *computed style* elemen primitif (karena yang berubah adalah siapa yang merender elemen, bukan tampilannya). Di `next start -p 4317`, listener console dipasang sebelum navigasi, viewport 1280×900:
 
-- [ ] **Step 11: Commit**
+| rute | `Grain` (span `.grain`) | `Tape` | `Halftone` | `ZineInput` (`input.zine-input`) | error+warning |
+|---|---|---|---|---|---|
+| `/` | 2 — 1270×828 & 1270×562, `::after` `position:absolute` + `background-image: url("data:image/svg+xml,…")` + `mix-blend-mode: overlay` | 2 — 95×38 & 93×31, `position:absolute` | pink 8px 8px radial + container `.halftone` lama 7px 7px (sengaja dibiarkan, lihat tabel Step 9) | 0 | 0 |
+| `/shadow` | 1 — 1280×900 | 2 — 94×35 & 93×31 | 0 | 2 — border `rgb(42,42,56)`, bg `rgb(14,14,21)` | 0 |
+| `/dock` | 1 — 1030×283 | 0 | 0 | 1 (kolom pencarian `EmpireShell`) | 0 |
+| `/mission-control` | 1 — 1030×260 | 0 | 1 — 7px 7px | 1 | 0 |
+
+Tiga kegagalan senyap yang disebut plan sudah dicek satu per satu: noise `grain` **tidak** hilang (span `absolute inset-0` + `::after` terisi), `tape` **tidak** bergeser (parent tetap `relative`, ukuran pil sama seperti sebelum migrasi), dan focus input **tidak** kehilangan border pink — `page.focus('input.zine-input')` menghasilkan `border-color: rgb(255,45,120)` + `box-shadow: rgba(255,45,120,0.2) 0 0 0 3px`. Overflow 390px: `scrollWidth = clientWidth = 380`.
+
+Screenshot di `.verify/phase1-task6/` (`p6-landing-1280.png`, `p6-shadow-1280.png`, `p6-mission-control-1280.png`).
+
+Matikan server (sudah; `netstat` 4317 kosong).
+
+- [x] **Step 11: Commit**
 
 ```bash
 git add packages/ui/src apps/web/src pnpm-lock.yaml
@@ -1689,6 +1704,10 @@ git commit -m "feat(ui): primitif zine (button, sticker, tape, card, badge, inpu
 
 Menghapus Button/Card/Badge scaffold lama yang tidak punya pemakai."
 ```
+
+**`git add apps/web/src` tidak dijalankan apa adanya** — perintah itu ikut menyeret `globals.css` (masih memegang blok duotone/marginalia milik WIP orang lain) dan seluruh WIP di `landing.tsx`. Yang di-stage: `packages/ui/{package.json,src/index.ts,src/probe.ts,src/primitives/*}` + 3 penghapusan scaffold + `pnpm-lock.yaml` + 5 file app yang diff-nya memang murni milik task ini (`shadow/page.tsx`, `dock.tsx`, `empire-shell.tsx`, `mission-control.tsx`, `site-nav.tsx`), sementara `landing.tsx` di-stage sebagian: versi commit dibangun ulang dari `git show HEAD:` lalu 8 transformasi task ini diterapkan dengan `perl -0777`, diperiksa `diff`-nya hanya memuat 8 perubahan itu, baru masuk index lewat `git hash-object -w` + `git update-index --cacheinfo`.
+
+Bukti konsistensi state yang di-commit (bukan working tree): `git grep --cached "duo-img\|duo-tint\|duo-halftone\|marginalia" -- apps packages` = **kosong**, jadi tidak ada kelas yang direferensikan tapi tidak didefinisikan; dan `git grep --cached -o 'from "@moonwitness/ui"' -- apps/web/src | wc -l` = **6**, sama dengan jumlah file yang mengimpor primitif.
 
 ### Task 7: Komposit timeline (`EventCard`, `EventDetail`, `EraBand`)
 

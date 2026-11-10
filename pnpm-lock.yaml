@@ -325,6 +325,12 @@ importers:
 
   packages/ui:
     dependencies:
+      '@moonwitness/assets':
+        specifier: workspace:*
+        version: link:../assets
+      '@moonwitness/types':
+        specifier: workspace:*
+        version: link:../types
       clsx:
         specifier: ^2.1.1
         version: 2.1.1

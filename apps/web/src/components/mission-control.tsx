@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { EmpireShell } from "./empire-shell";
 import { ArrowRight, Bolt, Crown, Splatter, Star4 } from "@moonwitness/ui/icons";
+import { Grain, Halftone } from "@moonwitness/ui";
 import { artSrc } from "@/lib/art";
 import {
   feedItems,
@@ -92,7 +93,7 @@ const orbitNodes = [
 function OrbitDiagram({ onOpen }: { onOpen: (m: Module) => void }) {
   return (
     <div className="zine-card-rough relative flex min-h-[320px] items-center justify-center overflow-hidden p-4">
-      <div className="halftone absolute inset-0 opacity-40" />
+      <Halftone className="absolute inset-0 opacity-40" />
       <svg viewBox="0 0 200 200" className="relative h-64 w-64 sm:h-72 sm:w-72" aria-hidden>
         <g className="orbit-ring">
           <circle
@@ -241,7 +242,8 @@ export function MissionControl() {
       }}
     >
       {/* HERO BANNER */}
-      <div className="grain relative overflow-hidden border-b-2 border-[var(--line)]">
+      <div className="relative overflow-hidden border-b-2 border-[var(--line)]">
+        <Grain />
         <Image
           src="/art/city-shadow.png"
           alt=""

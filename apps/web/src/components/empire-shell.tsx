@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { feedItems } from "@/lib/data";
 import { roleLabel } from "@/lib/auth";
 import { Crown, SearchIcon, Smiley } from "@moonwitness/ui/icons";
+import { ZineInput } from "@moonwitness/ui";
 
 const navItems = [
   {
@@ -217,12 +218,12 @@ export function EmpireShell({
 
           <div className="relative ml-auto w-full max-w-xs sm:max-w-sm">
             <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-            <input
+            <ZineInput
               value={search.value}
               onChange={(e) => search.onChange(e.target.value)}
               placeholder={search.placeholder}
               aria-label={search.placeholder}
-              className="zine-input rounded-full py-2 pl-9 pr-4 text-xs"
+              className="rounded-full py-2 pl-9 pr-4 text-xs"
             />
           </div>
 

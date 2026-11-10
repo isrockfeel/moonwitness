@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Crown, SearchIcon, GlobeIcon } from "@moonwitness/ui/icons";
+import { ZineInput } from "@moonwitness/ui";
 
 const links = [
   { id: "home", label: "HOME" },
@@ -160,13 +161,13 @@ export function SiteNav() {
               SEARCH THE SIGNALS
             </label>
             <div className="mt-3 flex gap-2">
-              <input
+              <ZineInput
                 id="nav-search"
                 autoFocus
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="stories, signals, people, places…"
-                className="zine-input rounded-md px-4 py-3 text-sm"
+                className="rounded-md px-4 py-3 text-sm"
               />
               <button type="submit" className="btn-zine px-5 py-2 text-sm">
                 GO

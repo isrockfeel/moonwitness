@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { EmpireShell } from "./empire-shell";
 import { ArrowRight, Crown, Splatter, Star4 } from "@moonwitness/ui/icons";
+import { Grain } from "@moonwitness/ui";
 import { artSrc } from "@/lib/art";
 import { timelineEvents, eras, kindColors, type TimelineEvent } from "@/lib/data";
 
@@ -279,7 +280,8 @@ export function Dock() {
       search={{ value: query, onChange: setQuery, placeholder: "Search timeline events…" }}
     >
       {/* HERO */}
-      <div className="grain relative overflow-hidden border-b-2 border-[var(--line)]">
+      <div className="relative overflow-hidden border-b-2 border-[var(--line)]">
+        <Grain />
         <Image
           src="/art/crew-rooftop.png"
           alt=""
