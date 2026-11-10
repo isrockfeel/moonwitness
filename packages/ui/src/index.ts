@@ -10,3 +10,8 @@ export { ZineInput } from "./primitives/zine-input";
 export { ZineImage, type ZineImageProps } from "./primitives/zine-image";
 export { Marquee, type MarqueeProps } from "./primitives/marquee";
 export { Halftone, Grain, type HalftoneProps } from "./primitives/texture";
+
+export { kindColors } from "./composites/kind-colors";
+export { EventCard, KindBadge, type EventCardProps } from "./composites/event-card";
+export { EventDetail, type EventDetailProps } from "./composites/event-detail";
+export { EraBand, type EraBandProps } from "./composites/era-band";

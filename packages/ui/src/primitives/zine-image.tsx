@@ -9,11 +9,20 @@ export interface ZineImageProps {
   className?: string;
   /** Atribut sizes CSS; wajib diisi bila lebar tampil berubah antar breakpoint. */
   sizes?: string;
+  /** Menimpa objectPosition manifest, mis. pemotongan per event di data timeline. */
+  position?: string;
   eager?: boolean;
 }
 
 /** Gambar non-LCP untuk komposit paket: <picture> avif + webp dari manifest. */
-export function ZineImage({ art, alt, className, sizes = "100vw", eager = false }: ZineImageProps) {
+export function ZineImage({
+  art,
+  alt,
+  className,
+  sizes = "100vw",
+  position,
+  eager = false,
+}: ZineImageProps) {
   const entry = ARTWORK[art];
   return (
     <picture>
@@ -25,7 +34,7 @@ export function ZineImage({ art, alt, className, sizes = "100vw", eager = false 
         alt={alt ?? entry.alt}
         loading={eager ? "eager" : "lazy"}
         decoding="async"
-        style={{ objectPosition: entry.position ?? "center" }}
+        style={{ objectPosition: position ?? entry.position ?? "center" }}
         className={cn("absolute inset-0 h-full w-full object-cover", className)}
       />
     </picture>

@@ -4,9 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { artSrc } from "@/lib/art";
-import { timelineEvents, witnesses, kindColors } from "@/lib/data";
+import { timelineEvents, witnesses } from "@/lib/data";
 import { ArrowRight, Bolt, Crown, PlayIcon, PauseIcon, Smiley, Splatter, Star4 } from "@moonwitness/ui/icons";
-import { Grain, Halftone, Tape } from "@moonwitness/ui";
+import { Grain, Halftone, Tape, kindColors } from "@moonwitness/ui";
 import { SiteNav } from "./site-nav";
 
 function TransmissionCard() {

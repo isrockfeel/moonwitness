@@ -1747,7 +1747,7 @@ function EraBand(props: {
 }): JSX.Element
 ```
 
-- [ ] **Step 1: `kind-colors.ts`**
+- [x] **Step 1: `kind-colors.ts`**
 
 Pindahkan nilai dari `apps/web/src/lib/data.ts:275-282` apa adanya:
 
@@ -1773,7 +1773,13 @@ grep -rn "kindColors" apps/web/src
 
 `dock.tsx` dan `landing.tsx` (baris 247) mengimpornya dari `@/lib/data` — ubah jadi `import { kindColors } from "@moonwitness/ui"`.
 
-- [ ] **Step 2: `event-card.tsx`**
+> **Koreksi saat eksekusi.** Hanya `landing.tsx` yang perlu diarahkan ulang (`kindColors` ditambahkan ke impor `@moonwitness/ui` yang sudah ada di baris 9). `dock.tsx` justru **berhenti** mengimpor `kindColors` sama sekali: satu-satunya pemakai di file itu adalah `KindBadge` dan daftar related, dan keduanya pindah ke paket pada Step 2–3. Menambahkan impor yang tidak dipakai akan melanggar `noUnusedLocals`. Verifikasi: `grep -rn "kindColors" apps/web/src packages/ui/src` → 8 baris, semuanya di `landing.tsx` (impor + 1 pemakaian) dan `packages/ui` (definisi + komposit + `index.ts`); `apps/web/src/lib/data.ts` sudah bersih.
+
+- [x] **Step 2: `event-card.tsx`**
+
+> **Cacat plan, dan ini yang mengubah bentuk `ZineImage`.** Step ini menyuruh membuang `objectPosition` per event dan menggantinya satu nilai per artwork dari manifest, dengan remedi "salin nilai `imagePosition` yang paling umum". Di data yang ada remedi itu tidak mungkin: `timelineEvents` punya **13 event, 13 nilai `imagePosition`, dan semuanya unik** — tidak ada yang paling umum. Distribusi per artwork: `city-shadow` → `70% 40%`, `80% 60%`, `55% 30%`, `75% 55%`; `hero-witness` → `20% 30%`, `35% 20%`, `60% 45%`; `crew-rooftop` → `50% 20%`, `30% 55%`, `50% 35%`, `60% 25%`; `signal-tunnel` → `50% 45%`, `50% 60%`. Menyalin satu nilai ke `ARTWORK[key].position` juga merusak tempat lain, karena posisi manifest dipakai bersama oleh hero: `hero-witness` `"30% center"` adalah framing hero `/` (landing), dan `crew-rooftop`/`city-shadow` dipakai kartu landing + pita era.
+>
+> **Yang dilakukan:** `ZineImageProps` dapat `position?: string` dan `<img>`-nya memakai `position ?? entry.position ?? "center"`. Jadi `EventCard`/`EventDetail` meneruskan `event.imagePosition` (framing per event persis seperti sebelumnya) sementara pemakai lain tetap mewarisi nilai manifest. Ini bukan kompromi diam-diam: `position` adalah data presentasi per-instance, bukan desain global, jadi tempatnya memang di prop, bukan di manifest. `next/image` tidak kembali masuk paket — gerbang §3.2 tetap 0.
 
 Pindahkan badan `EventCard` dari `dock.tsx:21-99` apa adanya, dengan tiga perubahan wajib:
 
@@ -1803,7 +1809,9 @@ Export `KindBadge` juga (dipakai `EventDetail`):
 export { KindBadge };
 ```
 
-- [ ] **Step 3: `event-detail.tsx`**
+- [x] **Step 3: `event-detail.tsx`**
+
+> **Konsekuensi tipe dari `era` jadi prop wajib.** Di `dock.tsx` lama `era` hasil `eras.find(...)` bisa `undefined`, sehingga body-nya menulis `{era?.name} ({era?.years})`. Dengan kontrak `era: Era` (wajib), optional chaining itu salah dan TS tidak memaksa apa pun karena `era.name` tetap valid — jadi ditulis `{era.name} ({era.years})`. Tidak ada perubahan tampilan: `selected.era` selalu `EraId` yang ada di `eras`. File ini satu-satunya komposit yang dapat `"use client"` (dipakai `useState` untuk status "Copied ✓"), sesuai aturan §3.2.
 
 Pindahkan badan `EventDetail` dari `dock.tsx:101-239` apa adanya, dengan perubahan wajib:
 
@@ -1836,7 +1844,11 @@ async function share() {
 4. Semua `<Image src={...}>` → `<ZineImage art={...}>` dengan `sizes` yang sama seperti sebelumnya.
 5. `onSelect(id)` → `onRelated(id)`; `KindBadge` diimpor dari `./event-card`.
 
-- [ ] **Step 4: `era-band.tsx`**
+- [x] **Step 4: `era-band.tsx`**
+
+> **Dua detail yang tidak disebut plan.** (1) Ternary path literal di `dock.tsx:411-421` (`fracture` → `/art/signal-tunnel.png`, dst.) tidak bisa dipindah apa adanya ke paket karena `ZineImage` menerima `ArtKey`, bukan string path. Diganti peta `const eraArt: Record<EraId, ArtKey>` di awal file — `Record` dengan kelima `EraId` membuat TS menolak bila ada era baru tanpa artwork, yang justru lebih kuat dari ternary lama (yang diam-diam menjatuhkan era tak dikenal ke `crew-rooftop`). (2) `Image` lama tidak menulis `objectPosition`, jadi default browser `50% 50%`. Tanpa perlakuan khusus, `ZineImage` akan mewarisi posisi manifest (mis. `hero-witness` `"30% center"`) dan menggeser framing kelima chip. Karena itu chip sengaja diberi `position="center"` supaya blok ini benar-benar "apa adanya".
+
+> **Menggantikan rencana Task 17.** Task 17 Step (yang memecah `dock.tsx`) menyebut baris literal era sebagai sisa path mentah yang harus dibereskan di app. Baris itu sudah hilang dari app sejak task ini — ia pindah ke `packages/ui/src/composites/era-band.tsx` sebagai `ArtKey`. Task 17 tidak perlu lagi menyentuhnya.
 
 Pindahkan blok Era Band dari `dock.tsx:394-450` apa adanya menjadi komponen, dengan perubahan:
 
@@ -1850,7 +1862,9 @@ Kedua pemetaan (`eras.map` untuk chip dan untuk bar) memakai pola yang sama.
 
 2. State `era` **tetap di app** (`dock.tsx`), karena state itu juga memfilter daftar event. Komponen ini murni terkendali (controlled).
 
-- [ ] **Step 5: Perbarui `index.ts` dan `dock.tsx`**
+- [x] **Step 5: Perbarui `index.ts` dan `dock.tsx`**
+
+> **Yang berubah dari contoh kode di Step ini.** (1) `EraBand.active` bertipe `EraId | "all"`, sedangkan state lama `useState<string>` — jadi typenya ikut diperketat: `useState<EraId | "all">((params.get("era") ?? "all") as EraId | "all")`. Cast itu sengaja, bukan penjaga: nilai `?era=` dari URL memang tidak divalidasi, dan perilaku untuk nilai tak dikenal sama persis dengan sebelumnya (nol event, karena `e.era === era` tidak pernah cocok). (2) Contoh plan memakai `eras.find(...)!`; tanpa assertion, `EventDetail` butuh `Era` wajib. Yang dipakai adalah cabang eksplisit yang plan sendiri tawarkan: `const selectedEra = selected ? eras.find((e) => e.id === selected.era) : undefined;` lalu render bersyarat `selected && selectedEra` — di `aside` maupun drawer. Tidak ada `!` di file ini. (3) `relatedEvents` ikut dihitung di app (dulu `timelineEvents.filter` di dalam badan `EventDetail`), begitu juga `origin` dari `useEffect` sesuai pola yang plan tulis. (4) Impor yang jadi tidak terpakai di `dock.tsx` ikut dihapus (`ArrowRight`, `artSrc`, `type TimelineEvent`, `kindColors`); `Image`/`next/image` **tetap** karena hero `priority` (§3.2 melarangnya di paket, bukan di app).
 
 Tambah ke `packages/ui/src/index.ts`:
 
@@ -1901,7 +1915,7 @@ const selectedEra = eras.find((e) => e.id === selected.era);
 // ...render EventDetail hanya bila selectedEra ada
 ```
 
-- [ ] **Step 6: Pipeline + bukti visual**
+- [x] **Step 6: Pipeline + bukti visual**
 
 ```bash
 pnpm turbo run lint typecheck build
@@ -1913,6 +1927,33 @@ Expected: pipeline hijau; grep **0 baris** (aturan §3.2). Kalau grep menemukan 
 Lalu SHOT ke `.verify/phase1-task7/`, bandingkan `.verify/phase0/dock-*.png`. Fokus: kartu event (border pink saat terpilih), panel detail (tombol copy, related, tags), pita era (chip aktif). Klik satu kartu lalu satu related event untuk memastikan callback masih bekerja.
 
 Matikan server.
+
+**Hasil pipeline.** `pnpm turbo run lint typecheck build` → **11/11 sukses** (6 cached), `/dock` 2.89 kB / First Load 125 kB, 9 halaman statis ter-generate.
+
+**Gerbang §3.2.** `grep -rn "next/image\|next/link\|next/navigation" packages/ui/src` → **0 baris**. Gerbang ini diverifikasi dulu terhadap input jahat (aturan sesi): `packages/ui/src/__gate_probe.tsx` berisi `import Image from "next/image"` membuat grep yang sama mengembalikan 1 hit (`__gate_probe.tsx:1`), lalu file probe dihapus dan grep kembali 0. Tanpa bukti itu, "0" tidak membedakan "isolasi terjaga" dari "grep tidak membaca apa pun".
+
+**Bukti visual (empat bukti, seperti Task 4–6).** Server `next start -p 4317` (port dicek `netstat` dulu, bebas), listener console dipasang sebelum navigasi, `waitUntil: domcontentloaded`.
+
+| viewport | scrollWidth×innerWidth | error console per navigasi | bukti utama |
+|---|---|---|---|
+| 1440×900 | 1440×1440 (tidak overflow) | **0** | 13 kartu; klik kartu #2 → detail `MOONWITNESS IS BORN` → `THE SHADOW GROWS`; border kartu terpilih `rgb(255,45,120)` = `--pink`; klik related #1 → `A BRIGHTER QUESTION`; 3 tag pill; tombol Share warna `rgb(46,168,255)` |
+| 1440, `?era=fracture` | — | **0** | chip aktif `aria-pressed=true` + `filter:none`, empat chip lain `filter:grayscale(1)`, `object-position:50% 50%` (peta `eraArt` benar) |
+| 1440, share | — | **0** | `navigator.clipboard.writeText` disadap lewat `addInitScript` → teks tersadap `http://127.0.0.1:4317/dock?event=moonwitness-born`, tombol berubah jadi `Copied ✓`. Ini bukti `origin` (guard `useEffect`) + prop `shareUrl` tersambung; tanpa sadapan, kegagalan clipboard akan memanggil `window.prompt` dan memblokir Playwright |
+| 1440, pita era diklik | — | **0** | `Showing 13 of 13` → `Showing 2 of 13` → klik lagi → `13 of 13`. State penyaring memang tetap di app, komponen hanya terkendali |
+| 390×844 | 380×390 | **0** | kartu → drawer `role=dialog` muncul, judul `NEW WORLDS, SAME SKY`, tombol ✕ menghapus drawer dari DOM |
+| 768×1024 | 758×768 | **0** | 5 chip pita era tetap ter-render |
+
+**`objectPosition` per event selamat.** List view: `60% 25%`; grid view kartu pertama: `60% 25%`; drawer detail: `60% 25%` — semuanya nilai dari `lib/data.ts`, bukan nilai manifest. Ini yang membedakan deviasi Step 2 dari "kebetulan mirip".
+
+**Ukuran halaman identik dengan baseline.** `dock-1440.png` 1430×2537 vs `p7-dock-1440.png` 1430×2537; 768: 758×2748 kedua-duanya; 390: 380×4715 kedua-duanya. Tidak ada reflow.
+
+**Kenapa diff pixel vs phase0 sengaja tidak dipakai sebagai gerbang.** Diff baris per baris terhadap `phase0/dock-1440.png` menghasilkan mean 1.13 dengan pita perubahan tepat pada tinggi gambar kartu (586–685, 860–956, 1134–1232, dst.), dan mean 8.66 di 768 / 6.60 di 390. Angka ini **tidak** berarti regresi: baseline phase0 diambil sebelum Task 4–7, jadi diff-nya memuat (a) sumber gambar pindah dari `/_next/image?url=…png` ke `<picture>` AVIF/WebP hasil pipeline Task 3 — encoder beda, pixel pasti beda, dan itu memang tujuan refactor; (b) perubahan CSS Task 4, ikon Task 5, primitif Task 6; (c) header/hero di viewport kecil. Karena itu pembandingnya computed style + ukuran layout + crop mata, dan crop `cmp-band-1440.png` / `cmp-cards-1440.png` (kiri baseline, kanan Task 7) menunjukkan framing artwork, label, tanggal, badge, dan panel detail sama.
+
+**Delta visual yang diterima dan disengaja.** Badge jenis (`PROJECT`, `SIGNAL`, …) kini sedikit lebih renggang karena `ZineBadge` membawa `SOURCE_PROBE_CLASS` (`tracking-[0.18em]`) — perawatan design system yang sudah diputuskan di Task 6, bukan efek samping Task 7. Warna badge identik (`kindColors` dipindah apa adanya; `dark` menggantikan `color: kind === "SIGNAL" ? "#111" : "#fff"`).
+
+**Dua jebakan yang tercatat.** (1) Log console agregat `.playwright-mcp/console-*.log` bertambah 46 baris tepat setelah navigasi pertama, isinya `ERR_CONNECTION_REFUSED` dan "Failed to fetch RSC payload" — semuanya ber-timestamp ~1,547,477 ms, yaitu sisa dari konteks browser yang sama ketika port 4317 masih mati (sebelum Task 6 ditutup). Penomoran "New console entries" dari tool menandai baris *baru bagi tool*, bukan baru bagi navigasi ini; yang bisa dipakai hanya listener yang dipasang sendiri per navigasi (hasil: 0). (2) `filter` chip aktif sempat terbaca `grayscale(1)` sesaat setelah klik karena `transition-all duration-300` — pengukuran ulang yang membaca kelima chip sekaligus memberi `none` untuk yang aktif. Lesson: jangan simpulkan state transisi dari satu sampel.
+
+Matikan server: listener PID 28040 dihentikan, `netstat` tidak menyisakan `LISTENING` di 4317 (hanya `TIME_WAIT` sisa koneksi).
 
 - [ ] **Step 7: Commit**
 
