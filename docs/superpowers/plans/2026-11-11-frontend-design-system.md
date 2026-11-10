@@ -2224,9 +2224,11 @@ function ModuleCard(props: { module: Module; onOpen: (m: Module) => void }): JSX
 
 `ModuleCard` dipakai ulang di fase 4 untuk bagian 8 (tile Story Studio / Poster Forge), jadi ini bukan komponen untuk halaman yang akan dibuang.
 
-- [ ] **Step 1: `module-glyphs.ts`**
+- [x] **Step 1: `module-glyphs.ts`**
 
-Pindahkan `moduleIcons` dari `mission-control.tsx:18-27` apa adanya, ganti nama jadi `MODULE_GLYPHS` (konstanta, bukan tipe):
+> **Koreksi saat eksekusi:** rentang baris di header task (18-27 / 29-44 / 46-88) meleset dari tree nyata. Di `mission-control.tsx` HEAD, `moduleIcons` ada di 20-29, `ModuleIcon` 31-46, `ModuleCard` 48-82. Pemotongan dilakukan dengan skrip penanda (`const moduleIcons: Record<string, string> = {` → `const orbitNodes = [`), dengan asersi bahwa irisan yang dibuang memuat kedua `function ModuleCard` dan `function ModuleIcon` — bukan mengandalkan nomor baris.
+
+Pindahkan `moduleIcons` dari `mission-control.tsx` apa adanya, ganti nama jadi `MODULE_GLYPHS` (konstanta, bukan tipe):
 
 ```ts
 /** Path stroke SVG per ikon modul. Kunci = nilai field Module["icon"]. */
@@ -2242,7 +2244,7 @@ export const MODULE_GLYPHS: Record<string, string> = {
 };
 ```
 
-- [ ] **Step 2: `module-glyph.tsx`**
+- [x] **Step 2: `module-glyph.tsx`**
 
 Pindahkan `ModuleIcon` dari `mission-control.tsx:29-44` apa adanya, ganti nama jadi `ModuleGlyph` dan sumber path jadi `MODULE_GLYPHS`:
 
@@ -2273,11 +2275,15 @@ export function ModuleGlyph({ icon, className }: { icon: string; className?: str
       <path d={MODULE_GLYPHS[icon] ?? MODULE_GLYPHS.gear ?? ""} />
 ```
 
-- [ ] **Step 3: `module-card.tsx`**
+- [x] **Step 3: `module-card.tsx`**
+
+> **Deviasi kecil:** sama seperti Task 8, tiap komposit diekspor dengan `interface …Props`-nya juga (`ModuleGlyphProps`, `ModuleCardProps`), bukan hanya fungsinya. Markup kartu tetap memakai `zine-card-rough` mentah pada `<button>` (bukan primitif `ZineCardRough`) karena tipe elemennya tidak boleh berubah.
 
 Pindahkan `ModuleCard` dari `mission-control.tsx:46-88` apa adanya. Dua perubahan saja: `ModuleIcon` → `ModuleGlyph` (impor dari `./module-glyph`), dan `<Crown>`/`<ArrowRight>` diimpor dari `../icons`. Signature tetap `{ module, onOpen }` — sudah sesuai §3.2.
 
-- [ ] **Step 4: Export + pemakai di app**
+- [x] **Step 4: Export + pemakai di app**
+
+> **Cacat plan:** plan hanya menyebut satu pemakai (`<ModuleCard …>`), padahal `ModuleIcon` juga dipakai **kedua kalinya** di drawer modul (`mission-control.tsx` baris ~425, `<ModuleIcon icon={openModule.icon} …/>`). Menghapus `ModuleIcon` lokal tanpa mengganti pemakai itu membuat build merah. Solusi: impor `ModuleGlyph` ke app juga, ganti pemakai drawer jadi `<ModuleGlyph icon={openModule.icon} className="h-7 w-7" />`. Jadi baris import app-nya `import { Grain, Halftone, ModuleCard, ModuleGlyph } from "@moonwitness/ui";` (bukan hanya `ModuleCard`). `Crown` (5×), `ArrowRight` (1×), dan `type Module` tetap diimpor & terpakai di app — audit grep: 0 impor tak terpakai, 0 lokal terlarang tersisa.
 
 Tambah ke `packages/ui/src/index.ts`:
 
@@ -2295,7 +2301,17 @@ import { ModuleCard } from "@moonwitness/ui";
 
 Pemakaian `<ModuleCard module={m} onOpen={setOpenModule} />` tidak berubah.
 
-- [ ] **Step 5: Pipeline + bukti visual + commit**
+- [x] **Step 5: Pipeline + bukti visual + commit**
+
+> **Bukti eksekusi:**
+> - **Perubahan lingkungan dari tim backend:** `apps/api` sudah berganti nama jadi `@moonwitness/api` (filter `!@moonwitness/api-app` lama tidak dikenal lagi), dan muncul workspace baru `packages/errors`, `packages/schema`, `packages/contracts`. `pnpm turbo run` memicu auto-install pnpm yang mengotori `pnpm-lock.yaml` (+627 baris) — **bukan perubahan saya, sengaja tidak di-stage.**
+> - **Pipeline:** dijalankan dengan `pnpm exec turbo` (bypass verify-deps pnpm) + `--filter='!@moonwitness/api' --filter='!@moonwitness/errors' --filter='!@moonwitness/schema' --filter='!@moonwitness/contracts'`. Hasil **11/11 hijau**. Paket backend `errors`/`schema` gagal lint dengan `'eslint' is not recognized` — persis cacat lingkungan `api-app` di Task 8, di luar scope frontend, jadi di-eksklusi. `/mission-control` build 4.38 kB / 129 kB.
+> - **Gate §3.2:** `grep -rn "next/" packages/ui/src` → 0 baris (exit 1).
+> - **Bukti visual (`.verify/phase1-task9/mission-control-{1440,768,390}.png` vs `.verify/phase0/`):** dimensi halaman **identik persis** di ketiga viewport — 1430×1487, 758×2629, 380×3073. Grid modul kiri/kanan, warna glyph per modul (pen pink, image biru, flask ungu, globe kuning, send pink, gear biru, shield ungu), dan angka stats sama. `scrollWidth` ≤ viewport (1430/758/380). 0 error konsol di ketiganya.
+> - **Interaksi drawer:** klik kartu "STORY FORGE" → tombol `[aria-label="Close module console"]` muncul (count 1) → drawer terbuka. `.verify/phase1-task9/mission-control-drawer.png`.
+> - Server dev 4317 sudah dimatikan (`taskkill`, konfirmasi `no listener`).
+>
+> **Catatan jujur:** pipeline diverifikasi terhadap working tree, bukan commit hasil stage-parsial (belum ada resep stage terpisah di task ini karena semua file task 9 memang milik saya sendiri).
 
 ```bash
 pnpm turbo run lint typecheck build
