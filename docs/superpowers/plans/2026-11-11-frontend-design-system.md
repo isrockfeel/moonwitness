@@ -238,7 +238,7 @@ Gerbang fase (§7): pipeline hijau, bukti `@source` benar-benar memindai paket, 
 - Consumes: bentuk tipe yang sudah ada di `apps/web/src/lib/data.ts` (baris 1-7, 47-62, 284-291, 373-381, 422-427, 457, 482, 490-499).
 - Produces: ekspor `ArtKey`, `EraId`, `EventKind`, `Era`, `TimelineEvent`, `ModuleStat`, `Module`, `Project`, `Workflow`, `FeedItem`, `MissionAlert`, `Witness` dari `@moonwitness/types`. Task 3, 6, 7, 8, 9, 11, 12, 20, 21 semuanya mengimpor dari sini.
 
-- [ ] **Step 1: Tulis `packages/types/src/index.ts`**
+- [x] **Step 1: Tulis `packages/types/src/index.ts`**
 
 Isi lengkap (tipe baru untuk dashboard **belum** ditambah di sini — itu Task 20, supaya fase 1 tetap netral secara visual):
 
@@ -343,7 +343,7 @@ export interface Witness {
 }
 ```
 
-- [ ] **Step 2: Tulis `packages/types/package.json`**
+- [x] **Step 2: Tulis `packages/types/package.json`**
 
 ```json
 {
@@ -371,7 +371,7 @@ export interface Witness {
 
 Tidak ada blok `dependencies` sama sekali — itu bukti §3.1 "nol dependensi runtime".
 
-- [ ] **Step 3: Tulis `packages/types/tsconfig.json` dan `packages/types/eslint.config.mjs`**
+- [x] **Step 3: Tulis `packages/types/tsconfig.json` dan `packages/types/eslint.config.mjs`**
 
 `tsconfig.json` (tidak perlu DOM, paket ini tidak punya JSX):
 
@@ -393,7 +393,7 @@ export default [...base];
 
 Sebelum melanjutkan, pastikan nama ekspor itu benar: `grep -n "export const base" packages/eslint-config/base.js`. Kalau yang diekspor bukan `base`, sesuaikan import-nya — jangan menebak.
 
-- [ ] **Step 4: Wiring workspace + install**
+- [x] **Step 4: Wiring workspace + install**
 
 Tambahkan ke `apps/web/package.json` di blok `dependencies`, urut alfabet sebelum `@moonwitness/core`:
 
@@ -415,7 +415,7 @@ pnpm install
 
 Expected: lockfile berubah, `apps/web/node_modules/@moonwitness/types` adalah symlink ke `packages/types`. Cek dengan `ls -l apps/web/node_modules/@moonwitness/`.
 
-- [ ] **Step 5: `lib/data.ts` berhenti mendeklarasikan tipe**
+- [x] **Step 5: `lib/data.ts` berhenti mendeklarasikan tipe**
 
 Di `apps/web/src/lib/data.ts`:
 
@@ -478,7 +478,7 @@ Ganti setiap kemunculan. Sudah dipetakan, hanya ada tiga file: `lib/data.ts` (1 
 export const kindColors: Record<EventKind, string> = { ... };
 ```
 
-- [ ] **Step 6: Ganti path artwork mentah jadi `ArtKey` di data**
+- [x] **Step 6: Ganti path artwork mentah jadi `ArtKey` di data**
 
 Semua field `image:` di `timelineEvents` dan `projects` sekarang bertipe `ArtKey`, jadi 17 kemunculan path di `lib/data.ts` harus diganti:
 
@@ -497,7 +497,7 @@ grep -n "/art/" apps/web/src/lib/data.ts
 
 Expected: **0 baris**. Kalau masih ada, tipe belum ketat atau ada field yang terlewat.
 
-Field `era:` di setiap event harus cocok dengan `EraId` (`"origins"`, `"neon"`, `"fracture"`, `"rebuilding"`, `"expansions"`) — kalau ada event yang `era`-nya string lain, `tsc` akan报错; perbaiki datanya, jangan longgarkan tipenya.
+Field `era:` di setiap event harus cocok dengan `EraId` (`"origins"`, `"neon"`, `"fracture"`, `"rebuilding"`, `"expansions"`) — kalau ada event yang `era`-nya string lain, `tsc` akan menolak dengan error tipe; perbaiki datanya, jangan longgarkan tipenya.
 
 - [ ] **Step 7: Perbaiki pemakai yang butuh path, bukan key**
 
@@ -513,7 +513,7 @@ export function artSrc(key: ArtKey): string {
 }
 ```
 
-`@moonwitness/assets` baru dibuat di Task 3, jadi **Step 7-9 dijalankan setelah Task 3 selesai**. Urutan eksekusi yang benar: kerjakan Task 1 Step 1-6, lalu Task 2, Task 3, lalu kembali ke Task 1 Step 7-10. Kalau eksekutor lebih suka linear, tukar posisi: kerjakan Task 2 dan Task 3 dulu, baru Task 1 — hasilnya identik.
+`@moonwitness/assets` baru dibuat di Task 3, jadi **Step 7, 9-10 dijalankan setelah Task 3 selesai**; Step 8 justru sudah dikerjakan bersama Step 1-6 karena tidak bergantung pada Task 3 sama sekali — menundanya membuat Task 2 Step 5 mustahil hijau (`dock.tsx` masih mengimpor `DockEvent` yang sudah dihapus dari `lib/data.ts`). Urutan eksekusi yang benar: Task 1 Step 1-6 + Step 8, lalu Task 2, Task 3, lalu kembali ke Task 1 Step 7, 9-11.
 
 Pemakai yang diubah (ganti `src={ev.image}` → `src={artSrc(ev.image)}`):
 
@@ -523,7 +523,7 @@ Pemakai yang diubah (ganti `src={ev.image}` → `src={artSrc(ev.image)}`):
 
 Path literal yang tidak lewat data (`landing.tsx` 36, 299, 400, 427, 478, 515; `dock.tsx` 283; `mission-control.tsx` 245; `shadow/page.tsx` 57) **dibiarkan apa adanya** di fase 1 — Task 17 yang menyeragamkannya.
 
-- [ ] **Step 8: Update import type di komponen**
+- [x] **Step 8: Update import type di komponen**
 
 Ganti `import { ..., type DockEvent } from "@/lib/data"` menjadi `type TimelineEvent`, dan ganti semua pemakaian `DockEvent` di `dock.tsx` (signature `KindBadge`, `EventCard`, `EventDetail`, state `selected`) dengan `TimelineEvent`.
 
@@ -540,9 +540,10 @@ pnpm turbo run lint typecheck build
 ```
 
 Expected: hijau. Error yang wajar muncul dan cara benar menanganinya:
-- `Property 'x' does not exist on type 'ArtKey'` → ada pemakai `ev.image` yang belum dibungkus `artSrc()` (Step 7).
 - `Type '"2024-xx"' is not assignable to type 'EraId'` → data `era` tidak cocok; perbaiki datanya.
 - `Cannot find module '@moonwitness/types'` → `pnpm install` belum dijalankan atau `transpilePackages` belum ditambah.
+
+Yang **tidak** ditangkap `tsc`: pemakai `ev.image` yang belum dibungkus `artSrc()` tetap lolos karena `ArtKey` adalah union string dan `src` `next/image` menerima `string`. Gejalanya hanya terlihat di runtime — `src="hero-witness"` tanpa `/art/`, gambar rusak/404. Karena itu Step 7 tidak boleh dilewat dan hasilnya diverifikasi lewat screenshot Step 10, bukan lewat pipeline.
 
 - [ ] **Step 10: Bukti tidak ada perubahan tampilan**
 
@@ -577,7 +578,7 @@ Task ini murni penataan file, tanpa logika. Manifest dan skrip optimasi ada di T
 - Consumes: `ARTS/*.png` (6 file) dan `vibe_images/*.png` (4 file) di root repo.
 - Produces: nama referensi stabil `01-landing.png` … `06-shadow-command-center.png` yang dirujuk `ArtEntry.credit` (Task 3) dan fidelity check fase 4 (Task 26).
 
-- [ ] **Step 1: Buat struktur paket**
+- [x] **Step 1: Buat struktur paket**
 
 `packages/assets/package.json` — `sharp` dan `vitest` masuk devDependencies karena hanya dipakai skrip/tes, bukan runtime browser:
 
@@ -648,7 +649,7 @@ export default [
 export {};
 ```
 
-- [ ] **Step 2: Salin dan rename referensi**
+- [x] **Step 2: Salin dan rename referensi**
 
 `ARTS/` **tidak disentuh dan tidak dipindah** (§D8) — ini salinan, jadi `git mv` tidak dipakai:
 
@@ -668,7 +669,7 @@ cp vibe_images/signal-tunnel_*.png                packages/assets/references/raw
 
 Perhatikan dua file yang beda isi meski namanya mirip: `image (2).png` **dengan spasi** = acuan Mission Control lama; `image(2).png` **tanpa spasi** = poster ska (gaya saja). Salah salin di sini merusak seluruh acuan fidelity.
 
-- [ ] **Step 3: Verifikasi salinan identik**
+- [x] **Step 3: Verifikasi salinan identik**
 
 ```bash
 md5sum "ARTS/image (2).png" packages/assets/references/02-mission-control.png
@@ -677,7 +678,7 @@ md5sum "ARTS/image(2).png"  packages/assets/references/05-style-ska-poster.png
 
 Expected: tiap pasangan menghasilkan md5 yang **sama**, dan md5 `02-...` **berbeda** dari md5 `05-...`. Kalau sama, Step 2 salah kutip nama file.
 
-- [ ] **Step 4: Tulis `REFERENCES.md`**
+- [x] **Step 4: Tulis `REFERENCES.md`**
 
 `packages/assets/references/REFERENCES.md`:
 
@@ -702,7 +703,7 @@ Salinan dari `ARTS/` di root repo dengan nama yang bisa dipakai sebagai acuan ke
 Enam file di atas diverifikasi berbeda satu sama lain (md5 unik), jadi tabel ini bukan tebakan.
 ```
 
-- [ ] **Step 5: Install + pipeline**
+- [x] **Step 5: Install + pipeline**
 
 ```bash
 pnpm install
