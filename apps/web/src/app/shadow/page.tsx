@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowRight, Crown, EyeIcon, Smiley, Splatter, Star4 } from "@/components/zine";
+import { ArrowRight, Crown, EyeIcon, Smiley, Splatter, Star4 } from "@moonwitness/ui/icons";
 import { authenticate } from "@/lib/auth";
 
 export default function ShadowPage() {

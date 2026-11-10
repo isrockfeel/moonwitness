@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { EmpireShell } from "./empire-shell";
-import { ArrowRight, Bolt, Crown, Splatter, Star4 } from "./zine";
+import { ArrowRight, Bolt, Crown, Splatter, Star4 } from "@moonwitness/ui/icons";
 import { artSrc } from "@/lib/art";
 import {
   feedItems,

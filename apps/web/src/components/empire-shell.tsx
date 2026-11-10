@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { feedItems } from "@/lib/data";
 import { roleLabel } from "@/lib/auth";
-import { Crown, SearchIcon, Smiley } from "./zine";
+import { Crown, SearchIcon, Smiley } from "@moonwitness/ui/icons";
 
 const navItems = [
   {

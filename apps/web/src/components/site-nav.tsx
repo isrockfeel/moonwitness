@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Crown, SearchIcon, GlobeIcon } from "./zine";
+import { Crown, SearchIcon, GlobeIcon } from "@moonwitness/ui/icons";
 
 const links = [
   { id: "home", label: "HOME" },

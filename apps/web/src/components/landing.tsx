@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { artSrc } from "@/lib/art";
 import { timelineEvents, witnesses, kindColors } from "@/lib/data";
-import { ArrowRight, Bolt, Crown, PlayIcon, PauseIcon, Smiley, Splatter, Star4 } from "./zine";
+import { ArrowRight, Bolt, Crown, PlayIcon, PauseIcon, Smiley, Splatter, Star4 } from "@moonwitness/ui/icons";
 import { SiteNav } from "./site-nav";
 
 function TransmissionCard() {

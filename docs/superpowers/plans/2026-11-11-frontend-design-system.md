@@ -1247,20 +1247,23 @@ Konsekuensi yang perlu dicatat: **screenshot Step 9 diambil dari working tree**,
 ### Task 5: Pindahkan ikon ke `packages/ui/src/icons`
 
 **Files:**
-- Create: `packages/ui/src/icons/index.ts` (salinan `apps/web/src/components/zine.tsx`, 123 baris, 11 ikon)
+- Create: `packages/ui/src/icons/index.tsx` (salinan `apps/web/src/components/zine.tsx`, 123 baris, 11 ikon)
+- Modify: `packages/ui/package.json` (subpath `./icons` menunjuk ke file `.tsx`)
 - Modify: `apps/web/src/components/{landing,dock,mission-control,empire-shell,site-nav}.tsx` (baris import saja)
 - Modify: `apps/web/src/app/shadow/page.tsx` (baris import saja)
 - Delete: `apps/web/src/components/zine.tsx`
+
+> **Cacat plan yang sudah diperbaiki saat eksekusi.** Versi awal task ini menulis tujuan sebagai `icons/index.ts`. Itu tidak bisa jalan: isinya JSX, dan TypeScript mem-parse `.ts` tanpa mode JSX, jadi `pnpm --filter @moonwitness/ui typecheck` gagal dengan 20+ `error TS1005: '>' expected` di baris `<svg ...>`. Nama file yang benar `index.tsx`, dan blok `exports` ikut menunjuk ke sana. Semua rujukan `icons/index.ts` di task lain (Task 6-9, 11-13, 22-24) dibaca sebagai `icons/index.tsx`.
 
 **Interfaces:**
 - Consumes: `apps/web/src/components/zine.tsx` — `Crown`, `Bolt`, `Smiley`, `Star4`, `Splatter`, `ArrowRight`, `PlayIcon`, `PauseIcon`, `GlobeIcon`, `EyeIcon`, `SearchIcon`, semuanya `(props: SVGProps<SVGSVGElement>) => JSX`.
 - Produces: `import { Crown, ArrowRight } from "@moonwitness/ui/icons"` — subpath ini dipakai Task 6-9, 11-13, 22-24.
 
-- [ ] **Step 1: Salin isi `zine.tsx` ke `packages/ui/src/icons/index.ts`**
+- [x] **Step 1: Salin isi `zine.tsx` ke `packages/ui/src/icons/index.tsx`**
 
-Isi file = persis 123 baris `apps/web/src/components/zine.tsx`, tanpa perubahan apa pun (semua ikon sudah `aria-hidden` dan memakai `currentColor`, jadi sudah aman untuk paket).
+Isi file = persis 123 baris `apps/web/src/components/zine.tsx`, tanpa perubahan apa pun (semua ikon sudah `aria-hidden` dan memakai `currentColor`, jadi sudah aman untuk paket). Bukti: `diff apps/web/src/components/zine.tsx packages/ui/src/icons/index.tsx` kosong, dan `git` mengenalinya sebagai rename 100% (`R apps/web/src/components/zine.tsx -> packages/ui/src/icons/index.tsx`). Ekstensi `.tsx`, bukan `.ts` — lihat catatan cacat plan di atas.
 
-- [ ] **Step 2: Ganti import di 6 file app**
+- [x] **Step 2: Ganti import di 6 file app**
 
 Setiap `from "./zine"` atau `from "@/components/zine"` jadi `from "@moonwitness/ui/icons"`:
 
@@ -1270,28 +1273,43 @@ grep -rn "components/zine\|\"./zine\"" apps/web/src
 
 Enam situs yang sudah dipetakan: `app/shadow/page.tsx`, `components/dock.tsx`, `components/empire-shell.tsx`, `components/landing.tsx`, `components/mission-control.tsx`, `components/site-nav.tsx`. Setelah mengganti, jalankan grep yang sama dan pastikan hasilnya **0 baris**.
 
-- [ ] **Step 3: Hapus file lama**
+- [x] **Step 3: Hapus file lama**
 
 ```bash
 git rm apps/web/src/components/zine.tsx
 ```
 
-Penghapusan ini diminta eksplisit oleh spec (§3.2: ikon pindah ke paket). Jangan hapus file lain di task ini.
+Penghapusan ini diminta eksplisit oleh spec (§3.2: ikon pindah ke paket). Jangan hapus file lain di task ini. Sudah: `git rm -q` dan `git status` hanya menampilkan rename, tidak ada penghapusan lain.
 
-- [ ] **Step 4: Pipeline + bukti visual**
+- [x] **Step 4: Pipeline + bukti visual**
 
 ```bash
 pnpm turbo run lint typecheck build
 ```
 
-Lalu SHOT ke `.verify/phase1-task5/` dan bandingkan dengan `.verify/phase0/`: semua ikon (mahkota kuning, panah, play/pause, splatter) harus tetap tampil di posisi yang sama. Ikon yang hilang = `"use client"` atau transpile paket bermasalah — periksa `transpilePackages` memuat `@moonwitness/ui`.
+Lalu bukti tampilan dengan gerbang empat bukti (bukan diff pixel vs `.verify/phase0/`). Ikon yang hilang = `"use client"` atau transpile paket bermasalah — periksa `transpilePackages` memuat `@moonwitness/ui`.
 
-Matikan server, lalu commit:
+Terukur di `next start -p 4317`, viewport 1280×900, dengan listener `console`/`pageerror` dipasang sebelum navigasi:
+
+| rute | `<svg>` | `viewBox` mahkota `0 0 48 32` | splatter `0 0 24 32` | star4 `0 0 32 32` | smiley `0 0 100 100` | 24×24 | error+warning | scrollWidth |
+|---|---|---|---|---|---|---|---|---|
+| `/` | 40 | 6 | 1 | 2 | 4 | 26 | 0 | 1270 |
+| `/dock` | 35 | 5 | 0 | 1 | 1 | 28 | 0 | 1270 |
+| `/mission-control` | 50 | 15 | 5 | 1 | 1 | 27 | 0 | 1270 |
+| `/shadow` | 10 | 3 | 0 | 2 | 1 | 4 | 0 | 1280 |
+
+Kelima bentuk viewBox ikon muncul di tempat yang sama seperti sebelumnya, nol konsol, nol overflow. Satu-satunya `<svg>` berukuran nol di `/` adalah tombol menu mobile (`parent: .rounded-md.p-2.text-zinc-200.lg:hidden`) — memang disembunyikan di 1280px, bukan ikon rusak. Dua viewBox asing (`0 0 100 70` di `/`, `0 0 200 200` di `/mission-control`) adalah diagram orbit/peta inline milik app, bukan bagian set ikon.
+
+Screenshot tersimpan di `.verify/phase1-task5/` (`p5-landing-1280.png`, `p5-shadow-1280.png`, `p5-dock-1280.png`), diambil dengan resep deterministik yang sama seperti Task 4 Step 9.
+
+Matikan server (sudah: `netstat` untuk 4317 kosong), lalu commit:
 
 ```bash
 git add packages/ui/src/icons apps/web/src
 git commit -m "refactor(ui): ikon SVG pindah ke @moonwitness/ui/icons"
 ```
+
+**Jangan jalankan `git add apps/web/src` apa adanya.** Di dalamnya ada `globals.css` yang masih menggenggam blok duotone/marginalia milik WIP orang lain dan `landing.tsx` yang punya WIP sendiri. Yang di-stage: 5 file import bersih + `packages/ui/{package.json,src/icons/index.tsx}` + penghapusan `zine.tsx`, sementara `landing.tsx` di-stage sebagian lewat `git show HEAD:... | sed 's|from "./zine"|...|'` → `git hash-object -w` → `git update-index --cacheinfo`. Bukti sebelum commit: `git diff --cached` hanya berisi 6 baris import + rename + satu baris exports, dan `git status` menampilkan `MM apps/web/src/components/landing.tsx` serta ` M apps/web/src/app/globals.css` (WIP tetap tidak tersentuh).
 
 ### Task 6: Primitif `packages/ui` + hapus komponen scaffold lama
 
