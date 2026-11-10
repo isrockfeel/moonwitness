@@ -48,6 +48,15 @@ taskkill //PID <pid> //F         # SELALU dijalankan sebelum task ditutup
 
 Screenshot diambil untuk 4 route (`/`, `/shadow`, `/mission-control`, `/dock`) pada 3 viewport (`390x844`, `768x1024`, `1440x900`), disimpan ke `.verify/<fase>/` — direktori ini **tidak** di-commit (masuk `.gitignore` di Task 0). Pakai Playwright/browser MCP dengan `scale: "css"`; simpan dengan nama stabil `verify-<fase>-<route>-<lebar>.png`.
 
+**Cara membandingkan screenshot (terikat saat eksekusi, jangan diulang sebagai asumsi).** Diff pixel mentah `.verify/<fase>` vs `.verify/phase0` **bukan** gerbang yang sah: `fullPage` + `loading="lazy"` membuat gambar di bawah lipatan kadang sudah termuat, kadang belum, pada build yang sama. Terukur di Task 1: `dock-768` berbeda 11,5% terhadap baseline padahal tidak ada perubahan tampilan, dan **6,6% terhadap dirinya sendiri** pada capture ulang (`shadow-768`); pita perbedaan ternyata hero `crew-rooftop` dan thumbnail event yang di baseline masih hitam. Karena itu setiap gerbang visual memakai empat bukti ini, berurutan:
+
+1. `document.documentElement.scrollWidth` per route pada 390px — angka harus sama dengan baseline (380).
+2. Jumlah `console` error + warning per route, dijaring dengan listener `console`/`pageerror` yang dipasang sebelum `goto` dan dilepas setelahnya — target 0/0.
+3. Paritas `src` gambar yang benar-benar dirender: dekode parameter `url=` dari `img[src]` `/_next/image`, hasilnya harus path `/art/*.png` nyata, tidak ada key telanjang (`hero-witness`), tidak ada `naturalWidth === 0` pada gambar yang terlihat.
+4. Screenshot tetap diambil dan **diperiksa mata** untuk layout, warna, dan posisi; diff pixel hanya dipakai sebagai penunjuk daerah yang perlu dilihat, dengan catatan bahwa gambar yang belum termuat di salah satu sisi bukan regresi.
+
+Kalau memang butuh capture yang bisa di-diff, bekukan animasi (`animation/transition: none` via `addStyleTag`), gulir seluruh halaman dulu, lalu tunggu `document.images` lengkap (`complete && naturalWidth>0`) sebelum `screenshot`. Batasi satu panggilan MCP per viewport — 12 capture sekaligus melewati timeout pemanggilan alat.
+
 ## Nilai yang baru terikat saat eksekusi
 
 Plan ini tidak punya lubang "TBD". Yang ada adalah beberapa nilai `<…>` yang **sengaja** baru bisa dipastikan saat eksekusi, dan setiap satunya punya langkah yang mengikatnya. Jangan menebak lebih awal, dan jangan menulis nilainya ke plan sebelum langkah pengikatnya dijalankan.
@@ -499,9 +508,9 @@ Expected: **0 baris**. Kalau masih ada, tipe belum ketat atau ada field yang ter
 
 Field `era:` di setiap event harus cocok dengan `EraId` (`"origins"`, `"neon"`, `"fracture"`, `"rebuilding"`, `"expansions"`) — kalau ada event yang `era`-nya string lain, `tsc` akan menolak dengan error tipe; perbaiki datanya, jangan longgarkan tipenya.
 
-- [ ] **Step 7: Perbaiki pemakai yang butuh path, bukan key**
+- [x] **Step 7: Perbaiki pemakai yang butuh path, bukan key**
 
-Konsekuensi Step 6: 3 tempat di app yang memakai `ev.image` langsung sebagai `src` `next/image` sekarang memegang key. Tambah satu helper resolusi di **app** (bukan paket), `apps/web/src/lib/art.ts`:
+Konsekuensi Step 6: lima tempat di tiga file yang memakai `ev.image` / `p.image` langsung sebagai `src` `next/image` sekarang memegang key. Tambah satu helper resolusi di **app** (bukan paket), `apps/web/src/lib/art.ts`:
 
 ```ts
 import { ARTWORK } from "@moonwitness/assets";
@@ -515,13 +524,15 @@ export function artSrc(key: ArtKey): string {
 
 `@moonwitness/assets` baru dibuat di Task 3, jadi **Step 7, 9-10 dijalankan setelah Task 3 selesai**; Step 8 justru sudah dikerjakan bersama Step 1-6 karena tidak bergantung pada Task 3 sama sekali — menundanya membuat Task 2 Step 5 mustahil hijau (`dock.tsx` masih mengimpor `DockEvent` yang sudah dihapus dari `lib/data.ts`). Urutan eksekusi yang benar: Task 1 Step 1-6 + Step 8, lalu Task 2, Task 3, lalu kembali ke Task 1 Step 7, 9-11.
 
-Pemakai yang diubah (ganti `src={ev.image}` → `src={artSrc(ev.image)}`):
+Pemakai yang diubah (ganti `src={ev.image}` → `src={artSrc(ev.image)}` dan tambahkan `import { artSrc } from "@/lib/art";`):
 
-- `apps/web/src/components/dock.tsx` baris 39, 68, 153, 407 dan blok ternary 410-417 (ternary itu menghasilkan `ArtKey`, bukan path — bungkus hasil akhirnya dengan `artSrc(...)`)
-- `apps/web/src/components/landing.tsx` baris 237 (`ArchiveStrip`)
-- `apps/web/src/components/mission-control.tsx` baris 318 (`Project Universe`)
+- `apps/web/src/components/dock.tsx` — 3 tempat `src={ev.image}` (thumbnail kartu, baris daftar, panel detail)
+- `apps/web/src/components/landing.tsx` — 1 tempat `src={ev.image}` (`ArchiveStrip`)
+- `apps/web/src/components/mission-control.tsx` — 1 tempat `src={p.image}` (`Project Universe`)
 
-Path literal yang tidak lewat data (`landing.tsx` 36, 299, 400, 427, 478, 515; `dock.tsx` 283; `mission-control.tsx` 245; `shadow/page.tsx` 57) **dibiarkan apa adanya** di fase 1 — Task 17 yang menyeragamkannya.
+Verifikasi: `grep -rn "\.image\b" apps/web/src --include=*.tsx | grep -v artSrc | grep -v imagePosition` → **0 baris**.
+
+Path literal yang tidak lewat data (`landing.tsx` 36, 299, 400, 427, 478, 515; `dock.tsx` 283 dan blok ternary era di `dock.tsx`; `mission-control.tsx` 245; `shadow/page.tsx` 57) **dibiarkan apa adanya** di fase 1 — Task 17 yang menyeragamkannya. Ternary era itu menghasilkan string path, bukan `ArtKey`, jadi membungkusnya dengan `artSrc()` justru merusak gambar.
 
 - [x] **Step 8: Update import type di komponen**
 
@@ -533,7 +544,7 @@ grep -rn "DockEvent" apps/web/src
 
 Expected setelah selesai: **0 baris**.
 
-- [ ] **Step 9: Jalankan pipeline**
+- [x] **Step 9: Jalankan pipeline**
 
 ```bash
 pnpm turbo run lint typecheck build
@@ -545,13 +556,15 @@ Expected: hijau. Error yang wajar muncul dan cara benar menanganinya:
 
 Yang **tidak** ditangkap `tsc`: pemakai `ev.image` yang belum dibungkus `artSrc()` tetap lolos karena `ArtKey` adalah union string dan `src` `next/image` menerima `string`. Gejalanya hanya terlihat di runtime — `src="hero-witness"` tanpa `/art/`, gambar rusak/404. Karena itu Step 7 tidak boleh dilewat dan hasilnya diverifikasi lewat screenshot Step 10, bukan lewat pipeline.
 
-- [ ] **Step 10: Bukti tidak ada perubahan tampilan**
+- [x] **Step 10: Bukti tidak ada perubahan tampilan**
 
-Jalankan SHOT ke `.verify/phase1-task1/` (4 route × 3 viewport) lalu bandingkan dengan `.verify/phase0/`. Yang boleh berbeda: tidak ada. Yang harus diperiksa manual: tinggi tiap section, warna, posisi gambar, dan `scrollWidth` pada 390px.
+Jalankan SHOT ke `.verify/phase1-task1/` (4 route × 3 viewport), lalu pakai empat bukti di "Cara membandingkan screenshot" — bukan diff pixel mentah.
+
+> **Terekam 2026-11-11 (Task 1 selesai).** 12 screenshot ada di `.verify/phase1-task1/`. (1) `scrollWidth` @390px: landing 380, shadow 380, mission-control 380, dock 380 — **identik dengan baseline**. (2) Console dengan listener terpasang sebelum `goto`: **0 error / 0 warning** di keempat route, termasuk satu putaran yang mengulang alur login `admin` → `/dock` (counter agregat MCP sempat menampilkan 1 warning; putaran terkendali dengan listener membuktikan itu sisa hitungan halaman sebelumnya, bukan pesan dari build ini). (3) Paritas `src` hasil dekode `url=`: landing 14 gambar (`/art/hero-witness.png` ×3, `/art/crew-rooftop.png` ×5, `/art/city-shadow.png` ×4, `/art/signal-tunnel.png` ×2), shadow 1 (`city-shadow`), mission-control 5 (`city-shadow` ×2, `hero-witness` ×2, `crew-rooftop` ×1), dock 20 (`city-shadow` ×7, `crew-rooftop` ×6, `hero-witness` ×4, `signal-tunnel` ×3) — **tidak ada key telanjang, tidak ada gambar rusak**. (4) Diff pixel vs baseline memang besar di `dock-390/768` (11,5%) dan `shadow-768` (6,6%), tetapi diff *sesama capture build ini* juga 6,6% pada `shadow-768` dan 0,6% pada `dock-768`; pita yang berbeda ternyata gambar yang di baseline belum sempat termuat (hero `crew-rooftop` dan thumbnail event masih hitam). Kesimpulannya tidak ada perubahan tampilan — yang berubah adalah ketepatan waktu muat gambar saat capture, dan itu sebabnya diff pixel tidak dijadikan gerbang.
 
 Matikan server (`netstat` + `taskkill`) sebelum commit.
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 
 ```bash
 git add packages/types apps/web/package.json apps/web/next.config.ts apps/web/src/lib/data.ts apps/web/src/lib/art.ts apps/web/src/components pnpm-lock.yaml
@@ -559,6 +572,8 @@ git commit -m "feat(types): paket tipe domain, data app berhenti mendeklarasikan
 ```
 
 `git status` sesudahnya harus bersih kecuali `.verify/` (yang memang diabaikan).
+
+Catatan yang harus diketahui siapa pun yang `git bisect` lewat dua commit ini: **commit Task 1 tidak hijau sendirian.** `apps/web/src/lib/art.ts` mengimpor `ARTWORK` dari `@moonwitness/assets`, dan manifest itu baru ada di commit Task 3 — konsekuensi langsung dari rencana bahwa Step 7 dikerjakan setelah Task 3. Titik pertama yang pipeline-nya valid adalah commit Task 3. Memecah jadi tiga commit supaya tiap titik hijau juga tidak menyelesaikan apa pun: `pnpm-lock.yaml` adalah satu file untuk semua paket workspace, jadi commit tengah mana pun tetap punya lockfile yang tidak cocok dengan `package.json`-nya.
 
 ### Task 2: Buat `packages/assets` — referensi ternama
 
@@ -712,7 +727,7 @@ pnpm turbo run lint typecheck build
 
 Expected: hijau. `packages/assets` belum punya test file, jadi `vitest run` akan gagal dengan "No test files found" — **karena itu script `test` belum boleh dijalankan di task ini**; Task 3 yang menambahkannya. Kalau turbo sudah menjalankan `test` untuk paket ini dan gagal, tambahkan `"test"` hanya setelah file tes ada (Task 3), atau jalankan `pnpm turbo run lint typecheck build` saja di step ini.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add packages/assets pnpm-lock.yaml
@@ -746,7 +761,7 @@ Ini satu-satunya bagian plan yang benar-benar TDD: ada logika murni (`outputName
   - `const ART_SOURCES: Record<ArtKey, string>` → path PNG sumber relatif root repo
   - helper `artSrc(key: ArtKey): string` di `apps/web/src/lib/art.ts` (sudah dipakai Task 1 Step 7)
 
-- [ ] **Step 1: Tulis tes yang gagal — invariant manifest**
+- [x] **Step 1: Tulis tes yang gagal — invariant manifest**
 
 `packages/assets/src/optimize.test.ts`:
 
@@ -819,7 +834,7 @@ Tes ketiga sengaja memeriksa filesystem: `shadow-command.png` belum ada sampai T
 
 dan hapus `.skip` di Task 19 Step 5. Catat di commit message Task 3 bahwa ada satu tes yang di-skip menunggu artwork.
 
-- [ ] **Step 2: Jalankan tes, pastikan gagal**
+- [x] **Step 2: Jalankan tes, pastikan gagal**
 
 ```bash
 pnpm --filter @moonwitness/assets test
@@ -827,7 +842,7 @@ pnpm --filter @moonwitness/assets test
 
 Expected: FAIL — `Cannot find module './optimize'` (dan `ARTWORK` belum ada karena `index.ts` masih `export {}`).
 
-- [ ] **Step 3: Tulis `packages/assets/src/optimize.ts`**
+- [x] **Step 3: Tulis `packages/assets/src/optimize.ts`**
 
 ```ts
 import type { ArtKey } from "@moonwitness/types";
@@ -855,7 +870,7 @@ export function srcSetFor(key: string, ext: "avif" | "webp", widths: readonly nu
 }
 ```
 
-- [ ] **Step 4: Tulis `packages/assets/src/index.ts` (manifest)**
+- [x] **Step 4: Tulis `packages/assets/src/index.ts` (manifest)**
 
 ```ts
 import type { ArtKey } from "@moonwitness/types";
@@ -927,7 +942,7 @@ export { ART_SOURCES, ART_WIDTHS, outputNames } from "./optimize";
 
 `position` dan `credit` di atas adalah nilai awal yang wajar; Task 19 dan Task 26 boleh menyesuaikannya, tapi tes di Step 1 mengunci **bentuknya** (`credit` harus `0X-...`, `alt` > 20 karakter).
 
-- [ ] **Step 5: Tulis `packages/assets/scripts/optimize.mjs`**
+- [x] **Step 5: Tulis `packages/assets/scripts/optimize.mjs`**
 
 Skrip ini dijalankan manual (§3.3), tidak masuk CI. Ia mengimpor konstanta dari source TypeScript lewat wrapper `.mjs` — karena Node tidak bisa mengimpor `.ts` langsung, path di sini ditulis literal dan **harus tetap sinkron** dengan `ART_SOURCES`:
 
@@ -969,7 +984,7 @@ console.log(`Selesai. ${made} file ditulis ke ${path.relative(ROOT, OUT_DIR)}`);
 
 `[skip]` untuk `shadow-command` **diharapkan** sampai Task 19 menambah artwork-nya — skrip tidak boleh gagal hanya karena satu sumber belum ada.
 
-- [ ] **Step 6: Jalankan tes, pastikan hijau**
+- [x] **Step 6: Jalankan tes, pastikan hijau**
 
 ```bash
 pnpm --filter @moonwitness/assets test
@@ -977,7 +992,7 @@ pnpm --filter @moonwitness/assets test
 
 Expected: PASS 3 tes (dengan tes filesystem di-skip). Kalau `srcSet` gagal, periksa format `${w}w` dan pemisah `", "` — tes mengunci format itu karena `<picture>` membutuhkannya persis.
 
-- [ ] **Step 7: Wiring ke app**
+- [x] **Step 7: Wiring ke app**
 
 Tambah ke `apps/web/package.json` `dependencies`:
 
@@ -998,13 +1013,13 @@ Ubah `apps/web/next.config.ts`:
 
 Lalu buat `apps/web/src/lib/art.ts` persis seperti di Task 1 Step 7, jalankan `pnpm install`, dan teruskan Task 1 Step 7-11 bila belum.
 
-- [ ] **Step 8: Jalankan pipeline optimasi sekali**
+- [x] **Step 8: Jalankan pipeline optimasi sekali**
 
 ```bash
 pnpm --filter @moonwitness/assets optimize
 ```
 
-Expected: 4 `[ok]` (hero-witness, city-shadow, crew-roftop, signal-tunnel), 1 `[skip]` (shadow-command), total 64 file. Lalu buktikan byte-nya turun:
+Expected: 4 `[ok]` (hero-witness, city-shadow, crew-rooftop, signal-tunnel) × 8 file = **32 file**, plus 1 `[skip]` (shadow-command). Angka 32, bukan 40: `WIDTHS.length * 2 = 8` per kunci, dan satu kunci belum punya sumber. Lalu buktikan byte-nya turun:
 
 ```bash
 ls -l apps/web/public/art/hero-witness.png apps/web/public/art/hero-witness-1440.avif apps/web/public/art/hero-witness-480.avif
@@ -1012,7 +1027,9 @@ ls -l apps/web/public/art/hero-witness.png apps/web/public/art/hero-witness-1440
 
 Expected: `hero-witness.png` ±2.784.029 byte; `hero-witness-1440.avif` < 400.000 byte; `hero-witness-480.avif` < 120.000 byte. Kalau avif 1440 masih > 400 KB, turunkan `QUALITY` ke 55 dan jalankan ulang — angka 400 KB adalah target §5, bukan tebakan.
 
-- [ ] **Step 9: Pipeline + commit**
+Terukur pada `QUALITY = 62`: `hero-witness-1440.avif` 166.534 byte, `hero-witness-480.avif` 26.236 byte, dan `*-1440.avif` terburuk se-manifest adalah `crew-rooftop-1440.avif` 277.199 byte — semua di bawah target, jadi tidak perlu menurunkan kualitas.
+
+- [x] **Step 9: Pipeline + commit**
 
 ```bash
 pnpm turbo run lint typecheck build && pnpm --filter @moonwitness/core test && pnpm --filter @moonwitness/assets test
@@ -3207,6 +3224,7 @@ Kondisi yang sudah benar dan **tidak perlu diubah**: tepat satu `priority` per h
 - Modify: `apps/web/next.config.ts` (blok `images`)
 - Modify: `apps/web/src/components/landing/{hero,signals,crew,about}.tsx` (path literal → `artSrc`)
 - Modify: `apps/web/src/components/dock/hero.tsx`
+- Modify: `apps/web/src/components/dock/index.tsx` (5 path literal di pita era, hasil pecahan Task 12)
 - Modify: `apps/web/src/components/mission-control.tsx` (blok `<Image>` di baris ±245; `priority`-nya di 248)
 - Modify: `apps/web/src/app/shadow/page.tsx` (blok `<Image>` di baris ±57; `priority`-nya di 60, **hanya `src`** — jangan sentuh logika login)
 
@@ -3243,7 +3261,7 @@ Pertahankan field lain yang sudah ada di file itu (baca dulu, jangan menimpa). `
 
 - [ ] **Step 2: Ganti semua path literal**
 
-Hari ini ada **9** situs yang menulis path mentah (`grep -rn '"/art/' apps/web/src` di atas kode asli). Satu di antaranya hilang sebelum task ini: `landing.tsx:36` ada di dalam `TransmissionCard`, yang dipindah ke `packages/ui` oleh Task 8 dan di sana memakai manifest lewat `ZineImage` (R6), bukan path literal. Sisanya **8**, dan setelah fase 2 mereka tinggal di file-file ini:
+Hari ini ada **14** situs yang menulis path mentah (`grep -rn '"/art/' apps/web/src` di atas kode asli). Satu di antaranya hilang sebelum task ini: `landing.tsx:36` ada di dalam `TransmissionCard`, yang dipindah ke `packages/ui` oleh Task 8 dan di sana memakai manifest lewat `ZineImage` (R6), bukan path literal. Sisanya **13**, dan setelah fase 2 mereka tinggal di file-file ini:
 
 | file (nama setelah fase 2) | asalnya | path literal | ganti jadi |
 |---|---|---|---|
@@ -3252,8 +3270,11 @@ Hari ini ada **9** situs yang menulis path mentah (`grep -rn '"/art/' apps/web/s
 | `landing/crew.tsx` | `landing.tsx:478` | `/art/crew-rooftop.png` | `artSrc("crew-rooftop")` |
 | `landing/about.tsx` | `landing.tsx:515` | `/art/crew-rooftop.png` | `artSrc("crew-rooftop")` |
 | `dock/hero.tsx` | `dock.tsx:283` | `/art/crew-rooftop.png` | `artSrc("crew-rooftop")` |
+| `dock/index.tsx` (5 situs di pita era) | `dock.tsx` blok `{/* ERA BAND */}`, `:410`, `:412`, `:414`, `:416`, `:417` | rantai ternary `e.id === … ? "/art/x.png"` | ternary yang menghasilkan `ArtKey`, dibungkus sekali: `src={artSrc(e.id === "fracture" ? "signal-tunnel" : e.id === "origins" ? "city-shadow" : e.id === "neon" ? "hero-witness" : e.id === "rebuilding" ? "city-shadow" : "crew-rooftop")}` |
 | `mission-control.tsx` | `mission-control.tsx:245` | `/art/city-shadow.png` | `artSrc("city-shadow")` |
 | `shadow/page.tsx` | `shadow/page.tsx:57` | `/art/city-shadow.png` | `artSrc("city-shadow")` |
+
+Delapan baris tabel = 13 situs (satu baris `landing/signals.tsx` dihitung dua, satu baris pita era dihitung lima).
 
 `landing/archive.tsx` dan `landing/footer.tsx` **tidak** punya path literal — `ArchiveStrip` memakai `ev.image` (sudah `ArtKey`, dibungkus `artSrc` di Task 1 Step 7).
 
