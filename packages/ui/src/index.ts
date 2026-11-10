@@ -15,3 +15,6 @@ export { kindColors } from "./composites/kind-colors";
 export { EventCard, KindBadge, type EventCardProps } from "./composites/event-card";
 export { EventDetail, type EventDetailProps } from "./composites/event-detail";
 export { EraBand, type EraBandProps } from "./composites/era-band";
+export { CountUp } from "./composites/count-up";
+export { TransmissionCard, type TransmissionCardProps } from "./composites/transmission-card";
+export { CrewConstellation, type CrewConstellationProps } from "./composites/crew-constellation";

@@ -372,6 +372,41 @@ body {
   .zine-input[aria-invalid="true"] {
     border-color: var(--red);
   }
+
+  /* ---- duotone riso treatment untuk artwork ----
+     grayscale+kontras dulu, lalu tint warna (mix-blend color) dan halftone
+     (multiply) di atasnya supaya foto AI full-color menyatu dengan nada tinta. */
+  .duo-img {
+    filter: grayscale(1) contrast(1.5) brightness(0.82);
+  }
+  .duo-tint {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(155deg, var(--pink) 0%, #a5166a 45%, var(--blue) 100%);
+    mix-blend-mode: color;
+    opacity: 0.9;
+  }
+  .duo-halftone {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(rgba(0, 0, 0, 0.55) 1px, transparent 1.5px);
+    background-size: 3px 3px;
+    mix-blend-mode: multiply;
+    opacity: 0.4;
+  }
+
+  /* ---- catatan pinggir tulisan tangan (kolase terasa hidup) ---- */
+  .marginalia {
+    position: absolute;
+    font-family: var(--font-hand), cursive;
+    font-weight: 700;
+    color: #f5f3ee;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.85);
+    pointer-events: none;
+    white-space: nowrap;
+  }
 }
 
 /* Unlayered dengan sengaja: harus menang atas utility supaya animasi bisa dimatikan. */

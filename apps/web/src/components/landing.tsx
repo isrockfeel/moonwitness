@@ -2,223 +2,21 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { artSrc } from "@/lib/art";
 import { timelineEvents, witnesses } from "@/lib/data";
-import { ArrowRight, Bolt, Crown, PlayIcon, PauseIcon, Smiley, Splatter, Star4 } from "@moonwitness/ui/icons";
-import { Grain, Halftone, Tape, kindColors } from "@moonwitness/ui";
+import { ArrowRight, Bolt, Crown, Smiley, Splatter, Star4 } from "@moonwitness/ui/icons";
+import { Grain, Halftone, Tape, CrewConstellation, TransmissionCard, kindColors } from "@moonwitness/ui";
 import { SiteNav } from "./site-nav";
 
-function TransmissionCard() {
-  const [playing, setPlaying] = useState(false);
-  const [elapsed, setElapsed] = useState(0);
-  const total = 204;
+/** Kartu promosi meminjam artwork signal-tunnel dari event ini; copy-nya sendiri. */
+const transmissionEvent = timelineEvents.find((e) => e.id === "voices-in-the-fog");
 
-  useEffect(() => {
-    if (!playing) return;
-    const timer = setInterval(() => {
-      setElapsed((s) => {
-        if (s + 1 >= total) {
-          setPlaying(false);
-          return total;
-        }
-        return s + 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [playing]);
-
-  const fmt = (s: number) =>
-    `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
-
-  return (
-    <article className="zine-card-rough group relative flex flex-col overflow-hidden">
-      <div className="relative h-44 overflow-hidden">
-        <Image
-          src="/art/signal-tunnel.png"
-          alt="A lone figure walking into a red-lit tunnel"
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, 33vw"
-        />
-        <span className="sticker sticker-yellow absolute left-3 top-3 px-3 py-1 font-brush text-xs">
-          TRANSMISSION 001
-        </span>
-        <button
-          onClick={() => setPlaying((v) => !v)}
-          aria-label={playing ? "Pause transmission" : "Play transmission"}
-          className="absolute bottom-3 right-3 flex h-11 w-11 items-center justify-center rounded-full border-2 border-white/70 bg-black/60 text-white backdrop-blur transition hover:scale-110 hover:border-[var(--pink)] hover:text-[var(--pink)]"
-        >
-          {playing ? <PauseIcon className="h-5 w-5" /> : <PlayIcon className="ml-0.5 h-5 w-5" />}
-        </button>
-      </div>
-      <div className="flex flex-1 flex-col p-5">
-        <h3 className="font-brush text-2xl leading-tight text-white">A SIGNAL FROM BELOW</h3>
-        <p className="mt-2 flex-1 text-sm leading-relaxed text-zinc-400">
-          Strange sounds. A deeper current. What are we really hearing?
-        </p>
-        <div className="mt-4">
-          <div
-            className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--line)]"
-            role="progressbar"
-            aria-valuenow={elapsed}
-            aria-valuemin={0}
-            aria-valuemax={total}
-            aria-label="Transmission progress"
-          >
-            <div
-              className="h-full bg-[var(--pink)] transition-[width] duration-300"
-              style={{ width: `${(elapsed / total) * 100}%` }}
-            />
-          </div>
-          <div className="mt-1.5 flex justify-between text-[11px] text-zinc-500">
-            <span className={playing ? "text-[var(--pink)]" : ""}>
-              {playing ? "● RECEIVING…" : elapsed >= total ? "TRANSMISSION ENDED" : "STANDBY"}
-            </span>
-            <span>
-              {fmt(elapsed)} / {fmt(total)}
-            </span>
-          </div>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function CountUp({ target, suffix = "" }: { target: number; suffix?: string }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [value, setValue] = useState(0);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting) return;
-        observer.disconnect();
-        const start = performance.now();
-        const tick = (now: number) => {
-          const p = Math.min((now - start) / 1400, 1);
-          setValue(Math.round(target * (1 - Math.pow(1 - p, 3))));
-          if (p < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      },
-      { threshold: 0.4 },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [target]);
-
-  return (
-    <span ref={ref}>
-      {value.toLocaleString("en-US")}
-      {suffix}
-    </span>
-  );
-}
-
-function CrewConstellation() {
-  const [selected, setSelected] = useState(witnesses[0]!);
-
-  return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="zine-card-rough relative overflow-hidden p-4">
-        <div className="halftone relative h-72 overflow-hidden rounded-md bg-[#0d0d16] sm:h-80">
-          <svg viewBox="0 0 100 70" className="absolute inset-0 h-full w-full" aria-hidden>
-            {witnesses.map((a, i) =>
-              witnesses
-                .slice(i + 1)
-                .map((b) => (
-                  <line
-                    key={`${a.id}-${b.id}`}
-                    x1={a.x}
-                    y1={a.y * 0.7}
-                    x2={b.x}
-                    y2={b.y * 0.7}
-                    stroke={i % 2 ? "#ff2d78" : "#2ea8ff"}
-                    strokeWidth="0.18"
-                    strokeDasharray="1.2 1.6"
-                    opacity="0.45"
-                  />
-                )),
-            )}
-            {witnesses.map((w) => (
-              <circle
-                key={w.id}
-                cx={w.x}
-                cy={w.y * 0.7}
-                r={selected.id === w.id ? 2.2 : 1.3}
-                fill={selected.id === w.id ? "#ffd21f" : "#ff2d78"}
-                className="pulse-dot"
-                style={{ animationDelay: `${w.x * 20}ms` }}
-              />
-            ))}
-          </svg>
-          {witnesses.map((w) => (
-            <button
-              key={w.id}
-              onClick={() => setSelected(w)}
-              aria-label={`Witness ${w.name}, ${w.place}`}
-              aria-pressed={selected.id === w.id}
-              className={`absolute h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 font-hand text-sm font-bold transition-all ${
-                selected.id === w.id
-                  ? "z-10 scale-125 border-[var(--yellow)] bg-[var(--yellow)] text-black"
-                  : "border-white/60 bg-[var(--panel-2)] text-white hover:scale-110 hover:border-[var(--pink)]"
-              }`}
-              style={{ left: `${w.x}%`, top: `${w.y}%` }}
-            >
-              {w.name[0]}
-            </button>
-          ))}
-          <span className="sticker sticker-pink absolute bottom-3 left-3 -rotate-2 px-3 py-1 font-hand text-base font-bold">
-            REAL PEOPLE. REAL PLACES. SAME SKY.
-          </span>
-        </div>
-        <div className="mt-4 grid grid-cols-3 gap-3 text-center">
-          {[
-            { label: "CREW MEMBERS", target: 1324 },
-            { label: "COUNTRIES", target: 87 },
-            { label: "SIGNALS", target: 6912 },
-          ].map((s) => (
-            <div
-              key={s.label}
-              className="border border-[var(--line)] bg-[var(--panel-2)] px-2 py-3"
-            >
-              <div className="font-brush text-xl text-[var(--yellow)] sm:text-2xl">
-                <CountUp target={s.target} />
-              </div>
-              <div className="mt-1 text-[10px] tracking-widest text-zinc-500">{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-4">
-        <div className="zine-card relative flex-1 p-5" aria-live="polite">
-          <Tape className="-top-3 left-1/2 -translate-x-1/2 -rotate-3" />
-          <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[var(--pink)] bg-[var(--panel-2)] font-brush text-xl text-[var(--pink)]">
-              {selected.name[0]}
-            </span>
-            <div>
-              <div className="font-brush text-lg text-white">{selected.name}</div>
-              <div className="text-xs text-zinc-500">{selected.place}</div>
-            </div>
-            <Crown className="ml-auto h-4 w-6 text-[var(--yellow)]" />
-          </div>
-          <p className="mt-4 font-hand text-xl leading-snug text-zinc-200">“{selected.quote}”</p>
-          <div className="mt-4 text-xs text-zinc-500">
-            <span className="text-[var(--blue)]">{selected.signals}</span> signals contributed
-          </div>
-        </div>
-        <Link href="/shadow" className="btn-zine btn-blue px-5 py-3 text-base">
-          EXPLORE THE CREW <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
-    </div>
-  );
-}
+const CREW_STATS = [
+  { label: "CREW MEMBERS", target: 1324 },
+  { label: "COUNTRIES", target: 87 },
+  { label: "SIGNALS", target: 6912 },
+];
 
 function ArchiveStrip() {
   const ref = useRef<HTMLDivElement>(null);
@@ -395,7 +193,13 @@ export function Landing() {
           <Crown className="h-6 w-9 text-[var(--yellow)]" />
         </div>
         <div className="grid gap-6 md:grid-cols-3">
-          <TransmissionCard />
+          {transmissionEvent ? (
+            <TransmissionCard
+              event={transmissionEvent}
+              title="A SIGNAL FROM BELOW"
+              excerpt="Strange sounds. A deeper current. What are we really hearing?"
+            />
+          ) : null}
 
           <article className="zine-card-rough group relative flex flex-col overflow-hidden">
             <div className="relative h-44 overflow-hidden">
@@ -486,7 +290,15 @@ export function Landing() {
               />
             </div>
           </div>
-          <CrewConstellation />
+          <CrewConstellation
+            witnesses={witnesses}
+            stats={CREW_STATS}
+            cta={
+              <Link href="/shadow" className="btn-zine btn-blue px-5 py-3 text-base">
+                EXPLORE THE CREW <ArrowRight className="h-4 w-4" />
+              </Link>
+            }
+          />
         </div>
       </section>
 
