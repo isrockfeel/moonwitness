@@ -2003,11 +2003,13 @@ function CrewConstellation(props: {
 }): JSX.Element
 ```
 
-- [ ] **Step 1: `count-up.tsx`**
+- [x] **Step 1: `count-up.tsx`**
 
 Pindahkan `CountUp` dari `landing.tsx:86-117` apa adanya. Tambah `"use client"` di baris pertama file (ia memakai `useRef`/`useEffect`/`IntersectionObserver`). Tidak ada perubahan lain.
 
-- [ ] **Step 2: `transmission-card.tsx`**
+> **Koreksi saat eksekusi:** rentang baris di atas sudah bergeser; yang sebenarnya dihapus adalah `landing.tsx:12-87` (`TransmissionCard`), `89-120` (`CountUp`), `122-222` (`CrewConstellation`) pada working tree, dan `12-86` / `88-119` / `121-221` pada HEAD. Isi dipindah verbatim, tidak ada satu pun kelas atau angka yang diubah.
+
+- [x] **Step 2: `transmission-card.tsx`**
 
 Pindahkan `TransmissionCard` dari `landing.tsx:10-84`, dengan perubahan wajib:
 
@@ -2035,7 +2037,13 @@ export function TransmissionCard({ event, durationSeconds = 204, label = "TRANSM
 
 3. `fmt`, progressbar `role="progressbar"` + `aria-valuenow/min/max`, `aria-label` tombol play/pause: **pertahankan semua**. Itu a11y yang sudah benar dan akan diperiksa lagi di Task 16.
 
-- [ ] **Step 3: `crew-constellation.tsx`**
+> **Cacat plan (ditemukan sebelum menulis kode):** tabel di atas menyuruh `{event.title.toUpperCase()}` / `{event.excerpt}` dan Step 4 menyuruh `event={timelineEvents[0]!}`. `timelineEvents[0]` adalah `moonwitness-born` → *"MOONWITNESS IS BORN"* + *"First public signal. A small site, a big question."* + artwork `city-shadow`, sedangkan kartu lama menampilkan *"A SIGNAL FROM BELOW"* + *"Strange sounds. A deeper current. What are we really hearing?"* + `signal-tunnel`. `grep -ri "signal from below\|strange sounds\|deeper current" apps/web/src/lib` → **0 match**: copy itu tidak dimiliki event mana pun, jadi menjalankan plan apa adanya = mengganti isi landing, bukan merombak strukturnya.
+>
+> **Deviasi yang dipilih:** `TransmissionCardProps` ditambah dua override opsional, `title?: string` dan `excerpt?: string`, yang defaultnya tetap `event.title` / `event.excerpt` (`(title ?? event.title).toUpperCase()`). Komponennya tetap event-driven untuk pemakaian lain; app yang memegang copy promosi. Event yang dipakai `timelineEvents.find(e => e.id === "voices-in-the-fog")` — dipilih hanya karena artworknya `signal-tunnel` (temanya "audio letters" paling dekat dengan "strange sounds"). `imagePosition` **tidak** diteruskan: `<Image>` lama tidak punya `objectPosition`, dan manifest `signal-tunnel` = `"center"`, jadi `ZineImage` tanpa `position` menghasilkan bingkai yang sama persis.
+>
+> Konsekuensi yang diterima: `alt` kartu kini dari manifest ("Sosok tunggal berjalan masuk ke terowongan bercahaya merah", bahasa Indonesia) menggantikan alt Inggris yang lama. Ini memang yang diminta tabel plan (baris `src` + alt → `<ZineImage art={event.image}>`), tidak terlihat oleh mata, dan Task 16 yang menilai a11y teks ganti.
+
+- [x] **Step 3: `crew-constellation.tsx`**
 
 Pindahkan `CrewConstellation` dari `landing.tsx:119-219`, dengan perubahan wajib:
 
@@ -2077,7 +2085,9 @@ App menyuplai `<Link>` yang sama persis, jadi tampilan tidak berubah dan link se
 
 5. `aria-live="polite"` pada kartu profil witness (baris 196) **dipertahankan** — §3.2 menyebutnya eksplisit.
 
-- [ ] **Step 4: Export + pemakai di app**
+> Catatan: pola `selectedId` + `find(...) ?? witnesses[0]` + `if (!selected) return null` bekerja seperti yang direncanakan; `witnesses[0]!` hilang dan `noUncheckedIndexedAccess` tetap hijau. Ganti `setSelected(w)` → `setSelectedId(w.id)` adalah satu-satunya perubahan perilaku, dan hasilnya identik karena datanya module-level (tidak pernah berubah selama sesi).
+
+- [x] **Step 4: Export + pemakai di app**
 
 Tambah ke `packages/ui/src/index.ts`:
 
@@ -2116,7 +2126,26 @@ const CREW_STATS = [
 
 `timelineEvents[0]!` — kalau `!` ditolak lint, ambil lewat `const [firstEvent] = timelineEvents;` lalu render section hanya bila `firstEvent` ada.
 
-- [ ] **Step 5: Pipeline + bukti visual + bukti `"use client"` di paket**
+> **Yang benar-benar ditulis di app** (bukan `timelineEvents[0]!`, lihat cacat Task 8 Step 2):
+>
+> ```tsx
+> /** Kartu promosi meminjam artwork signal-tunnel dari event ini; copy-nya sendiri. */
+> const transmissionEvent = timelineEvents.find((e) => e.id === "voices-in-the-fog");
+>
+> const CREW_STATS = [
+>   { label: "CREW MEMBERS", target: 1324 },
+>   { label: "COUNTRIES", target: 87 },
+>   { label: "SIGNALS", target: 6912 },
+> ];
+> ```
+>
+> Pemakaiannya `{transmissionEvent ? <TransmissionCard event={transmissionEvent} title="A SIGNAL FROM BELOW" excerpt="Strange sounds. A deeper current. What are we really hearing?" /> : null}` — cabang `undefined` ditangani tanpa `!`, persis seperti fallback yang sudah direncanakan. `cta` diisi `<Link href="/shadow" className="btn-zine btn-blue px-5 py-3 text-base">EXPLORE THE CREW <ArrowRight/></Link>` yang identik dengan yang dihapus dari paket.
+>
+> Import yang jadi tidak terpakai ikut dicabut: `useEffect`, `useState`, `PlayIcon`, `PauseIcon` (0 kemunculan tersisa di file); `useRef`, `Image`, `Link`, `artSrc`, `timelineEvents`, `witnesses`, `kindColors`, `Tape`, `Grain`, `Halftone`, `Bolt`, `Crown`, `Smiley`, `Splatter`, `Star4`, `ArrowRight`, `SiteNav` tetap terpakai — diaudit per-identifier dengan `grep -v '^import ' | grep -cw`, hasilnya 0 import yatim.
+
+> **Penyerapan CSS duo (instruksi owner, di luar plan):** sebelum Task 8, working tree punya blok `@layer components` belum di-commit di `apps/web/src/app/globals.css` berisi `.duo-img`, `.duo-tint`, `.duo-halftone`, `.marginalia` — dan `TransmissionCard` yang mau kupindah memakai `duo-img` + `duo-tint` di dalamnya. Owner memilih "Paksa Task 8 sekarang, bawa duo ke paket", dan komentar di file itu sendiri bilang *"Task yang memakainya yang memindahkannya"*. Jadi keempat aturan dipindah **verbatim** ke `packages/ui/src/base.css` (di dalam `@layer components`, setelah `.zine-input`) dan blok di `globals.css` dihapus sehingga file itu kembali persis seperti HEAD (0 baris diff). Tidak ada yang hilang: kelasnya tetap ada, hanya pemiliknya pindah paket. Sisa pemakaian duo/marginalia di `landing.tsx` (hero, dua kartu sinyal, about, catatan pinggir) **masih WIP orang lain dan tetap tidak k stage** — lihat Step 6.
+
+- [x] **Step 5: Pipeline + bukti visual + bukti `"use client"` di paket**
 
 ```bash
 pnpm turbo run lint typecheck build
@@ -2129,14 +2158,48 @@ Risiko §10 yang diuji di sini: `"use client"` di dalam paket JIT harus benar-be
 
 Ambil SHOT ke `.verify/phase1-task8/`, bandingkan `.verify/phase0/landing-*.png`: posisi constellation, angka CountUp setelah animasi selesai (1324 / 87 / 6912), dan sticker pink "REAL PEOPLE. REAL PLACES. SAME SKY." harus sama.
 
+> **Bukti Step 5 (Task 8).**
+>
+> **Pipeline.** `pnpm turbo run lint typecheck build` apa adanya **gagal**, tapi bukan karena task ini: working tree sekarang punya `apps/api/` (untracked, tim backend) yang terdaftar lewat glob `apps/*` dan script `lint`-nya memanggil `eslint` yang belum ter-install di sana → `'eslint' is not recognized`. Karena scope task ini hanya UI/frontend, `apps/api` tidak kusentuh; yang kujalankan adalah `pnpm turbo run lint typecheck build --filter='!@moonwitness/api-app'` → **11/11 successful**, `next build` hijau, `/` 9.13 kB / 125 kB First Load JS, 9 route. Ini deviasi lingkungan, bukan pengurangan gerbang: semua paket yang kusentuh ikut jalan.
+>
+> **Gate arsitektur.** `grep -rn "next/" packages/ui/src` pertama kali **menyalakan alarm palsu**: yang kena adalah komentarku sendiri (`/** Slot R2: app yang menyuplai tautan, jadi semantics next/link tetap di app. */`). Kalimatnya kurewrite, lalu kubuktikan gerbangnya benar-benar hidup dengan probe known-bad — `import Image from "next/image";` ditempel di ujung `crew-constellation.tsx` → grep menemukan 1 baris (exit 0), file dikembalikan → grep 0 baris (exit 1).
+>
+> **Bukti `"use client"` ter-transpile (perilaku, bukan build).** Diukur pada navigasi bersih (`?probe=<ts>`), satu klik = satu langkah, label & `aria-valuenow` dibaca lewat DOM:
+>
+> | langkah | `aria-label` tombol | `aria-valuenow` | baris status |
+> |---|---|---|---|
+> | awal | `Play transmission` | 0 | `STANDBY 00:00 / 03:24` |
+> | +1 klik, tunggu 2,2 s | `Pause transmission` | 2 | `● RECEIVING… 00:02 / 03:24` |
+> | +1 klik (pause), tunggu 1,8 s | `Play transmission` | 2 (tidak naik) | `STANDBY 00:02 / 03:24` |
+>
+> Constellation: 7 dot saksi; default terpilih = `witnesses[0]` (Zill / Bandung, ID / 41 signals) — membuktikan fallback `?? witnesses[0]`; klik dot ke-4 → kartu profil berubah jadi Amara / Lagos, NG / 19 signals dan hanya dot itu `aria-pressed=true`. CountUp: sebelum scroll ketiga stats `0…`, setelah `#crew` masuk viewport → `1,324 / 87 / 6,912`. Console per-navigasi: **0 error, 0 warning**.
+>
+> **Jebakan yang ketemu lagi.** Percobaan pertamaku pakai `waitUntil: 'commit'` + `locator.click()`: klik mendarat di DOM pra-hidrasi sehingga state tidak jalan, dan `innerText` pada locator ber-`filter()` timeout 30 s — dua-duanya *false negative*, bukan bug kode. Ganti ke dokumen baru + `element.click()` di dalam `page.evaluate` → hasilnya deterministik. Pelajaran yang sama seperti Task 7: jangan simpulkan state dari satu percobaan yang gagal diam.
+>
+> **Bukti visual.** `.verify/phase1-task8/landing-1440.png` = **1430x3500**, persis `phase0/landing-1440.png`. Crop sejajar (`cmp-crew-1440.png`, `cmp-signals-1440.png`, kiri=phase0 kanan=task8): geometri constellation identik (posisi dot, garis, dot kuning terpilih), sticker pink "REAL PEOPLE. REAL PLACES. SAME SKY." identik, kartu profil & tombol EXPLORE THE CREW identik, ketiga judul kartu sinyal + excerpt + progressbar `STANDBY 00:00 / 03:24` identik. Yang **berbeda dan memang harus beda**: (a) angka CountUp di sisi kiri tampil 0 karena capture phase0 tidak memicu IntersectionObserver — bukan regresi, nilainya sudah dibuktikan lewat DOM; (b) gambar kartu kini teduh duo magenta/biru, karena treatment WIP owner ikut masuk ke paket (lihat Step 4).
+>
+> **Delta tinggi 768/390 dibisik, tidak ditutup-tutupi.** phase0 = 4147 / 4867; sekarang = 4033 / 4919 (−114 / +52). Kukur dengan menukar `landing.tsx` ke versi commit Task 7 (`6c6ef1f`), mengukur ulang, lalu mengembalikan file persis byte (`cmp` → identik): **3500 / 4033 / 4919 — sama persis dengan setelah Task 8**. Jadi pergeseran tinggi itu sudah ada sebelum Task 8 (lahir di Task 5–6 saat CSS `packages/ui` ditulis ulang) dan Task 8 tidak mengubah layout sedikit pun di tiga breakpoint. Tetap masuk daftar pantau checkpoint Task 10.
+>
+> **Catatan format.** `prettier --check` memang sudah tidak hijau di HEAD (`landing.tsx` punya 2 deviasi: import satu baris >100 karakter dan `<section id="home">` yang di-split; `zine-button.tsx` juga). Edit-ku menghasilkan **2 deviasi yang sama**, jadi tidak ada utang format baru; file tidak kufmt ulang supaya diff Task 8 tidak tenggelam oleh drive-by reformat. `format:check` bukan bagian dari `turbo run lint` dan tidak ada di CI.
+>
+> Server dimatikan setelah verifikasi (`taskkill` PID, `netstat` → tidak ada `LISTENING` di 4317; hanya socket `TIME_WAIT`).
+
 Matikan server.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add packages/ui/src apps/web/src/components/landing.tsx
 git commit -m "refactor(ui): TransmissionCard + CrewConstellation jadi komposit prop-driven"
 ```
+
+> **Eksekusi Step 6.** `git add` buta tidak boleh dipakai di sini: `landing.tsx` masih memuat WIP duo orang lain (hero, dua kartu sinyal, about, empat `marginalia`, dua dekor `Star4`/`Splatter`). Resepnya sama seperti Task 7 — transformasi Task 8 diterapkan **script yang sama** ke dua salinan (`node .verify/task8_wire_landing.mjs <file>`; marker `function TransmissionCard() {` … `function ArchiveStrip() {`), satu ke working tree, satu ke hasil `git show HEAD:…landing.tsx`; lalu `BLOB=$(git hash-object -w .verify/tmp_landing_staged.tsx)` + `git update-index --cacheinfo 100644,$BLOB,apps/web/src/components/landing.tsx`. Hasil: status `MM landing.tsx`, diff ter-stage 6 file (+317/−214), dan `git diff` tersisa 26+/4− yang seluruhnya WIP duo.
+>
+> Audit isi yang ter-stage (bukan working tree): `duo-|marginalia` = **0** kemunculan; `PlayIcon|PauseIcon|useEffect|useState` = **0**; 19 import diperiksa satu-satu dengan `grep -v '^import ' | grep -cw <nama>` → **0 import yatim**; daftar import file ter-stage persis 8 baris seperti yang diharapkan.
+>
+> Commit: `5292c89 refactor(ui): TransmissionCard + CrewConstellation jadi komposit prop-driven` (`globals.css` tidak ikut — setelah blok duo kupindah ke `base.css`, isinya kembali identik dengan HEAD sehingga 0 diff).
+>
+> **Keterbatasan yang jujur:** pipeline dan verifikasi browser dijalankan terhadap **working tree**, bukan checkout bersih dari index. Yang membedakan index dari working tree hanya baris-baris duo WIP di `landing.tsx` (class/tanpa efek layout), dan `landing.tsx` versi index sudah kuaudit sendiri di atas; tetap, kalau nanti ada yang membangun ulang commit ini di checkout bersih, itu belum kubuktikan secara harfiah.
 
 ### Task 9: Komposit modul (`ModuleCard`, `ModuleGlyph`)
 
