@@ -2654,7 +2654,7 @@ export function Dock(): JSX.Element
 
 `SortKey` harus disalin dari nilai yang benar-benar ada di `dock.tsx` sekarang — jalankan `grep -n "sort" apps/web/src/components/dock.tsx` dan pakai union yang ada, jangan menebak.
 
-- [ ] **Step 1: Potong per region**
+- [x] **Step 1: Potong per region**
 
 | region | dari marker | sampai |
 |---|---|---|
@@ -2666,7 +2666,7 @@ export function Dock(): JSX.Element
 
 Semua **state tetap di orkestrator** (`query`, `kind`, `sort`, `view`, `selected`, `origin`, pembacaan `useSearchParams`). Anak-anak terkendali penuh lewat prop. Ini penting: filter dan daftar harus tetap tersinkronisasi, dan memindah state ke anak akan memutus `?event=` dari URL.
 
-- [ ] **Step 2: Orkestrator**
+- [x] **Step 2: Orkestrator**
 
 `apps/web/src/components/dock/index.tsx` berisi `"use client"`, semua state + `useEffect` yang membaca `params.get("event")`, fungsi `select(id)`, memo filter, lalu merangkai:
 
@@ -2693,7 +2693,7 @@ Salin prop `EmpireShell` (`active`, `breadcrumb`, `search`) persis dari `dock.ts
 
 `variant` membedakan pembungkus: `"aside"` = `<aside className="hidden xl:block" aria-label="Event detail">`, `"drawer"` = pembungkus mobile/tablet yang ada sekarang (drawer + backdrop + tombol tutup). Isi `EventDetail`-nya sama.
 
-- [ ] **Step 3: Hapus file lama**
+- [x] **Step 3: Hapus file lama**
 
 ```bash
 git rm apps/web/src/components/dock.tsx
@@ -2702,7 +2702,7 @@ grep -rn "components/dock\"" apps/web/src
 
 `apps/web/src/app/dock/page.tsx` mengimpor `Dock` — path `@/components/dock` tetap valid karena ada `index.tsx`.
 
-- [ ] **Step 4: Gerbang ukuran + pipeline**
+- [x] **Step 4: Gerbang ukuran + pipeline**
 
 ```bash
 wc -l apps/web/src/components/dock/*.tsx
@@ -2711,7 +2711,22 @@ pnpm turbo run lint typecheck build
 
 Expected: semua < 150 baris; pipeline hijau.
 
-- [ ] **Step 5: Bukti visual + perilaku**
+> Bukti: `event-detail-panel 55 · event-list 68 · filter-bar 94 · hero 41 · index 119` (total 377) — semua < 150. `pnpm exec turbo run typecheck build --filter=@moonwitness/web` → **2/2 hijau** (`/dock` 2.89 kB). `lint` tetap gagal karena `eslint-config/base.js:57` (`tseslintPluginReact` tak terdefinisi) — WIP tim backend, bukan split ini. Satu koreksi saat eksekusi: `Splatter` adalah ikon (`@moonwitness/ui/icons`), awalnya salah impor dari `@moonwitness/ui`; sudah dibetulkan, typecheck lolos.
+
+- [x] **Step 5: Bukti visual + perilaku**
+
+> **Visual (`.verify/phase2-task12/` vs `.verify/phase1/dock-*.png`):** dimensi 3 viewport **identik** — 1430×2537, 758×2748, 380×4715. Pixel-diff `t12_diff.mjs`: 1440=0,32% · 768=5,44% · 390=2,94%; semua pita panas terkonsentrasi di hero 0–450 (artwork `priority` crew-rooftop + gradien + splatter) → artefak codec/variant avif, bukan layout. Mata (dock-768): shell, hero "13/13", filter bar, EraBand, 13 kartu, kartu terpilih highlight — utuh.
+>
+> **7 tes perilaku (semua lulus, 0 error konsol):**
+> 1. `/dock?event=moonwitness-born` → aside menampilkan event itu ✓
+> 2. search "signal" → 13→6, kosongkan → 13 ✓
+> 3. chip era "Neon Cities" → 13→2, klik lagi → 13 ✓ (catatan: plan menyebut "kind SIGNAL", tapi dock nyata tak punya filter kind — yang diuji chip era, sesuai kode)
+> 4. sort oldest + view list → `aria-pressed=true`, kartu pertama 2018-07-14 (terlama) ✓
+> 5. klik kartu "THE SHADOW GROWS" → aside berganti; related ada ✓
+> 6. @390px klik kartu → `role=dialog` drawer terbuka berisi detail; tutup → hilang ✓
+> 7. EraBand `button[aria-label="Filter The Fracture"]` → 13→2, klik lagi → 13 ✓
+>
+> `scrollWidth` @390 = 390 ✓. Server 4317 dimatikan (PID 14760 di-kill).
 
 SHOT ke `.verify/phase2-task12/`, bandingkan `.verify/phase1/dock-*.png` (3 viewport) — harus identik.
 
@@ -2726,12 +2741,14 @@ Lalu uji perilaku yang paling mudah rusak saat state dipindah:
 
 Matikan server.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apps/web/src/components/dock apps/web/src/components/dock.tsx apps/web/src/app/dock
 git commit -m "refactor(web): pecah dock.tsx jadi 5 file, state tetap di orkestrator"
 ```
+
+> Commit `5e47a72` — 6 file berubah: hapus `dock.tsx`, tambah 5 file `dock/`. `page.tsx` tak diubah (import `@/components/dock` resolve ke `index.tsx`). Hanya file Task 12 di-commit; `env.ts`, `package.json`, `turbo.json`, `eslint-config/*`, `pnpm-lock.yaml`, paket backend dibiarkan unstaged.
 
 ### Task 13: Pecah `empire-shell.tsx` jadi `components/shell/`
 
