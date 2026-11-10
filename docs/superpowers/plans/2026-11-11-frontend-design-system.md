@@ -2483,7 +2483,7 @@ export function Landing(): JSX.Element
 
 Setiap section menerima datanya sendiri langsung dari `@/lib/data` — tidak ada prop drilling dari orkestrator, karena `lib/data.ts` adalah modul statis tanpa副作用. Kalau nanti tim backend mengganti `lib/data.ts` dengan fetch, yang berubah adalah tiap file section, bukan orkestrator.
 
-- [ ] **Step 1: Potong per region**
+- [x] **Step 1: Potong per region**
 
 Buka `landing.tsx` dan potong berdasarkan marker:
 
@@ -2499,7 +2499,7 @@ Buka `landing.tsx` dan potong berdasarkan marker:
 
 Tiap file baru: `"use client"` di baris pertama bila region itu memakai hook/handler (hero, signals, crew, archive hampir pasti ya; about dan footer periksa dulu), lalu import yang dibutuhkan region itu saja — jangan menyalin seluruh blok import `landing.tsx` ke setiap file.
 
-- [ ] **Step 2: Tulis orkestrator**
+- [x] **Step 2: Tulis orkestrator**
 
 `apps/web/src/components/landing/index.tsx`:
 
@@ -2553,7 +2553,7 @@ import { Marquee } from "@moonwitness/ui";
 import { Star4 } from "@moonwitness/ui/icons";
 ```
 
-- [ ] **Step 3: Hapus file lama + perbaiki import app**
+- [x] **Step 3: Hapus file lama + perbaiki import app**
 
 ```bash
 git rm apps/web/src/components/landing.tsx
@@ -2562,30 +2562,40 @@ grep -rn "components/landing" apps/web/src
 
 `apps/web/src/app/page.tsx` mengimpor `Landing`; karena folder baru punya `index.tsx`, import `@/components/landing` tetap valid tanpa perubahan. Pastikan grep tidak menunjukkan import ke path file lama.
 
-- [ ] **Step 4: Gerbang ukuran file**
+- [x] **Step 4: Gerbang ukuran file**
 
 ```bash
 wc -l apps/web/src/components/landing/*.tsx
 ```
 
+> Bukti: `about 43 · archive 98 · crew 52 · footer 32 · hero 75 · index 41 · signals 85` (total 426). Semua < 150 — tidak perlu potong lagi.
+
 Expected: **setiap** file di bawah 150 baris. Kalau `signals.tsx` atau `hero.tsx` masih di atas 150, potong lagi berdasarkan sub-bagian visualnya (mis. `hero.tsx` → `hero.tsx` + `hero-artwork.tsx` untuk blok `<Image>` + overlay). Jangan memangkas dengan menghapus markup.
 
-- [ ] **Step 5: Pipeline + bukti visual**
+- [x] **Step 5: Pipeline + bukti visual**
 
 ```bash
 pnpm turbo run lint typecheck build
 ```
 
+> **Pipeline:** `pnpm exec turbo run typecheck build --filter=@moonwitness/web` → **2/2 hijau** (`/` 8.84 kB, 749 modul). `lint` gagal, tapi **bukan** karena split ini: error `ReferenceError: tseslintPluginReact is not defined` muncul di `packages/eslint-config/base.js:57` — file yang **sedang diedit tim backend** (`git status` = `M`, HEAD bersih, HEAD cuma 25 baris tanpa referensi itu). Deviasi lingkungan yang sama seperti Task 8/9/10; tidak disentuh.
+>
+> **Bukti visual (`.verify/phase2-task11/` vs `.verify/phase1/landing-*.png`):** dimensi 3 viewport **identik** — 1430×3500, 758×4147, 380×4867. Pixel-diff `t11_diff.mjs`: 1440=4,2% · 768=0,2% · 390=1,8%; `t11_rows.mjs` menunjukkan selurub diff terkonsentrasi di pita gambar/konstelasi (hero 0–200, kartu signal ~1000–1200, konstelasi+archive ~2800–3400) → artefak codec avif/webp + lazy-load, sama seperti Fase 1. Mata (screenshot 1440): semua section utuh.
+>
+> **Fungsional:** marquee `animation: marquee` berjalan + `:hover` → `paused` lalu `running` lagi ✓; CountUp terpicu saat scroll, angka akhir **1.324 / 87 / 6.912** ✓; tombol scroll archive kanan `0→320` dan kiri `320→0` ✓; anchor `#signals`/`#crew`/`#archive`/`#about` semua ada ✓; `scrollWidth` @390 = **390** ✓. Server 4317 dimatikan (PID 32476 di-kill; hanya TIME_WAIT tersisa).
+
 SHOT ke `.verify/phase2-task11/`, bandingkan `.verify/phase1/landing-*.png` (3 viewport). Expected: identik. Periksa juga: marquee masih berjalan dan berhenti saat hover, CountUp masih terpicu saat di-scroll, tombol scroll archive kiri/kanan masih bekerja, semua link nav masih menuju anchor yang benar (`#signals`, `#crew`, `#archive`, `#about`).
 
 `scrollWidth` pada 390px harus tetap ≤ 390. Matikan server.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apps/web/src/components/landing apps/web/src/components/landing.tsx apps/web/src/app/page.tsx
 git commit -m "refactor(web): pecah landing.tsx jadi 7 file section"
 ```
+
+> Commit `9aa7eb5` — 8 file berubah (+426/−387): hapus `landing.tsx`, tambah 7 file `landing/`. `page.tsx` **tidak** diubah (import `@/components/landing` resolve ke `index.tsx` baru tanpa perubahan, jadi tidak ikut di-stage). Hanya file Task 11 yang di-commit; `env.ts`, `package.json`, `turbo.json`, `eslint-config/*`, `pnpm-lock.yaml`, dan paket backend dibiarkan unstaged.
 
 ---
 
