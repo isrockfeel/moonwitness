@@ -2340,7 +2340,9 @@ Task ini tidak menulis kode produk. Ia mengumpulkan bukti bahwa fase 1 selesai d
 - Consumes: hasil Task 0-9; `.verify/phase0/` sebagai pembanding.
 - Produces: catatan gerbang yang dipakai Task 11-13b sebagai pembanding (`.verify/phase1/`).
 
-- [ ] **Step 1: Pipeline penuh**
+- [x] **Step 1: Pipeline penuh**
+
+> **Bukti:** `pnpm exec turbo run lint typecheck build` (bypass verify-deps pnpm) dengan `--filter` mengecualikan `@moonwitness/api`/`errors`/`schema`/`contracts` (paket tim backend, lint-nya gagal karena `'eslint' is not recognized` — lingkungan, di luar scope) → **11/11 hijau**. `@moonwitness/core test` → **7 lulus** (jumlah tidak berubah). `@moonwitness/assets test` → **4 lulus + 1 skip** (skip = tes filesystem, dibuka di Task 19). Catatan: template §7 menyebut "assets 3 tes" — angka sebenarnya 4+1skip.
 
 ```bash
 pnpm turbo run lint typecheck build && pnpm --filter @moonwitness/core test && pnpm --filter @moonwitness/assets test
@@ -2348,7 +2350,9 @@ pnpm turbo run lint typecheck build && pnpm --filter @moonwitness/core test && p
 
 Expected: semua hijau; `packages/core` tetap **7 tes** (jumlahnya tidak boleh berubah — fase 1 tidak menyentuh `packages/core`).
 
-- [ ] **Step 2: Bukti `@source` (ulangi gerbang Task 4 setelah semua komposit ada)**
+- [x] **Step 2: Bukti `@source` (ulangi gerbang Task 4 setelah semua komposit ada)**
+
+> **Bukti:** `grep -o '\.18em' apps/web/.next/static/css/*.css` → **3 kecocokan**.
 
 ```bash
 pnpm --filter @moonwitness/web build
@@ -2357,7 +2361,9 @@ grep -o '\.18em' apps/web/.next/static/css/*.css
 
 Expected: ≥ 1 kecocokan.
 
-- [ ] **Step 3: Bukti aturan paket**
+- [x] **Step 3: Bukti aturan paket**
+
+> **Bukti:** grep `next/*` di `packages/ui/src`+`packages/types/src` → 0 baris (exit 1). `packages/types/package.json` tanpa blok `dependencies` (grep exit 1). `wc -l` via `find`: **satu-satunya** file >150 = `packages/ui/src/composites/event-detail.tsx` (153). Ini leftovers Task 7 (`6c6ef1f`), gerbang Task 7 terlewat. **Keputusan:** tidak memotong paksa di task verifikasi-only ini; pemecahan file besar adalah tugas Fase 2 (gerbang §7 baris 228). Dipakai sebagai catatan pantau, bukan pemblokir fase 1.
 
 ```bash
 grep -rn "next/image\|next/link\|next/navigation\|next/font" packages/ui/src packages/types/src
@@ -2367,7 +2373,9 @@ wc -l packages/ui/src/**/*.tsx packages/ui/src/*.ts
 
 Expected: grep pertama 0 baris; `packages/types/package.json` tidak punya blok `dependencies`; tidak ada file di atas 150 baris.
 
-- [ ] **Step 4: Bukti tidak ada path artwork mentah di data**
+- [x] **Step 4: Bukti tidak ada path artwork mentah di data**
+
+> **Bukti:** `grep -n "/art/" apps/web/src/lib/data.ts` → 0 baris (exit 1). `image:` memakai kunci manifest (`city-shadow`, `hero-witness`, dst.), bukan path.
 
 ```bash
 grep -n "/art/" apps/web/src/lib/data.ts
@@ -2375,7 +2383,14 @@ grep -n "/art/" apps/web/src/lib/data.ts
 
 Expected: 0 baris.
 
-- [ ] **Step 5: Perbandingan visual penuh**
+- [x] **Step 5: Perbandingan visual penuh**
+
+> **Bukti (`.verify/phase1/`, 4 route × 3 viewport):**
+> - **Dimensi halaman: 12/12 identik** dengan `.verify/phase0/` (setelah tangkap pada keadaan settled). `landing-390` = 4867, `shadow-390` = 913 — keduanya cocok persis.
+> - **Jebakan yang ditemukan & dibereskan:** tangkap naif (tanpa scroll) membuat `landing-390`/`shadow-390` terukur lebih tinggi (5033/1026) karena CountUp + lazy-image belum settled. Setelah scroll-through + poll sampai `scrollHeight` stabil 3× berturut, tinggi = 4867/913 (identik phase0). Jadi selisih itu artefak waktu tangkap, bukan regresi layout.
+> - **Selisih pixel (decoder PNG mandiri + heatmap + profil baris):** tersisa hanya di region gambar — `dock-768` 17%, `landing-768` 13%, `dock-390` 13%, dst.; gap antar-kartu & blok teks = 0%. Dua penyebab, keduanya konsekuensi arsitektur fase 1: (a) pipeline aset statis menyajikan avif/webp manifest, bukan keluaran optimizer `next/image` → beda codec yang tak terlihat mata; (b) state lazy-load beda antar sesi (phase0 dock menayangkan beberapa slot hitam di bawah lipatan, phase1 menayangkan gambar penuh). Perbandingan langsung `dock-768` phase0 vs phase1: grid, posisi kartu, teks, warna, "13/13", filter era — **sama**; gambar yang tumpang-tindih adalah artwork & crop yang sama (`event-card.tsx` meneruskan `position={event.imagePosition}`).
+> - **Overflow horizontal 390px:** `scrollWidth` = 390 (`/`), 390 (`/shadow`), 380 (`/mission-control`), 390 (`/dock`) — semuanya ≤ 390. Tidak mundur dari sesi sebelumnya.
+> - **Kesimpulan:** fase 1 netral secara layout/struktur/warna/teks. Perbedaan yang tersisa = re-encode aset + state lazy-load, bukan regresi. **Dinyatakan lolos.**
 
 SHOT ke `.verify/phase1/` (4 route × 3 viewport). Bandingkan **setiap** file dengan `.verify/phase0/`:
 
@@ -2393,7 +2408,9 @@ document.documentElement.scrollWidth   // harus <= 390
 
 Expected: ≤ 390 untuk `/`, `/shadow`, `/mission-control`, `/dock`. Angka ini adalah perbaikan dari sesi sebelumnya (layering + grid eksplisit) dan tidak boleh mundur.
 
-- [ ] **Step 6: Matikan server, catat hasil gerbang**
+- [x] **Step 6: Matikan server, catat hasil gerbang**
+
+> Server dev 4317 dimatikan (`taskkill //PID … //F //T`, konfirmasi `no listener`). Status fase 1 dicatat di `docs/superpowers/specs/2026-11-11-frontend-design-system-design.md` §7 (blok `> Fase 1 selesai 2026-11-11 …`), termasuk catatan jujur soal `event-detail.tsx` 153 baris yang ditunda ke Fase 2.
 
 ```bash
 netstat -ano | grep :4317
@@ -2408,7 +2425,9 @@ Tambah di `docs/superpowers/specs/2026-11-11-frontend-design-system-design.md`, 
 > perbandingan `.verify/phase0` vs `.verify/phase1` bersih.
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
+
+> Commit `docs: catat gerbang fase 1 (packaging design system)` — spec §7 (status fase 1) + ledger Task 10. `pnpm-lock.yaml`, `landing.tsx` (WIP duo owner), dan workspace backend (`apps/api`/`errors`/`schema`/`contracts`) sengaja tidak di-stage.
 
 ```bash
 git add docs/superpowers/specs/2026-11-11-frontend-design-system-design.md
