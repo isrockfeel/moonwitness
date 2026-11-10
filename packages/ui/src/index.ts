@@ -18,3 +18,6 @@ export { EraBand, type EraBandProps } from "./composites/era-band";
 export { CountUp } from "./composites/count-up";
 export { TransmissionCard, type TransmissionCardProps } from "./composites/transmission-card";
 export { CrewConstellation, type CrewConstellationProps } from "./composites/crew-constellation";
+export { MODULE_GLYPHS } from "./composites/module-glyphs";
+export { ModuleGlyph, type ModuleGlyphProps } from "./composites/module-glyph";
+export { ModuleCard, type ModuleCardProps } from "./composites/module-card";

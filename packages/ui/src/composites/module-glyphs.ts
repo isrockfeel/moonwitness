@@ -1,0 +1,11 @@
+/** Path stroke SVG per ikon modul. Kunci = nilai field Module["icon"]. */
+export const MODULE_GLYPHS: Record<string, string> = {
+  pen: "M4 20 L6 14 L16 4 L20 8 L10 18 Z M14 6 L18 10",
+  image: "M4 5 L20 5 L20 19 L4 19 Z M4 15 L9 10 L14 15 L17 12 L20 15",
+  flask: "M10 3 L14 3 M11 3 L11 9 L5 19 Q4 21 7 21 L17 21 Q20 21 19 19 L13 9 L13 3",
+  globe:
+    "M12 3 A9 9 0 1 0 12 21 A9 9 0 1 0 12 3 M3 12 L21 12 M12 3 Q17 8 17 12 Q17 16 12 21 Q7 16 7 12 Q7 8 12 3",
+  send: "M3 11 L21 3 L13 21 L10 14 Z M10 14 L21 3",
+  gear: "M12 8 A4 4 0 1 0 12 16 A4 4 0 1 0 12 8 M12 2 L12 5 M12 19 L12 22 M2 12 L5 12 M19 12 L22 12 M5 5 L7 7 M17 17 L19 19 M19 5 L17 7 M7 17 L5 19",
+  shield: "M12 3 L20 6 L20 12 Q20 18 12 21 Q4 18 4 12 L4 6 Z M8 12 L11 15 L16 9",
+};

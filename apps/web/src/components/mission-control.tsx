@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { EmpireShell } from "./empire-shell";
 import { ArrowRight, Bolt, Crown, Splatter, Star4 } from "@moonwitness/ui/icons";
-import { Grain, Halftone } from "@moonwitness/ui";
+import { Grain, Halftone, ModuleCard, ModuleGlyph } from "@moonwitness/ui";
 import { artSrc } from "@/lib/art";
 import {
   feedItems,
@@ -16,70 +16,6 @@ import {
   type Module,
   type Workflow,
 } from "@/lib/data";
-
-const moduleIcons: Record<string, string> = {
-  pen: "M4 20 L6 14 L16 4 L20 8 L10 18 Z M14 6 L18 10",
-  image: "M4 5 L20 5 L20 19 L4 19 Z M4 15 L9 10 L14 15 L17 12 L20 15",
-  flask: "M10 3 L14 3 M11 3 L11 9 L5 19 Q4 21 7 21 L17 21 Q20 21 19 19 L13 9 L13 3",
-  globe:
-    "M12 3 A9 9 0 1 0 12 21 A9 9 0 1 0 12 3 M3 12 L21 12 M12 3 Q17 8 17 12 Q17 16 12 21 Q7 16 7 12 Q7 8 12 3",
-  send: "M3 11 L21 3 L13 21 L10 14 Z M10 14 L21 3",
-  gear: "M12 8 A4 4 0 1 0 12 16 A4 4 0 1 0 12 8 M12 2 L12 5 M12 19 L12 22 M2 12 L5 12 M19 12 L22 12 M5 5 L7 7 M17 17 L19 19 M19 5 L17 7 M7 17 L5 19",
-  shield: "M12 3 L20 6 L20 12 Q20 18 12 21 Q4 18 4 12 L4 6 Z M8 12 L11 15 L16 9",
-};
-
-function ModuleIcon({ icon, className }: { icon: string; className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d={moduleIcons[icon] ?? moduleIcons.gear} />
-    </svg>
-  );
-}
-
-function ModuleCard({ module, onOpen }: { module: Module; onOpen: (m: Module) => void }) {
-  return (
-    <button
-      onClick={() => onOpen(module)}
-      className="zine-card-rough group flex w-full items-center gap-4 p-4 text-left transition-transform hover:-translate-y-0.5"
-    >
-      <span
-        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md"
-        style={{ background: module.color, color: module.color === "#ffd21f" ? "#111" : "#fff" }}
-      >
-        <ModuleIcon icon={module.icon} className="h-6 w-6" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-2">
-          <span className="font-brush text-lg leading-tight text-white">
-            {module.name.toUpperCase()}
-          </span>
-          <Crown className="h-3.5 w-5 text-[var(--yellow)]" />
-        </span>
-        <span className="mt-0.5 block truncate text-xs text-zinc-400">{module.description}</span>
-        <span className="mt-1.5 flex flex-wrap gap-x-3 text-[11px]">
-          {module.stats.map((s) => (
-            <span key={s.label} className="flex items-center gap-1 text-zinc-400">
-              <span className="h-1.5 w-1.5 rounded-full" style={{ background: s.color }} />
-              <span style={{ color: s.color }}>{s.value}</span> {s.label}
-            </span>
-          ))}
-        </span>
-      </span>
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-[var(--line)] text-zinc-400 transition-colors group-hover:border-[var(--pink)] group-hover:text-[var(--pink)]">
-        <ArrowRight className="h-4 w-4" />
-      </span>
-    </button>
-  );
-}
 
 const orbitNodes = [
   { label: "IDEAS", x: 50, y: 6, module: "story-forge", color: "#2ea8ff" },
@@ -486,7 +422,7 @@ export function MissionControl() {
                   color: openModule.color === "#ffd21f" ? "#111" : "#fff",
                 }}
               >
-                <ModuleIcon icon={openModule.icon} className="h-7 w-7" />
+                <ModuleGlyph icon={openModule.icon} className="h-7 w-7" />
               </span>
               <button
                 onClick={() => setOpenModule(null)}
