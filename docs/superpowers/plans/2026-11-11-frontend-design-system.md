@@ -1955,12 +1955,22 @@ Matikan server.
 
 Matikan server: listener PID 28040 dihentikan, `netstat` tidak menyisakan `LISTENING` di 4317 (hanya `TIME_WAIT` sisa koneksi).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add packages/ui/src apps/web/src/components/dock.tsx apps/web/src/lib/data.ts apps/web/src/components/landing.tsx
 git commit -m "refactor(ui): komposit timeline (EventCard, EventDetail, EraBand) pindah ke paket"
 ```
+
+**Yang sebenarnya dijalankan — `git add apps/web/src/components/landing.tsx` tidak dipakai apa adanya.** File itu masih memegang WIP orang lain (blok `.duo-*`/`.marginalia` + hover treatment di working tree, lihat catatan Task 4 Step 10). Resep partial staging yang sama dengan Task 4–6: `git show HEAD:…landing.tsx` → tempel ke `.verify/tmp_landing_head.tsx`, ganti **hanya** dua baris impor dengan penggantian string persis, tulis ke `.verify/tmp_landing_staged.tsx`, lalu `git hash-object -w` + `git update-index --cacheinfo 100644,<blob>,apps/web/src/components/landing.tsx`. Hasil: `git status` = `MM landing.tsx` (index punyaku, working tree punyanya), dan `git diff --cached -- …landing.tsx` = **2 baris** (`-kindColors` dari `@/lib/data`, `+kindColors` di impor `@moonwitness/ui`) — nol hunk asing.
+
+Perintah `git add` untuk `packages/ui/src`, `dock.tsx`, `data.ts`, dan plan tetap aman: ketiganya tidak pernah disentuh WIP asing (status awal sesi hanya `M globals.css` + `M landing.tsx`).
+
+Bukti konsistensi state yang di-commit: `git grep --cached "duo-img\|duo-tint\|duo-halftone\|marginalia" -- apps packages` = **kosong** (tidak ada kelas yang direferensikan tapi tidak didefinisikan di HEAD); `git grep --cached -n kindColors` = 9 baris, semuanya sah (2 di `landing.tsx`, 6 di `packages/ui`, 1 definisi); `packages/ui/src/index.ts` baris 14–17 memuat keempat ekspor komposit; `dock.tsx` hanya memakai komposit lewat satu impor `@moonwitness/ui`.
+
+**Batasan yang dicatat jujur:** pipeline 11/11 dijalankan terhadap *working tree*, bukan terhadap checkout bersih dari commit ini. Yang membuktikan HEAD konsisten adalah grep di atas (satu-satunya selisih HEAD vs working tree adalah pasangan `landing.tsx`/`globals.css` milik orang lain, dan HEAD tidak mereferensikan kelas dari sisi working tree mana pun), bukan build bersih.
+
+Commit: `6c6ef1f refactor(ui): komposit timeline (EventCard, EventDetail, EraBand) pindah ke paket` — 10 file, +416/−319.
 
 ---
 
