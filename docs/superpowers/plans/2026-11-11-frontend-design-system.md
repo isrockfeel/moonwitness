@@ -1078,7 +1078,7 @@ Salin `:root` dari `globals.css` baris 5-18 apa adanya, lalu tambah fallback fon
 }
 ```
 
-`next/font` menulis `--font-brush` dll. sebagai class-scoped variable di `<html>`, jadi nilai di sini hanya berlaku bila class font tidak terpasang. Itu sebabnya nama keluarga ditulis sebagai fallback, bukan pengganti.
+`next/font` menulis `--font-brush` dll. sebagai variable di class pada `<html>`. **Klaim lama di bawah ini sudah dibantah pengukuran** (lihat Step 9): `:root` dan class punya spesifisitas sama (0,1,0), jadi yang menentukan adalah urutan sumber — `theme.css` di-import belakangan dan **menang**, bukan kalah. Nama keluarga di sini tetap ditulis sebagai fallback supaya konsumen tanpa `next/font` masih wajar, dan efeknya baru aman karena Next 15.5 menamai `@font-face` dengan nama huruf asli; kalau nanti pindah ke Tailwind `@theme` atau next/font berganti skema penamaan, variabel ini harus ikut ditinjau.
 
 - [ ] **Step 2: Tulis `packages/ui/src/base.css`**
 
@@ -1203,21 +1203,44 @@ grep -n "@source" apps/web/src/app/globals.css
 
 Expected: baris `@source "../../../../packages/ui/src";` kembali ada. Lalu build ulang dan ulangi grep positif Step 6 (harus ≥ 1).
 
-- [ ] **Step 9: Bukti tidak ada perubahan tampilan**
+- [x] **Step 9: Bukti tidak ada perubahan tampilan**
 
-SHOT ke `.verify/phase1-task4/`, bandingkan dengan `.verify/phase0/`. Yang wajib sama: warna latar (`--ink`), scrollbar pink, bentuk tombol `.btn-zine` (clip-path), kartu `.zine-card-rough`, animasi marquee di landing, dan tidak ada overflow horizontal di 390px.
+Gerbangnya empat bukti berurutan dari bagian "Cara membandingkan screenshot", **bukan** diff pixel mentah vs `.verify/phase0/` (sudah terbukti bukan gerbang sah). Task 4 murni memindahkan CSS, jadi yang harus sama adalah *computed style*, bukan susunan DOM.
 
-Periksa juga reduced-motion masih berfungsi: buka DevTools → Rendering → "Emulate CSS media feature prefers-reduced-motion", reload `/`, dan pastikan marquee berhenti bergerak. Kalau marquee masih jalan, blok `@media` ikut masuk `@layer components` — itu pelanggaran Global Constraints.
+Yang diukur (build produksi `next start -p 4317`, viewport 390×844 lalu 1280×900):
 
-Matikan server.
+1. **Tidak ada overflow horizontal.** `document.documentElement.scrollWidth` = **380** di `/`, `/dock`, `/mission-control`, `/shadow` (clientWidth juga 380) — sama persis dengan angka Task 1.
+2. **Console bersih.** Listener `console`/`pageerror`/`requestfailed`/`response>=400` yang dipasang sebelum navigasi: **0 error, 0 warning, 0 request gagal** di keempat rute, termasuk replay login → dock. Catatan: log agregat MCP kadang masih menampilkan dua `WARNING` "resource … was preloaded using link preload but not used" untuk `/art/crew-rooftop.png` dan `/art/city-shadow.png`. Itu **bukan** regresi Task 4 — penyebabnya prop `priority` pada `next/image` di kode yang tidak disentuh task ini, dan tidak muncul sama sekali saat listener dipasang sendiri. Layak dicatat sebagai kandidat perbaikan di Task 17 (perf), bukan di sini.
+3. **Paritas computed style** (ini inti bukti migrasi):
+   - `body` background `rgb(11, 11, 16)` = `--ink` ✓ dan `scrollbar-color: rgb(255, 45, 120) rgb(11, 11, 16)` (thumb pink, aturan unlayered di `base.css`) ✓
+   - `.btn-zine` `clip-path` = polygon 33 titik utuh, `font-family` brush ✓; `.zine-input` border `rgb(42, 42, 56)` = `--line` ✓
+   - `.zine-card-rough` `box-shadow: rgba(0,0,0,0.55) 6px 6px 0` + `outline: dashed rgba(244,238,222,0.25)` ✓
+   - `.marquee-track` `animation: marquee 28s` `running`; `.float-y` 5s; `.pulse-dot` 1.8s ✓
+   - `html { scroll-behavior: smooth }` ✓
+4. **Screenshot mata** di `.verify/phase1-task4/` (`p4-landing-1280/390`, `p4-dock-1280/390`, `p4-shadow-1280/390`, `p4-mission-1280`, `p4-mission-control-390`), diambil dengan resep deterministik: scroll penuh dulu (memicu lazy load), kembali ke atas, tunggu, lalu suntik `*{animation-play-state:paused!important;transition:none!important}` sebelum `fullPage`.
 
-- [ ] **Step 10: Pipeline + commit**
+Reduced-motion diuji lewat `page.emulateMedia({ reducedMotion: 'reduce' })`, bukan DevTools manual: `.marquee-track`/`.float-y`/`.pulse-dot`/`.rise-in` jadi `animation-name: none`, `duration 0s`, `transition 0s`, `html scroll-behavior: auto`; setelah `no-preference` + reload, marquee kembali `marquee/28s`. Berarti blok `@media` tetap **unlayered** — Global Constraints tidak dilanggar.
+
+Dua hal yang harus diketahui siapa pun yang mengulang langkah ini:
+
+- **Root screenshot Playwright MCP** bukan workspace. `page.screenshot({ path: "nama.png" })` (relatif) mendarat di `Z:\Qoder\.qoder-versions\0.5.7\`, jadi salin manual ke `.verify/phase1-task4/` setelahnya. Parameter `filename` tool tetap ditolak untuk path repo.
+- **Font: klaim Step 3 salah arah, meski hasilnya tidak merusak.** Teks aslinya "next/font menulis `--font-brush` sebagai class-scoped variable di `<html>`, jadi nilai di `theme.css` hanya berlaku bila class font tidak terpasang." Kenyataan terukur: `theme.css` memakai `:root` (spesifisitas 0,1,0) dan next/font memakai class (0,1,0 juga) — seri, jadi **yang menang adalah urutan sumber**, dan `theme.css` datang belakangan (posisi byte 52246 vs 613 di CSS hasil build). Nilai yang berlaku = `"Permanent Marker", cursive`, bukan `"Permanent Marker","Permanent Marker Fallback"`. Ini **bukan** regresi hanya karena Next 15.5 menamai `@font-face` dengan nama huruf asli (`font-family:Permanent Marker`), jadi keluarga yang di-merge tetap ter-resolve. Buktinya diukur, bukan disimpulkan: lebar teks `Moonwitness Story Network` pada 40px = **563.09px** untuk `.font-brush`, sama persis dengan `'"Permanent Marker"'` (563.09) dan jauh dari `cursive` (530.97); `document.fonts.check` true untuk ketiga huruf. Yang hilang hanyalah fallback size-adjusted next/font selama webfont loading — perbedaan metriknya 0.43px dari 563px (~0.08%). Kalau nanti Fase 5 ingin mengembalikan fallback itu, caranya bukan memindah variabel ke `:root`, tapi menaruh `theme.css` di `@layer theme` atau menamai variabelnya beda.
+
+Matikan server (bukti: `netstat -ano | grep :4317 | grep LISTENING` kosong). Pelajaran dari percobaan pertama: `EADDRINUSE` membuat `pnpm start` keluar dengan `ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL` **tanpa** meninggalkan listener, jadi gejalanya terlihat seperti "port bebas tapi server menolak start". Cek `netstat` dulu, baru start.
+
+- [x] **Step 10: Pipeline + commit**
 
 ```bash
 pnpm turbo run lint typecheck build
 git add packages/ui/package.json packages/ui/src/theme.css packages/ui/src/base.css packages/ui/src/index.ts apps/web/src/app/globals.css
 git commit -m "refactor(ui): pindahkan token + base CSS design system ke packages/ui"
 ```
+
+Hasil pipeline: **11/11 task sukses** (6 cached), tanpa error lint/typecheck/build.
+
+**Deviasi dari perintah `git add` di atas, dan kenapa.** Di working tree, `globals.css` bukan lagi "empat baris import": ia masih menggenggam blok `.duo-img`/`.duo-tint`/`.duo-halftone`/`.marginalia` yang **bukan** bagian task ini dan belum pernah di-commit (di HEAD blok itu tidak ada — `git grep "duo-img" HEAD -- apps packages` kosong). Menjalankan `git add apps/web/src/app/globals.css` apa adanya akan menyeret WIP orang lain ke commit Task 4. Yang dilakukan: versi commit (empat baris import, tanpa blok duotone) ditulis ke file sementara, lalu di-stage dengan `git hash-object -w` + `git update-index --cacheinfo 100644,<blob>,apps/web/src/app/globals.css`, sehingga `git status` menampilkan `MM` — index bersih milik task ini, working tree tetap menyimpan WIP pemiliknya apa adanya. `landing.tsx` tetap ` M` dan tidak masuk index. Bukti sebelum commit: `git diff --cached --stat` = tepat 5 file, dan `git diff --cached | grep -c "duo-img"` = **0**.
+
+Konsekuensi yang perlu dicatat: **screenshot Step 9 diambil dari working tree**, jadi di dalamnya artwork sudah memakai perlakuan duotone. Tidak masalah untuk gerbang ini (gerbangnya computed style + aturan yang dipindah, yang sudah dibandingkan secara ternormalisasi dan identik kecuali tiga fallback font yang memang ditambahkan), tapi jangan pakai screenshot itu sebagai baseline untuk task yang mengasumsikan artwork full-color.
 
 ---
 

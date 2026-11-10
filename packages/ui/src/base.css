@@ -1,0 +1,391 @@
+/* ---- document ---- */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--ink);
+  color: #f5f3ee;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--pink);
+  color: #fff;
+}
+
+/* ---- zine scrollbar ---- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--ink);
+  border-left: 1px solid var(--line);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--pink);
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--yellow);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--pink) var(--ink);
+}
+
+/* Layered so Tailwind utilities (hidden, px-*, bg-*) can override these. */
+@layer components {
+  .font-brush {
+    font-family: var(--font-brush), cursive;
+  }
+  .font-hand {
+    font-family: var(--font-hand), cursive;
+  }
+
+  /* ---- halftone + grain layers ---- */
+  .halftone {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1.6px);
+    background-size: 7px 7px;
+  }
+  .halftone-pink {
+    background-image: radial-gradient(rgba(255, 45, 120, 0.22) 1.2px, transparent 1.8px);
+    background-size: 8px 8px;
+  }
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  }
+
+  /* ---- torn paper stickers ---- */
+  .sticker {
+    --sticker-bg: var(--paper);
+    --sticker-fg: #111;
+    background: var(--sticker-bg);
+    color: var(--sticker-fg);
+    clip-path: polygon(
+      1% 4%,
+      4% 1%,
+      9% 3%,
+      15% 0%,
+      22% 2%,
+      30% 1%,
+      38% 3%,
+      47% 0%,
+      55% 2%,
+      63% 1%,
+      71% 3%,
+      79% 0%,
+      87% 2%,
+      94% 1%,
+      99% 4%,
+      100% 12%,
+      98% 20%,
+      100% 30%,
+      98% 41%,
+      100% 52%,
+      98% 63%,
+      100% 74%,
+      98% 85%,
+      100% 93%,
+      97% 99%,
+      90% 97%,
+      82% 100%,
+      74% 98%,
+      66% 100%,
+      58% 98%,
+      50% 100%,
+      42% 98%,
+      34% 100%,
+      26% 98%,
+      18% 100%,
+      10% 98%,
+      4% 100%,
+      0% 96%,
+      1% 88%,
+      0% 78%,
+      2% 68%,
+      0% 57%,
+      1% 46%,
+      0% 36%,
+      2% 26%,
+      0% 15%
+    );
+  }
+  .sticker-pink {
+    --sticker-bg: var(--pink);
+    --sticker-fg: #fff;
+  }
+  .sticker-yellow {
+    --sticker-bg: var(--yellow);
+    --sticker-fg: #111;
+  }
+  .sticker-blue {
+    --sticker-bg: var(--blue);
+    --sticker-fg: #06121f;
+  }
+  .sticker-black {
+    --sticker-bg: #15151d;
+    --sticker-fg: #f5f3ee;
+  }
+
+  .tape {
+    position: absolute;
+    width: 92px;
+    height: 26px;
+    background: rgba(244, 238, 222, 0.28);
+    backdrop-filter: blur(1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    clip-path: polygon(2% 0%, 98% 4%, 100% 88%, 96% 100%, 4% 96%, 0% 12%);
+  }
+
+  /* ---- zine cards & buttons ---- */
+  .zine-card {
+    background: var(--panel);
+    border: 2px solid var(--line);
+    box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.55);
+  }
+  .zine-card-rough {
+    background: var(--panel);
+    border: 2px solid #3a3a4a;
+    outline: 1px dashed rgba(244, 238, 222, 0.25);
+    outline-offset: -7px;
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.55);
+  }
+
+  .btn-zine {
+    --btn-bg: var(--pink);
+    --btn-fg: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-family: var(--font-brush), cursive;
+    letter-spacing: 0.04em;
+    clip-path: polygon(
+      2% 8%,
+      6% 2%,
+      13% 5%,
+      21% 1%,
+      30% 4%,
+      40% 1%,
+      50% 4%,
+      60% 1%,
+      70% 4%,
+      80% 1%,
+      89% 4%,
+      96% 2%,
+      100% 10%,
+      98% 25%,
+      100% 45%,
+      98% 65%,
+      100% 82%,
+      97% 95%,
+      90% 98%,
+      80% 95%,
+      70% 99%,
+      60% 96%,
+      50% 99%,
+      40% 96%,
+      30% 99%,
+      20% 96%,
+      10% 99%,
+      3% 96%,
+      0% 88%,
+      1% 70%,
+      0% 50%,
+      1% 30%,
+      0% 15%
+    );
+    transition:
+      transform 0.15s ease,
+      filter 0.15s ease;
+    cursor: pointer;
+  }
+  .btn-zine:hover {
+    filter: brightness(1.12);
+    transform: translateY(-2px) rotate(-0.5deg);
+  }
+  .btn-zine:active {
+    transform: translateY(1px);
+  }
+  .btn-zine:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 3px;
+  }
+  .btn-zine:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn-yellow {
+    --btn-bg: var(--yellow);
+    --btn-fg: #111;
+  }
+  .btn-blue {
+    --btn-bg: var(--blue);
+    --btn-fg: #06121f;
+  }
+  .btn-paper {
+    --btn-bg: var(--paper);
+    --btn-fg: #111;
+  }
+
+  /* ---- brush underline ---- */
+  .brush-underline {
+    background-image: linear-gradient(
+      100deg,
+      transparent 1%,
+      var(--yellow) 4%,
+      var(--yellow) 96%,
+      transparent 99%
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 0.28em;
+    background-position: 0 92%;
+    padding: 0 0.08em;
+  }
+
+  /* ---- marquee ---- */
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  .marquee-track {
+    animation: marquee 28s linear infinite;
+  }
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+
+  /* ---- orbit diagram ---- */
+  @keyframes spin-slow {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .orbit-ring {
+    transform-origin: center;
+    animation: spin-slow 60s linear infinite;
+  }
+  .orbit-ring-rev {
+    transform-origin: center;
+    animation: spin-slow 90s linear infinite reverse;
+  }
+
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+  .pulse-dot {
+    animation: pulse-dot 1.8s ease-in-out infinite;
+  }
+
+  @keyframes flicker {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    92% {
+      opacity: 1;
+    }
+    93% {
+      opacity: 0.4;
+    }
+    94% {
+      opacity: 1;
+    }
+    97% {
+      opacity: 0.6;
+    }
+    98% {
+      opacity: 1;
+    }
+  }
+  .neon-flicker {
+    animation: flicker 6s linear infinite;
+  }
+
+  @keyframes float-y {
+    0%,
+    100% {
+      transform: translateY(0) rotate(var(--rot, 0deg));
+    }
+    50% {
+      transform: translateY(-8px) rotate(var(--rot, 0deg));
+    }
+  }
+  .float-y {
+    animation: float-y 5s ease-in-out infinite;
+  }
+
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .rise-in {
+    animation: rise-in 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .zine-input {
+    width: 100%;
+    background: #0e0e15;
+    border: 1.5px solid var(--line);
+    color: #f5f3ee;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  .zine-input::placeholder {
+    color: #5b5b70;
+  }
+  .zine-input:focus {
+    outline: none;
+    border-color: var(--pink);
+    box-shadow: 0 0 0 3px rgba(255, 45, 120, 0.2);
+  }
+  .zine-input[aria-invalid="true"] {
+    border-color: var(--red);
+  }
+}
+
+/* Unlayered dengan sengaja: harus menang atas utility supaya animasi bisa dimatikan. */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track,
+  .orbit-ring,
+  .orbit-ring-rev,
+  .pulse-dot,
+  .neon-flicker,
+  .float-y,
+  .rise-in {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}

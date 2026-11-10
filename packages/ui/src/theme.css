@@ -1,0 +1,17 @@
+:root {
+  --ink: #0b0b10;
+  --panel: #14141c;
+  --panel-2: #1b1b26;
+  --paper: #f4eede;
+  --pink: #ff2d78;
+  --blue: #2ea8ff;
+  --yellow: #ffd21f;
+  --purple: #a855f7;
+  --red: #ff3b3b;
+  --green: #3ddc84;
+  --line: #2a2a38;
+  --font-brush: "Permanent Marker", cursive;
+  --font-hand: "Caveat", cursive;
+  --font-mono: "Space Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
