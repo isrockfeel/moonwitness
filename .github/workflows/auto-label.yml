@@ -34,6 +34,7 @@ jobs:
     permissions:
       pull-requests: write
       issues: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,10 +46,53 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const yaml = require('yaml');
             
-            // Read assigner config
-            const config = yaml.load(fs.readFileSync('.github/assigner.yml', 'utf8'));
+            // Simple YAML parser for our specific format
+            function parseYAML(content) {
+              const result = {};
+              const lines = content.split('\n');
+              let currentKey = null;
+              let currentArray = null;
+              
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || trimmed.startsWith('#')) continue;
+                
+                // Check for key: value or key:
+                const keyMatch = trimmed.match(/^([a-zA-Z0-9_/-]+):\s*(.*)$/);
+                if (keyMatch) {
+                  const key = keyMatch[1];
+                  const value = keyMatch[2].trim();
+                  
+                  if (value.startsWith('[') || value.startsWith('{')) {
+                    // Skip complex values for now
+                    continue;
+                  }
+                  
+                  if (value === '') {
+                    // This is a key with array value (next lines)
+                    currentKey = key;
+                    result[currentKey] = [];
+                    currentArray = result[currentKey];
+                  } else {
+                    // Simple key: value
+                    result[key] = value.replace(/^["']|["']$/g, '');
+                    currentKey = null;
+                    currentArray = null;
+                  }
+                } else if (trimmed.startsWith('- ')) {
+                  // Array item
+                  if (currentKey && Array.isArray(result[currentKey])) {
+                    const item = trimmed.substring(2).trim().replace(/^["']|["']$/g, '');
+                    result[currentKey].push(item);
+                  }
+                }
+              }
+              return result;
+            }
+            
+            const configContent = fs.readFileSync('.github/assigner.yml', 'utf8');
+            const config = parseYAML(configContent);
             
             // Get PR files
             const files = await github.rest.pulls.listFiles({
@@ -80,7 +124,9 @@ jobs:
                 try {
                   const regex = new RegExp(`^${regexPattern}$`);
                   if (regex.test(filename)) {
-                    assigneesList.forEach(a => assignees.add(a));
+                    if (Array.isArray(config[pattern])) {
+                      config[pattern].forEach(a => assignees.add(a));
+                    }
                   }
                 } catch (e) {
                   // Invalid regex, skip
@@ -95,9 +141,9 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 pull_number: context.payload.pull_request.number,
-                reviewers: assigneesList
+                reviewers: Array.from(assignees)
               });
-              console.log(`Assigned reviewers: ${assigneesList.join(', ')}`);
+              console.log(`Assigned reviewers: ${Array.from(assignees).join(', ')}`);
             } else {
               console.log('No matching assignees found');
             }
