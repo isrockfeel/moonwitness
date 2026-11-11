@@ -104,46 +104,19 @@ jobs:
             // Collect all matching assignees
             const assignees = new Set();
             
-            // Add default assignees
-            if (config.default) {
-              config.default.forEach(a => assignees.add(a));
-            }
-            
-            // Check each file against patterns
-            for (const file of files.data) {
-              const filename = file.filename;
-              for (const [pattern, assigneesList] of Object.entries(config)) {
-                if (pattern === 'default') continue;
-                
-                // Convert glob pattern to regex
-                const regexPattern = pattern
-                  .replace(/\./g, '\\.')
-                  .replace(/\*\*/g, '.*')
-                  .replace(/\*/g, '[^/]*');
-                
-                try {
-                  const regex = new RegExp(`^${regexPattern}$`);
-                  if (regex.test(filename)) {
-                    if (Array.isArray(config[pattern])) {
-                      config[pattern].forEach(a => assignees.add(a));
-                    }
-                  }
-                } catch (e) {
-                  // Invalid regex, skip
-                }
-              }
-            }
+            // Filter out PR author (can't request review from author)
+            const prAuthor = context.payload.pull_request.user.login;
+            const filteredAssignees = Array.from(assignees).filter(a => a !== prAuthor);
             
             // Assign reviewers
-            if (assignees.size > 0) {
-              const assigneesList = Array.from(assignees);
+            if (filteredAssignees.length > 0) {
               await github.rest.pulls.requestReviewers({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 pull_number: context.payload.pull_request.number,
-                reviewers: Array.from(assignees)
+                reviewers: filteredAssignees
               });
-              console.log(`Assigned reviewers: ${Array.from(assignees).join(', ')}`);
+              console.log(`Assigned reviewers: ${filteredAssignees.join(', ')}`);
             } else {
-              console.log('No matching assignees found');
+              console.log('No matching assignees found (after filtering PR author)');
             }
