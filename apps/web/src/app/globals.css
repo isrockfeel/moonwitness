@@ -4,3 +4,57 @@
 
 @import "@moonwitness/ui/theme.css";
 @import "@moonwitness/ui/base.css";
+
+/* ---- ID Lab ---- */
+@keyframes avatar-pop {
+  0% {
+    transform: scale(0.9) rotate(-2deg);
+    opacity: 0.4;
+  }
+  60% {
+    transform: scale(1.03) rotate(1deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+.avatar-pop {
+  animation: avatar-pop 0.35s ease-out;
+}
+
+.zine-range {
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--pink), var(--blue));
+  outline: none;
+  cursor: pointer;
+}
+.zine-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--yellow);
+  border: 2px solid #0b0b10;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.6);
+}
+.zine-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--yellow);
+  border: 2px solid #0b0b10;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.6);
+}
+.zine-range:focus-visible {
+  outline: 3px solid var(--yellow);
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar-pop {
+    animation: none;
+  }
+}

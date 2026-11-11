@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@moonwitness/assets": "workspace:*",
+    "@moonwitness/avatars": "workspace:*",
     "@moonwitness/core": "workspace:*",
     "@moonwitness/types": "workspace:*",
     "@moonwitness/ui": "workspace:*",

@@ -1,0 +1,28 @@
+{
+  "name": "@moonwitness/avatars",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf .turbo node_modules coverage"
+  },
+  "dependencies": {
+    "@dicebear/core": "^9.2.4"
+  },
+  "devDependencies": {
+    "@moonwitness/eslint-config": "workspace:*",
+    "@moonwitness/typescript-config": "workspace:*",
+    "@types/node": "^24.10.0",
+    "eslint": "^9.39.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

@@ -4,6 +4,7 @@ import type { Witness } from "@moonwitness/types";
 import { useState, type ReactNode } from "react";
 import { Crown } from "../icons";
 import { Tape } from "../primitives/tape";
+import { WitnessAvatar } from "../primitives/witness-avatar";
 import { CountUp } from "./count-up";
 
 export interface CrewConstellationProps {
@@ -62,14 +63,14 @@ export function CrewConstellation({ witnesses, stats, cta, backdrop }: CrewConst
               onClick={() => setSelectedId(w.id)}
               aria-label={`Witness ${w.name}, ${w.place}`}
               aria-pressed={selected.id === w.id}
-              className={`absolute h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 font-hand text-sm font-bold transition-all after:absolute after:-inset-1.5 after:content-[""] ${
+              className={`absolute flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center overflow-hidden rounded-full border-2 transition-all after:absolute after:-inset-1.5 after:content-[""] ${
                 selected.id === w.id
-                  ? "z-10 scale-125 border-[var(--yellow)] bg-[var(--yellow)] text-black"
-                  : "border-white/60 bg-[var(--panel-2)] text-white hover:scale-110 hover:border-[var(--pink)]"
+                  ? "z-10 scale-125 border-[var(--yellow)] shadow-[0_0_14px_rgba(255,210,31,0.55)]"
+                  : "border-white/60 hover:scale-110 hover:border-[var(--pink)]"
               }`}
               style={{ left: `${w.x}%`, top: `${w.y}%` }}
             >
-              {w.name[0]}
+              <WitnessAvatar seed={w.name} size={36} alt="" options={{ radius: 50 }} />
             </button>
           ))}
           <span className="sticker sticker-pink absolute bottom-3 left-3 -rotate-2 px-3 py-1 font-hand text-base font-bold">
@@ -95,9 +96,13 @@ export function CrewConstellation({ witnesses, stats, cta, backdrop }: CrewConst
         <div className="zine-card relative flex-1 p-5" aria-live="polite">
           <Tape className="-top-3 left-1/2 -translate-x-1/2 -rotate-3" />
           <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[var(--pink)] bg-[var(--panel-2)] font-brush text-xl text-[var(--pink)]">
-              {selected.name[0]}
-            </span>
+            <WitnessAvatar
+              seed={selected.name}
+              size={48}
+              alt={`Avatar ${selected.name}`}
+              className="rounded-full border-2 border-[var(--pink)]"
+              options={{ radius: 50 }}
+            />
             <div>
               <div className="font-brush text-lg text-white">{selected.name}</div>
               <div className="text-xs text-zinc-500">{selected.place}</div>

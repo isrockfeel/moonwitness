@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     "@moonwitness/core",
     "@moonwitness/types",
     "@moonwitness/assets",
+    "@moonwitness/avatars",
   ],
   reactStrictMode: true,
   poweredByHeader: false,

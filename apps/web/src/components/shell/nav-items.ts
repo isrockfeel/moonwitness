@@ -28,6 +28,7 @@ const ACTIVE_BY_PATH: Record<string, string> = {
   "/dock": "archive",
   "/mission-control": "dashboard",
   "/shadow": "settings",
+  "/id-lab": "id-lab",
 };
 
 export function activeByPath(pathname: string): string {
@@ -82,6 +83,12 @@ export const navItems: NavItem[] = [
     label: "Mission Log",
     icon: "M5 4 L19 4 L19 20 L5 20 Z M8 8 L16 8 M8 12 L16 12 M8 16 L13 16",
     target: { kind: "section", href: "/mission-control", anchor: "cc-log" },
+  },
+  {
+    id: "id-lab",
+    label: "ID Lab",
+    icon: "M12 11 A4 4 0 1 0 12 3 A4 4 0 1 0 12 11 M4 21 Q4 15 12 15 Q20 15 20 21 M17 4 L18 2 L19 4 L21 5 L19 6 L18 8 L17 6 L15 5 Z",
+    target: { kind: "route", href: "/id-lab" },
   },
   {
     id: "archive",

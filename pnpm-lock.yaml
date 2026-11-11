@@ -227,6 +227,9 @@ importers:
       '@moonwitness/assets':
         specifier: workspace:*
         version: link:../../packages/assets
+      '@moonwitness/avatars':
+        specifier: workspace:*
+        version: link:../../packages/avatars
       '@moonwitness/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -316,6 +319,31 @@ importers:
       wawoff2:
         specifier: ^2.0.1
         version: 2.0.1
+
+  packages/avatars:
+    dependencies:
+      '@dicebear/core':
+        specifier: ^9.2.4
+        version: 9.4.3
+    devDependencies:
+      '@moonwitness/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@moonwitness/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: ^24.10.0
+        version: 24.19.2
+      eslint:
+        specifier: ^9.39.0
+        version: 9.39.5(jiti@2.7.0)(supports-color@7.2.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.19.2)(jiti@2.7.0)(lightningcss@1.33.0)(supports-color@7.2.0)(tsx@4.23.15)(yaml@2.9.1)
 
   packages/contracts:
     dependencies:
@@ -470,6 +498,9 @@ importers:
       '@moonwitness/assets':
         specifier: workspace:*
         version: link:../assets
+      '@moonwitness/avatars':
+        specifier: workspace:*
+        version: link:../avatars
       '@moonwitness/types':
         specifier: workspace:*
         version: link:../types
@@ -514,6 +545,10 @@ packages:
 
   '@davepagurek/bezier-path@0.0.7':
     resolution: {integrity: sha512-CVlnCOrV1iy4Z12T756i9l4G6kF7r8uhlnb+xqDemAMmWQB+8Q0b+8VEqIiUfywgZDSiDr18Rm7pZlnA69rE8Q==}
+
+  '@dicebear/core@9.4.3':
+    resolution: {integrity: sha512-9ITrQI57k3p5hKuU8HZJ1d0kPdrmTKEJDOdlKQ8CpaChbtmnD1R+dtWmNz5IesYThXM8F64pJ0ZvJ2rsY8Hciw==}
+    engines: {node: '>=18.0.0'}
 
   '@emnapi/runtime@1.11.3':
     resolution: {integrity: sha512-Xz4Tpyki7XyrpbUK1jR1AhdAdaXyhhY4lZ3neLodmhpuWfy2PAQN5B46sAiU4liOXGLkHypn/qU+jvfWSCYYLA==}
@@ -2585,6 +2620,10 @@ snapshots:
   '@babel/runtime@7.29.13': {}
 
   '@davepagurek/bezier-path@0.0.7': {}
+
+  '@dicebear/core@9.4.3':
+    dependencies:
+      '@types/json-schema': 7.0.15
 
   '@emnapi/runtime@1.11.3':
     dependencies:
