@@ -1,6 +1,6 @@
 import { initDb, closeDb, getDb } from "@moonwitness/orm";
 import { env } from "./shared/env";
-import { timelineDdl } from "./infrastructure/persistence/timeline-model";
+import { schemaDdl } from "./infrastructure/persistence/schema";
 import { SqlTimelineRepository } from "./infrastructure/persistence/timeline-sql.repository";
 import { TimelineUseCase } from "./domain/usecases/timeline/timeline.usecase";
 import type { FastifyInstance } from "fastify";
@@ -14,7 +14,7 @@ export async function buildApp(options: BootstrapOptions = {}): Promise<FastifyI
   const dbPath = options.dbPath ?? env.DATABASE_URL ?? "./moonwitness.db";
   await initDb(dbPath);
 
-  await getDb().exec(timelineDdl);
+  await getDb().exec(schemaDdl);
 
   const repository = new SqlTimelineRepository();
   const timelineUseCase = new TimelineUseCase(repository);

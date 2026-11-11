@@ -21,6 +21,12 @@ const READ_PATHS = new Set([
 
 const WRITE_PATHS = new Set(["plan", "apply", "ops/plan", "ops"]);
 
+// VPN dikelola lewat path bersarang, jadi punya penanganan sendiri.
+const VPN_READ = new Set(["vpn/status"]);
+const VPN_WRITE = new Set(["vpn/up", "vpn/down", "vpn/peers"]);
+const VPN_PEER_CONFIG_RE = /^vpn\/peers\/[A-Za-z0-9._-]{1,64}\/config$/;
+const VPN_PEER_RE = /^vpn\/peers\/[A-Za-z0-9._-]{1,64}$/;
+
 // Endpoint onboarding/auth memakai cookie sesi, bukan token server-side.
 const SETUP_PATHS = new Set(["status", "superuser"]);
 const AUTH_PATHS = new Set(["login", "logout", "me"]);
@@ -223,5 +229,39 @@ export async function controlRoutes(fastify: FastifyInstance) {
     }
     if (!(await gate(request, reply))) return reply;
     return forward(request, reply, path);
+  });
+
+  // ---- VPN ----
+  fastify.get("/control/vpn/status", async (request, reply) => {
+    if (!(await gate(request, reply))) return reply;
+    return forward(request, reply, "vpn/status");
+  });
+
+  for (const sub of ["vpn/up", "vpn/down", "vpn/peers"] as const) {
+    fastify.post(`/control/${sub}`, async (request, reply) => {
+      if (!ARSY_PROXY_ADMIN) {
+        return reply.code(403).send({ error: "aksi tulis lewat web dimatikan" });
+      }
+      if (!(await gate(request, reply))) return reply;
+      return forward(request, reply, sub);
+    });
+  }
+
+  fastify.get<{ Params: { name: string } }>(
+    "/control/vpn/peers/:name/config",
+    async (request, reply) => {
+      if (!(await gate(request, reply))) return reply;
+      const name = encodeURIComponent(request.params.name);
+      return forward(request, reply, `vpn/peers/${name}/config`);
+    },
+  );
+
+  fastify.delete<{ Params: { name: string } }>("/control/vpn/peers/:name", async (request, reply) => {
+    if (!ARSY_PROXY_ADMIN) {
+      return reply.code(403).send({ error: "aksi tulis lewat web dimatikan" });
+    }
+    if (!(await gate(request, reply))) return reply;
+    const name = encodeURIComponent(request.params.name);
+    return forward(request, reply, `vpn/peers/${name}`);
   });
 }

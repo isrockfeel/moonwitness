@@ -39,6 +39,7 @@ const ACTIVE_BY_PATH: Record<string, string> = {
   "/settings": "settings",
   "/id-lab": "id-lab",
   "/control": "control",
+  "/control/network": "network",
 };
 
 export function activeByPath(pathname: string): string {
@@ -115,6 +116,12 @@ export const navItems: NavItem[] = [
     label: "Control Plane",
     icon: "M4 7 L20 7 M4 12 L20 12 M4 17 L20 17 M7 7 A1.5 1.5 0 1 0 7 7 M15 12 A1.5 1.5 0 1 0 15 12 M10 17 A1.5 1.5 0 1 0 10 17",
     target: { kind: "route", href: "/control" },
+  },
+  {
+    id: "network",
+    label: "Network / VPN",
+    icon: "M12 3 A9 9 0 1 0 12 21 A9 9 0 1 0 12 3 M3 12 L21 12 M12 3 Q17 12 12 21 Q7 12 12 3",
+    target: { kind: "route", href: "/control/network" },
   },
   {
     id: "settings",

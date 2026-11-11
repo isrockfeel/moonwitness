@@ -1,4 +1,5 @@
 import type { TimelineEvent, Era } from "@moonwitness/types";
+import type { ActorContext, AuditEntry } from "@moonwitness/orm";
 
 export interface TimelineFilters {
   era?: string;
@@ -16,9 +17,20 @@ export interface TimelineStats {
 }
 
 export interface ITimelineRepository {
-  listEvents(_filters: TimelineFilters): Promise<TimelineEvent[]>;
-  countEvents(_filters: TimelineFilters): Promise<number>;
-  getEvent(_id: string): Promise<TimelineEvent | null>;
+  listEvents(filters: TimelineFilters): Promise<TimelineEvent[]>;
+  countEvents(filters: TimelineFilters): Promise<number>;
+  getEvent(id: string): Promise<TimelineEvent | null>;
   getStats(): Promise<TimelineStats>;
   getEras(): Promise<Era[]>;
+  createEvent(
+    data: Omit<TimelineEvent, "id"> & { id?: string },
+    actor?: ActorContext,
+  ): Promise<TimelineEvent>;
+  updateEvent(
+    id: string,
+    data: Partial<TimelineEvent> & { version?: number },
+    actor?: ActorContext,
+  ): Promise<TimelineEvent | null>;
+  deleteEvent(id: string, actor?: ActorContext): Promise<boolean>;
+  getEventHistory(id: string): Promise<AuditEntry[]>;
 }

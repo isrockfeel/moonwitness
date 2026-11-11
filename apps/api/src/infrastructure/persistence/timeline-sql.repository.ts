@@ -4,7 +4,8 @@ import type {
   TimelineStats,
 } from "../../domain/usecases/timeline/timeline.repository";
 import type { TimelineEvent, Era } from "@moonwitness/types";
-import { getDb } from "@moonwitness/orm";
+import { getDb, SYSTEM_ACTOR } from "@moonwitness/orm";
+import type { ActorContext, AuditEntry } from "@moonwitness/orm";
 import { timelineEventModel, timelineEraModel } from "./timeline-model";
 
 function parseJson<T>(value: unknown, fallback: T): T {
@@ -151,5 +152,41 @@ export class SqlTimelineRepository implements ITimelineRepository {
   async getEras(): Promise<Era[]> {
     const rows = await this.eraRepo.find({ status: "active" });
     return rows.map((row) => rowToEra(row as unknown as Record<string, unknown>));
+  }
+
+  async createEvent(
+    data: Omit<TimelineEvent, "id"> & { id?: string },
+    actor: ActorContext = SYSTEM_ACTOR,
+  ): Promise<TimelineEvent> {
+    const created = await this.eventRepo.create(
+      {
+        ...data,
+        tags: data.tags ?? [],
+        sources: data.sources ?? 0,
+        notes: data.notes ?? 0,
+        related: data.related ?? [],
+      },
+      actor,
+    );
+    return rowToEvent(created as unknown as Record<string, unknown>);
+  }
+
+  async updateEvent(
+    id: string,
+    data: Partial<TimelineEvent> & { version?: number },
+    actor: ActorContext = SYSTEM_ACTOR,
+  ): Promise<TimelineEvent | null> {
+    const updated = await this.eventRepo.update(id, data as Record<string, unknown>, actor);
+    if (!updated) return null;
+    return rowToEvent(updated as unknown as Record<string, unknown>);
+  }
+
+  async deleteEvent(id: string, actor: ActorContext = SYSTEM_ACTOR): Promise<boolean> {
+    const deleted = await this.eventRepo.delete(id, actor);
+    return deleted !== null;
+  }
+
+  async getEventHistory(id: string): Promise<AuditEntry[]> {
+    return this.eventRepo.history(id);
   }
 }

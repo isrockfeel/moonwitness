@@ -1,15 +1,11 @@
 import { initDb, getDb, closeDb } from "@moonwitness/orm";
-import {
-  timelineDdl,
-  // timelineEventModel,
-  // timelineEraModel
-} from "./infrastructure/persistence/timeline-model";
+import { schemaDdl } from "./infrastructure/persistence/schema";
 import { seedTimeline } from "./infrastructure/persistence/seed-data";
 
 async function main() {
   const dbPath = process.env.DATABASE_URL ?? "./moonwitness.db";
   await initDb(dbPath);
-  await getDb().exec(timelineDdl);
+  await getDb().exec(schemaDdl);
   await seedTimeline();
   console.log("✓ Database seeded");
   closeDb();
