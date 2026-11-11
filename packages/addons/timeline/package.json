@@ -10,7 +10,7 @@
     "build": "echo \"addon-timeline: no build output\"",
     "typecheck": "tsc --noEmit",
     "lint": "echo \"addon-timeline: no lint configured\"",
-    "test": "echo \"addon-timeline: no tests\"",
+    "test": "vitest run",
     "clean": "rm -rf .turbo dist node_modules"
   },
   "dependencies": {
@@ -19,6 +19,7 @@
   "devDependencies": {
     "@moonwitness/typescript-config": "workspace:*",
     "fastify": "^5.1.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
   }
 }

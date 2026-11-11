@@ -1,6 +1,38 @@
 import type { FastifyInstance } from "fastify";
 import { getDb } from "@moonwitness/orm";
 
+function parseJsonArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String);
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed.map(String) : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function mapRow(r: Record<string, unknown>) {
+  return {
+    id: String(r.id),
+    kind: String(r.kind),
+    date: String(r.date),
+    era: String(r.era),
+    title: String(r.title),
+    excerpt: String(r.excerpt),
+    body: String(r.body),
+    location: String(r.location),
+    tags: parseJsonArray(r.tags),
+    sources: Number(r.sources ?? 0),
+    notes: Number(r.notes ?? 0),
+    image: String(r.image),
+    imagePosition: r.imagePosition == null ? undefined : String(r.imagePosition),
+    related: parseJsonArray(r.related),
+  };
+}
+
 export async function registerTimelineAddon(fastify: FastifyInstance): Promise<void> {
   // Timeline routes
   fastify.get(
@@ -79,23 +111,10 @@ export async function registerTimelineAddon(fastify: FastifyInstance): Promise<v
         offset?: number;
       };
       const db = await import("@moonwitness/orm").then((m) => m.getDb());
-      const rows = await db.all(`SELECT * FROM timeline_events WHERE status != 'deleted'`);
-      const data = rows.map((r) => ({
-        id: r.id,
-        kind: r.kind,
-        date: r.date,
-        era: r.era,
-        title: r.title,
-        excerpt: r.excerpt,
-        body: r.body,
-        location: r.location,
-        tags: r.tags,
-        sources: r.sources,
-        notes: r.notes,
-        image: r.image,
-        imagePosition: r.imagePosition,
-        related: r.related,
-      }));
+      const rows = await db.all<Record<string, unknown>>(
+        `SELECT * FROM timeline_events WHERE status != 'deleted'`,
+      );
+      const data = rows.map(mapRow);
       return { data, total: data.length };
     },
   );
@@ -104,7 +123,11 @@ export async function registerTimelineAddon(fastify: FastifyInstance): Promise<v
     "/events/:id",
     {
       schema: {
-        params: { id: { type: "string" } },
+        params: {
+          type: "object",
+          properties: { id: { type: "string" } },
+          required: ["id"],
+        },
         response: {
           200: {
             type: "object",
@@ -155,28 +178,14 @@ export async function registerTimelineAddon(fastify: FastifyInstance): Promise<v
     async (request, reply) => {
       const { id } = request.params as { id: string };
       const db = await import("@moonwitness/orm").then((m) => m.getDb());
-      const row = await db.get(`SELECT * FROM timeline_events WHERE id = ?`, [id]);
+      const row = await db.get<Record<string, unknown>>(
+        `SELECT * FROM timeline_events WHERE id = ?`,
+        [id],
+      );
       if (!row) {
         return reply.code(404).send({ error: "TimelineEvent not found" });
       }
-      return {
-        data: {
-          id: row.id,
-          kind: row.kind,
-          date: row.date,
-          era: row.era,
-          title: row.title,
-          excerpt: row.excerpt,
-          body: row.body,
-          location: row.location,
-          tags: row.tags,
-          sources: row.sources,
-          notes: row.notes,
-          image: row.image,
-          imagePosition: row.imagePosition,
-          related: row.related,
-        },
-      };
+      return { data: mapRow(row) };
     },
   );
 
@@ -189,8 +198,8 @@ export async function registerTimelineAddon(fastify: FastifyInstance): Promise<v
             type: "object",
             properties: {
               total: { type: "integer" },
-              byEra: { type: "object" },
-              byKind: { type: "object" },
+              byEra: { type: "object", additionalProperties: { type: "integer" } },
+              byKind: { type: "object", additionalProperties: { type: "integer" } },
             },
             required: ["total", "byEra", "byKind"],
           },
