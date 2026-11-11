@@ -17,7 +17,7 @@ export function ProfileMenu({ open, onToggle, identity, role, onExit }: ProfileM
         onClick={onToggle}
         aria-label="Profile menu"
         aria-expanded={open}
-        className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-[var(--panel-2)]"
+        className="flex min-h-11 items-center gap-2 rounded-md px-2 py-1.5 hover:bg-[var(--panel-2)]"
       >
         <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[var(--pink)] bg-[var(--panel-2)] font-brush text-sm text-[var(--pink)]">
           {identity[0]?.toUpperCase() ?? "M"}
@@ -36,21 +36,21 @@ export function ProfileMenu({ open, onToggle, identity, role, onExit }: ProfileM
           <Link
             href="/dock"
             role="menuitem"
-            className="block rounded px-3 py-2 text-xs text-zinc-300 hover:bg-[var(--panel-2)] hover:text-white"
+            className="block min-h-11 rounded px-3 py-2 text-xs text-zinc-300 hover:bg-[var(--panel-2)] hover:text-white"
           >
             Project Universe
           </Link>
           <Link
             href="/"
             role="menuitem"
-            className="block rounded px-3 py-2 text-xs text-zinc-300 hover:bg-[var(--panel-2)] hover:text-white"
+            className="block min-h-11 rounded px-3 py-2 text-xs text-zinc-300 hover:bg-[var(--panel-2)] hover:text-white"
           >
             Public site
           </Link>
           <button
             role="menuitem"
             onClick={onExit}
-            className="block w-full rounded px-3 py-2 text-left text-xs text-[var(--pink)] hover:bg-[var(--panel-2)]"
+            className="flex min-h-11 w-full items-center rounded px-3 py-2 text-left text-xs text-[var(--pink)] hover:bg-[var(--panel-2)]"
           >
             Exit the shadow →
           </button>

@@ -22,7 +22,8 @@ export function MobileMenu({ links, active, onSelect, onClose }: MobileMenuProps
             onSelect(link.id);
             onClose();
           }}
-          className={`block px-2 py-2.5 font-brush text-lg ${active === link.id ? "text-[var(--pink)]" : "text-zinc-200"}`}
+          aria-current={active === link.id ? "true" : undefined}
+          className={`flex min-h-11 items-center px-2 py-2.5 font-brush text-lg ${active === link.id ? "text-[var(--pink)]" : "text-zinc-200"}`}
         >
           {link.label}
         </a>

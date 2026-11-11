@@ -29,7 +29,7 @@ export function Sidebar({ items, active, onNavigate }: SidebarProps) {
             href={item.href}
             onClick={() => onNavigate?.()}
             aria-current={active === item.id ? "page" : undefined}
-            className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors ${
+            className={`flex min-h-11 items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors ${
               active === item.id
                 ? "bg-[var(--pink)] font-bold text-white shadow-[3px_3px_0_rgba(0,0,0,0.5)]"
                 : "text-zinc-300 hover:bg-[var(--panel-2)] hover:text-white"

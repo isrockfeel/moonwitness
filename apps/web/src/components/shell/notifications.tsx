@@ -14,7 +14,7 @@ export function Notifications({ open, onToggle }: NotificationsProps) {
         onClick={onToggle}
         aria-label="Notifications"
         aria-expanded={open}
-        className="relative rounded-md p-2 text-zinc-300 hover:bg-[var(--panel-2)] hover:text-white"
+        className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-md p-2 text-zinc-300 hover:bg-[var(--panel-2)] hover:text-white"
       >
         <svg
           viewBox="0 0 24 24"

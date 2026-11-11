@@ -3388,7 +3388,7 @@ git commit -m "feat(a11y): skip link + landmark main di semua route"
 - Consumes: hasil Task 11-13b (nama file section sudah terpecah).
 - Produces: tidak ada ekspor baru. Perubahan kelas saja.
 
-- [ ] **Step 1: Audit dulu, jangan menebak**
+- [x] **Step 1: Audit dulu, jangan menebak** — grep + audit browser menemukan target in-scope (witness dot, tombol scroll archive, chip era/sort/view dock, item sidebar, tombol ikon topbar+site-nav, link mobile-menu, trigger profile). Ditemukan juga target DI LUAR daftar file Task 16 (era dot `EraBand` 14px, CTA hero 40px, link footer 32px, tombol modul/tab mission-control, kontrol login shadow) — dicatat untuk gerbang Task 18, bukan diperbaiki di sini (lihat Step 5).
 
 ```bash
 grep -rn "h-8 w-8\|h-7 w-7\|h-9 w-9\|px-3 py-1.5\|px-2 py-1\b" apps/web/src/components packages/ui/src
@@ -3396,7 +3396,7 @@ grep -rn "h-8 w-8\|h-7 w-7\|h-9 w-9\|px-3 py-1.5\|px-2 py-1\b" apps/web/src/comp
 
 Catat setiap tombol/link interaktif yang tinggi atau lebarnya < 44px. Yang sudah dipetakan dari pembacaan kode: witness dot (`h-8 w-8` = 32px) di `crew-constellation.tsx`, tombol scroll archive (`px-3 py-1.5` ≈ 30px), chip kind/era di `dock/filter-bar.tsx`, item nav di `shell/sidebar.tsx`, tombol ikon di `shell/topbar.tsx`, tombol hamburger + link nav desktop di `site-nav/index.tsx`, dan link nav di `site-nav/mobile-menu.tsx` (`py-2.5` + `text-lg` ≈ 42px, cek ulang, jangan diasumsikan).
 
-- [ ] **Step 2: Perbesar hit area tanpa mengubah tampilan**
+- [x] **Step 2: Perbesar hit area tanpa mengubah tampilan** — witness dot pakai `after:absolute after:-inset-1.5` (kotak tetap 32px, area sentuh 44px, tampilan nol berubah); tombol scroll archive `flex min-h-11 min-w-11`; item sidebar/topbar/site-nav/bell/profile `min-h-11`(+`min-w-11` untuk ikon); chip era & sort & view-toggle dock pakai `max-lg:min-h-11`/`max-lg:min-w-11` agar desktop tetap rapat. View toggle sempat 36px (edit pertama cuma kena Grid); List ikut diperbaiki → 44×44.
 
 Untuk elemen yang ukurannya bagian dari desain (witness dot 32px), pakai pseudo-element sebagai area sentuh:
 
@@ -3429,7 +3429,7 @@ className="… min-h-11 …"
 
 Pilih `min-h-11` polos bila perubahan tinggi di desktop masih terlihat wajar (sidebar, topbar, tombol scroll); pilih `max-lg:min-h-11` bila rapatnya chip di desktop adalah bagian dari tampilan (filter bar dock). Tulis pilihan itu di commit message.
 
-- [ ] **Step 3: Cincin fokus global**
+- [x] **Step 3: Cincin fokus global** — aturan `:focus-visible` kuning ditaruh sebagai aturan pertama `@layer components` di `base.css`. Verifikasi Tab di `/mission-control`: skip link, tombol sidebar, bell, profile, tombol modul semua `outline solid 3px rgb(255,210,31)`. Input pencarian tetap `outline:none` karena `.zine-input:focus` (spesifisitas lebih tinggi) — tapi punya glow pink `box-shadow` sebagai indikator fokus yang terlihat, jadi lolos aturan "tidak ada yang fokus tanpa indikator".
 
 Tambah di `packages/ui/src/base.css`, sebagai aturan **pertama di dalam** `@layer components` (sebelum `.font-brush`), supaya aturan yang lebih spesifik seperti `.btn-zine:focus-visible` tetap menang:
 
@@ -3447,7 +3447,7 @@ Tambah di `packages/ui/src/base.css`, sebagai aturan **pertama di dalam** `@laye
   }
 ```
 
-- [ ] **Step 4: `aria-current` pada navigasi**
+- [x] **Step 4: `aria-current` pada navigasi** — `sidebar.tsx` sudah punya `aria-current="page"` (dipertahankan). Ditambah `aria-current={active===link.id?"true":undefined}` di `site-nav/index.tsx` (link desktop) dan `site-nav/mobile-menu.tsx` (link mobile). Chip filter dock sudah `aria-pressed` (toggle) — tidak diubah ke aria-current.
 
 ```bash
 grep -rn "aria-current" apps/web/src packages/ui/src
@@ -3471,7 +3471,13 @@ aria-pressed={kind === k}
 
 Chip filter adalah toggle, jadi `aria-pressed` lebih tepat daripada `aria-current`.
 
-- [ ] **Step 5: Verifikasi di browser**
+- [x] **Step 5: Verifikasi di browser** — audit 390px per route: semua kontrol in-scope sudah keluar dari daftar <44px (archive, chip era, sort, view 44×44, mobile-menu, sidebar, hamburger/search/bell/profile, input search topbar). `scrollWidth` = 380 ≤ 390 di keempat route (tanpa overflow). Screenshot `.verify/phase3-task16/` vs `.verify/phase2/`: perubahan yang tampak = tinggi target (diniatkan); tidak ada pergeseran layout atau dot yang membesar.
+
+  > **Sisa <44px & klasifikasinya (dijelaskan, bukan diabaikan):**
+  > - **Witness dot** (32px) & **era dot `EraBand`** (14px): kotak kecil by-design, area sentuh diperbesar `::after` (dot) — untuk era dot belum dipasang `::after`; masuk Task 18.
+  > - **Skip link** (1×1 saat tidak fokus): keyboard-only, jadi 179×48 saat difokus — bukan target sentuh.
+  > - **CTA hero** (40px), **link footer** (32px), **tombol modul/tab mission-control** (25px): di luar daftar file Task 16. Mission-control akan diganti command-center (Task 27) → target sentuh dipegang ulang di sana. Hero/footer jadi kandidat Task 18.
+  > - **Kontrol login shadow** (toggle password 20px, checkbox 16px, forgot 16px): milik tim auth — tidak disentuh (aturan scope).
 
 Build + start, lalu untuk tiap route pada 390x844:
 
@@ -3489,7 +3495,7 @@ Lalu uji keyboard: `Tab` melalui `/mission-control` — setiap elemen fokus puny
 
 Ambil SHOT ke `.verify/phase3-task16/` dan bandingkan `.verify/phase2/`: perbedaan yang **diniatkan** adalah tinggi chip/tombol/item nav. Perbedaan lain (dot witness membesar, layout bergeser) = bug.
 
-- [ ] **Step 6: Pipeline + commit**
+- [x] **Step 6: Pipeline + commit** — `turbo build` + `typecheck --filter=@moonwitness/web` hijau; `lint` masih terblokir cacat `eslint-config` asing (`tseslintPluginReact is not defined`). Server 4317 dimatikan.
 
 ```bash
 pnpm turbo run lint typecheck build

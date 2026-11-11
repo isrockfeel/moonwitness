@@ -39,6 +39,18 @@ body {
 
 /* Layered so Tailwind utilities (hidden, px-*, bg-*) can override these. */
 @layer components {
+  /* Cincin fokus dasar. Aturan komponen yang lebih spesifik menimpanya;
+     utility Tailwind (focus:outline-none) menang karena layer di atasnya. */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+  }
+
   .font-brush {
     font-family: var(--font-brush), cursive;
   }

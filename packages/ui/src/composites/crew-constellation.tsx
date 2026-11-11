@@ -59,7 +59,7 @@ export function CrewConstellation({ witnesses, stats, cta }: CrewConstellationPr
               onClick={() => setSelectedId(w.id)}
               aria-label={`Witness ${w.name}, ${w.place}`}
               aria-pressed={selected.id === w.id}
-              className={`absolute h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 font-hand text-sm font-bold transition-all ${
+              className={`absolute h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 font-hand text-sm font-bold transition-all after:absolute after:-inset-1.5 after:content-[""] ${
                 selected.id === w.id
                   ? "z-10 scale-125 border-[var(--yellow)] bg-[var(--yellow)] text-black"
                   : "border-white/60 bg-[var(--panel-2)] text-white hover:scale-110 hover:border-[var(--pink)]"

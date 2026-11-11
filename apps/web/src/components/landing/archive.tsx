@@ -58,14 +58,14 @@ function ArchiveStrip() {
           <button
             onClick={() => scroll(-1)}
             aria-label="Scroll archive left"
-            className="zine-card px-3 py-1.5 text-zinc-300 hover:text-[var(--pink)]"
+            className="zine-card flex min-h-11 min-w-11 items-center justify-center px-3 py-1.5 text-zinc-300 hover:text-[var(--pink)]"
           >
             ←
           </button>
           <button
             onClick={() => scroll(1)}
             aria-label="Scroll archive right"
-            className="zine-card px-3 py-1.5 text-zinc-300 hover:text-[var(--pink)]"
+            className="zine-card flex min-h-11 min-w-11 items-center justify-center px-3 py-1.5 text-zinc-300 hover:text-[var(--pink)]"
           >
             →
           </button>

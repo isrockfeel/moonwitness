@@ -54,6 +54,7 @@ export function SiteNav() {
                 key={link.id}
                 href={`#${link.id}`}
                 onClick={() => setActive(link.id)}
+                aria-current={active === link.id ? "true" : undefined}
                 className={`px-3 py-1.5 font-brush text-sm tracking-wider transition-colors ${
                   active === link.id
                     ? "text-[var(--pink)] underline decoration-[var(--yellow)] decoration-4 underline-offset-8"
@@ -69,7 +70,7 @@ export function SiteNav() {
             <button
               onClick={() => setSearchOpen(true)}
               aria-label="Search the archive"
-              className="rounded-md p-2 text-zinc-300 transition-colors hover:bg-[var(--panel-2)] hover:text-white"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md p-2 text-zinc-300 transition-colors hover:bg-[var(--panel-2)] hover:text-white"
             >
               <SearchIcon className="h-5 w-5" />
             </button>
@@ -87,7 +88,7 @@ export function SiteNav() {
               JOIN THE CREW →
             </Link>
             <button
-              className="rounded-md p-2 text-zinc-200 lg:hidden"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md p-2 text-zinc-200 lg:hidden"
               onClick={() => setMenuOpen((v) => !v)}
               aria-label="Toggle menu"
               aria-expanded={menuOpen}
