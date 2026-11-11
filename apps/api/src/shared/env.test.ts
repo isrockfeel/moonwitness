@@ -9,6 +9,8 @@ const base = {
   DATABASE_URL: "file:/var/lib/moonwitness/app.db",
   CORS_ORIGINS: "https://moonwitness.example",
   LOG_LEVEL: undefined,
+  RATE_LIMIT_MAX: "120",
+  RATE_LIMIT_WINDOW_MS: "60000",
 };
 
 describe("parseCorsOrigins", () => {

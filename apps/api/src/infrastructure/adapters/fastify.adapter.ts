@@ -5,6 +5,7 @@ import FastifyCors from "@fastify/cors";
 import FastifySwagger from "@fastify/swagger";
 import FastifySwaggerUi from "@fastify/swagger-ui";
 import { env, parseCorsOrigins } from "../../shared/env";
+import { createRateLimiter } from "../rate-limit";
 import type { ITimelineUseCase } from "../../domain/usecases/timeline/timeline.usecase";
 
 export interface BootstrapOptions {
@@ -40,6 +41,24 @@ export async function buildFastify(options: BootstrapOptions): Promise<FastifyIn
     reply.header("referrer-policy", "no-referrer");
     return payload;
   });
+
+  const maxRequests = Number(env.RATE_LIMIT_MAX);
+  if (Number.isFinite(maxRequests) && maxRequests > 0) {
+    const limiter = createRateLimiter({
+      max: maxRequests,
+      windowMs: Number(env.RATE_LIMIT_WINDOW_MS),
+    });
+    fastify.addHook("onRequest", async (request, reply) => {
+      const result = limiter.check(request.ip);
+      reply.header("x-ratelimit-limit", maxRequests);
+      reply.header("x-ratelimit-remaining", result.remaining);
+      if (!result.allowed) {
+        reply.header("retry-after", Math.ceil(result.retryAfterMs / 1000));
+        return reply.code(429).send({ error: "too many requests" });
+      }
+      return undefined;
+    });
+  }
 
   fastify.setErrorHandler((error: FastifyError, request, reply) => {
     const status = error.statusCode ?? 500;

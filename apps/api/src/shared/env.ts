@@ -9,6 +9,10 @@ const envSchema = {
   /** Comma-separated list of allowed browser origins. Required in production. */
   CORS_ORIGINS: z.string().optional(),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).optional(),
+  /** Max requests per window per client IP. 0 disables rate limiting. */
+  RATE_LIMIT_MAX: z.string().default("120"),
+  /** Rate-limit window in milliseconds. */
+  RATE_LIMIT_WINDOW_MS: z.string().default("60000"),
 };
 
 export const env = parseEnv(envSchema);

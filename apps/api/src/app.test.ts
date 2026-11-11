@@ -49,6 +49,12 @@ describe("operational endpoints", () => {
     expect(response.headers["x-content-type-options"]).toBe("nosniff");
     expect(response.headers["x-frame-options"]).toBe("DENY");
   });
+
+  it("advertises rate-limit headers on responses", async () => {
+    const response = await app.inject({ method: "GET", url: "/api/v1/healthz" });
+    expect(response.headers["x-ratelimit-limit"]).toBeDefined();
+    expect(response.headers["x-ratelimit-remaining"]).toBeDefined();
+  });
 });
 
 describe("addon registry wiring", () => {
