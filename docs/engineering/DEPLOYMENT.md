@@ -19,6 +19,22 @@ that deployed nothing.
 
 The job is bound to the `production` GitHub Environment, so required reviewers can gate it.
 
+## Web → API deployment topology
+
+The Next.js app proxies API calls through a rewrite so browsers talk to one origin. The rewrite
+target is controlled by `API_INTERNAL_URL` on the web process (defaults to `http://localhost:3002`
+for local dev):
+
+- `apps/web/next.config.ts` maps `/api/v1/:path*` → `{API_INTERNAL_URL}/api/v1/:path*`.
+- Set `API_INTERNAL_URL` to the Fastify API's reachable origin in each environment:
+  - local dev: unset (uses `http://localhost:3002`).
+  - staging/production: set it to the API service URL the web process can reach over the
+    platform's private network (e.g. `http://api:3002` on a container network, or the internal
+    load-balanced origin).
+
+The API side controls its own bound host/port via `HOST`/`PORT` (defaults `127.0.0.1:3002`) and
+exposes health/readiness under the API prefix (`/api/v1/healthz`, `/api/v1/readyz`).
+
 ## Required configuration
 
 | Name              | Kind     | Purpose                                                 |
