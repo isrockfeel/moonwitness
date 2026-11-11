@@ -3,8 +3,9 @@ import type { SketchFactory } from "../use-p5";
 import { ambientSketch } from "./ambient";
 import { signalsSketch } from "./signals";
 import { brushSketch } from "./brush";
+import { mangaMotionSketch } from "./manga";
 
-export type AtmosphereVariant = "hero" | "crew" | "map" | "brush";
+export type AtmosphereVariant = "hero" | "crew" | "map" | "brush" | "manga";
 
 export interface FactoryOptions {
   seed: number;
@@ -35,5 +36,7 @@ export function makeFactory(variant: AtmosphereVariant, opts: FactoryOptions): S
       return signalsSketch(opts.cities ?? [], { density: opts.density });
     case "brush":
       return brushSketch({ seed: opts.seed });
+    case "manga":
+      return mangaMotionSketch({ speed: 2, density: opts.density });
   }
 }

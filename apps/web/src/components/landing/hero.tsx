@@ -14,7 +14,16 @@ import {
   Splatter,
   Star4,
 } from "@moonwitness/ui/icons";
-import { DistressedSticker, Grain, RansomText, Staple, TactileTape, Tape } from "@moonwitness/ui";
+import {
+  CinematicFrame,
+  DistressedSticker,
+  Grain,
+  MangaSpeedLines,
+  RansomText,
+  Staple,
+  TactileTape,
+  Tape,
+} from "@moonwitness/ui";
 import { artSrc } from "@/lib/art";
 import { AtmosphereField } from "@/components/atmosphere";
 
@@ -22,15 +31,20 @@ export function Hero() {
   return (
     <section id="home" className="relative flex min-h-[96vh] items-center overflow-hidden pt-16">
       <Grain />
-      <Image
-        src={artSrc("hero-witness")}
-        alt="A witness in a magenta jacket looking up at the moon over the neon city"
-        fill
-        priority
-        className="object-cover object-[30%_center] filter contrast-[1.15]"
-        sizes="100vw"
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-[rgba(11,11,16,0.92)] via-[rgba(11,11,16,0.55)] to-[rgba(11,11,16,0.2)]" />
+      <CinematicFrame className="absolute inset-0 z-0">
+        <Image
+          src={artSrc("hero-witness")}
+          alt="A witness in a magenta jacket looking up at the moon over the neon city"
+          fill
+          priority
+          className="object-cover object-[30%_center] filter contrast-[1.18]"
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[rgba(11,11,16,0.92)] via-[rgba(11,11,16,0.55)] to-[rgba(11,11,16,0.2)]" />
+        
+        {/* Manga Speed Lines radiating behind the hero */}
+        <MangaSpeedLines density={64} center={[70, 30]} opacity={0.28} className="text-white" />
+      </CinematicFrame>
 
       {/* Atmospheric FX */}
       <AtmosphereField

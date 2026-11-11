@@ -24,6 +24,12 @@ export {
   type DistressedStickerProps,
   type DistressedStickerVariant,
 } from "./primitives/distressed-sticker";
+export {
+  MangaSpeedLines,
+  CinematicFrame,
+  type MangaSpeedLinesProps,
+  type CinematicFrameProps,
+} from "./primitives/manga-cinematic";
 
 export { kindColors, defaultKindColors } from "./composites/kind-colors";
 export {
