@@ -33,7 +33,7 @@ export function Dock() {
 
   useEffect(() => setOrigin(window.location.origin), []);
 
-  const timelineEvents = eventsData?.data ?? [];
+  const timelineEvents = useMemo(() => eventsData?.data ?? [], [eventsData?.data]);
   const eras = erasData?.data ?? [];
 
   useEffect(() => {

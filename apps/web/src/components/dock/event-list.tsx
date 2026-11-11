@@ -1,8 +1,8 @@
 "use client";
 
 import type { TimelineEvent } from "@moonwitness/types";
-import { Crown } from "@moonwitness/ui/icons";
-import { EventCard } from "@moonwitness/ui";
+import { Crown, BarbedWire } from "@moonwitness/ui/icons";
+import { EventCard, DistressedSticker, TactileTape, Staple } from "@moonwitness/ui";
 
 interface EventListProps {
   events: TimelineEvent[];
@@ -24,50 +24,71 @@ export function EventList({
   onReset,
 }: EventListProps) {
   return (
-    <section aria-label="Events">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 font-brush text-xl text-white">
-          <Crown className="h-5 w-8 text-[var(--yellow)]" /> EVENTS
-          <span className="ml-2 hidden text-[10px] font-normal tracking-widest text-zinc-500 sm:inline">
-            KEY MOMENTS, PROJECTS, AND SIGNALS FROM ACROSS THE EMPIRE.
+    <section aria-label="Events" className="relative">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b-2 border-dashed border-[var(--line)] pb-3">
+        <div className="flex items-center gap-3">
+          <h2 className="flex items-center gap-2 font-brush text-2xl text-white tracking-wide">
+            <Crown className="h-5 w-8 text-[var(--yellow)] -rotate-6" /> MURDER BOARD // EVIDENCE LOG
+          </h2>
+          <DistressedSticker variant="classified" className="text-[9px] -rotate-2" text="CRIME-SCENE" />
+        </div>
+        <div className="flex items-center gap-2 text-xs font-mono">
+          <span className="bg-black/60 border border-[var(--line)] px-2 py-0.5 text-zinc-400">
+            RECORDED: <strong className="text-[var(--pink)]">{events.length}</strong> / {total}
           </span>
-        </h2>
-        <span className="text-[11px] text-zinc-500">
-          Showing {events.length} of {total} events
-        </span>
+        </div>
       </div>
+
       {events.length === 0 ? (
-        <div className="zine-card-rough p-10 text-center">
-          <p className="font-brush text-xl text-zinc-400">NO SIGNALS FOUND.</p>
-          <p className="mt-2 text-sm text-zinc-500">
-            Nothing matches “{query}” in this era. Try another frequency.
+        <div className="zine-card-rough relative p-12 text-center overflow-hidden border-2 border-dashed border-[var(--line)]">
+          <TactileTape variant="black" className="-top-3 left-10 rotate-3" />
+          <TactileTape variant="yellow" className="-bottom-3 right-10 -rotate-2" />
+          <p className="font-brush text-3xl text-zinc-400">NO SIGNALS FOUND ON PINS.</p>
+          <p className="mt-2 text-sm text-zinc-500 font-mono">
+            Nothing matches “{query}” across the evidence web. Try another frequency or clear tags.
           </p>
-          <button onClick={onReset} className="btn-zine btn-blue mt-4 px-5 py-2 text-sm">
-            RESET FILTERS
+          <button onClick={onReset} className="btn-zine btn-blue mt-5 px-6 py-2.5 text-sm font-bold tracking-wider">
+            RESET INVESTIGATION
           </button>
         </div>
       ) : view === "grid" ? (
-        <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
-          {events.map((ev) => (
-            <EventCard
-              key={ev.id}
-              event={ev}
-              selected={selectedId === ev.id}
-              list={false}
-              onOpen={() => onOpen(ev.id)}
-            />
-          ))}
+        <div className="relative">
+          {/* Subtle string/wire background aesthetic */}
+          <div className="pointer-events-none absolute -top-3 left-4 right-4 flex justify-between opacity-30 text-[var(--pink)] overflow-hidden">
+            <BarbedWire className="h-3 w-64" />
+            <BarbedWire className="h-3 w-64 hidden sm:block" />
+            <BarbedWire className="h-3 w-64 hidden xl:block" />
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 2xl:grid-cols-3 pt-2">
+            {events.map((ev, index) => (
+              <div key={ev.id} className="relative group">
+                {/* Tactile hardware on alternating cards for detective board look */}
+                {index % 3 === 0 && <Staple className="-top-2 left-6 z-20" />}
+                {index % 3 === 1 && <TactileTape variant="yellow" className="-top-3 right-6 -rotate-3 z-20 scale-90" />}
+                {index % 3 === 2 && <TactileTape variant="black" className="-top-3 left-8 rotate-2 z-20 scale-90" />}
+                
+                <EventCard
+                  event={ev}
+                  selected={selectedId === ev.id}
+                  list={false}
+                  onOpen={() => onOpen(ev.id)}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {events.map((ev) => (
-            <EventCard
-              key={ev.id}
-              event={ev}
-              selected={selectedId === ev.id}
-              list
-              onOpen={() => onOpen(ev.id)}
-            />
+            <div key={ev.id} className="relative">
+              <EventCard
+                event={ev}
+                selected={selectedId === ev.id}
+                list
+                onOpen={() => onOpen(ev.id)}
+              />
+            </div>
           ))}
         </div>
       )}

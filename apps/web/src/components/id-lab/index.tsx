@@ -11,12 +11,14 @@ import {
 } from "@moonwitness/avatars";
 import {
   Sticker,
-  Tape,
   WitnessAvatar,
   ZineButton,
   ZineCard,
   ZineCardRough,
   ZineInput,
+  TactileTape,
+  DistressedSticker,
+  MangaSpeedLines,
 } from "@moonwitness/ui";
 import { Crown } from "@moonwitness/ui/icons";
 import { EmpireShell } from "@/components/shell";
@@ -309,31 +311,46 @@ export function IdLab() {
       search={{ value: query, onChange: setQuery, placeholder: "Search the lab notes…" }}
     >
       <div className="space-y-6 px-4 py-6 sm:px-8">
-        <header className="flex flex-wrap items-end justify-between gap-3">
+        <header className="flex flex-wrap items-end justify-between gap-3 border-b-2 border-dashed border-[var(--line)] pb-4">
           <div>
-            <h1 className="font-brush text-3xl text-white sm:text-4xl">
-              ID <span className="text-[var(--pink)]">LAB</span>
-            </h1>
-            <p className="mt-1 max-w-xl font-hand text-xl text-zinc-400">
-              Every witness gets a face. Same seed, same face — printed in our own ink.
+            <div className="flex items-center gap-3">
+              <h1 className="font-brush text-3xl text-white sm:text-5xl tracking-wide">
+                ID <span className="text-[var(--pink)]">LAB</span>
+              </h1>
+              <DistressedSticker variant="classified" className="text-[10px] -rotate-3" text="BOOTLEG-PASSPORT" />
+            </div>
+            <p className="mt-2 max-w-xl font-hand text-xl text-zinc-300">
+              Every witness gets a face. Same seed, same face — forged in our own underground ink.
             </p>
           </div>
-          <Sticker tone="yellow" className="-rotate-2 px-3 py-1 font-brush text-xs">
-            DICEBEAR ENGINE × MOONWITNESS DNA
-          </Sticker>
+          <div className="flex items-center gap-2">
+            <DistressedSticker variant="foil" className="rotate-2 px-3 py-1 text-xs">
+              BIO-SEALED
+            </DistressedSticker>
+            <Sticker tone="yellow" className="-rotate-2 px-3 py-1 font-brush text-xs">
+              DICEBEAR × RIOT-DNA
+            </Sticker>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           {/* ---- preview stage ---- */}
           <div className="space-y-6">
-            <ZineCardRough className="relative overflow-hidden p-6">
-              <Tape className="-top-3 left-10 -rotate-3" />
-              <div className="halftone relative flex min-h-[320px] items-center justify-center overflow-hidden rounded-md bg-[#0d0d16] p-8">
+            <ZineCardRough className="relative overflow-hidden p-6 border-2 border-[var(--line)]">
+              <TactileTape variant="yellow" className="-top-3 left-10 -rotate-2" />
+              <TactileTape variant="black" className="-top-3 right-12 rotate-3" />
+              <div className="halftone relative flex min-h-[340px] items-center justify-center overflow-hidden rounded-md bg-[#0a0a10] p-8 border border-[var(--line)]">
+                {/* Manga action backdrop inside avatar chamber */}
+                <MangaSpeedLines
+                  density={24}
+                  opacity={0.25}
+                  className="opacity-70 text-[var(--pink)]"
+                />
                 <div
                   className="pointer-events-none absolute inset-0 opacity-40"
                   style={{
                     background:
-                      "radial-gradient(circle at 30% 20%, rgba(46,168,255,0.16), transparent 55%), radial-gradient(circle at 75% 80%, rgba(255,45,120,0.14), transparent 55%)",
+                      "radial-gradient(circle at 30% 20%, rgba(46,168,255,0.22), transparent 55%), radial-gradient(circle at 75% 80%, rgba(255,45,120,0.2), transparent 55%)",
                   }}
                 />
                 <img
@@ -343,15 +360,15 @@ export function IdLab() {
                   alt={`Preview avatar ${effectiveSeed}`}
                   width={size}
                   height={size}
-                  className="avatar-pop relative drop-shadow-[0_10px_24px_rgba(0,0,0,0.6)]"
+                  className="avatar-pop relative drop-shadow-[0_12px_32px_rgba(0,0,0,0.8)] filter contrast-110"
                   style={{ width: size, height: size }}
                   draggable={false}
                 />
-                <span className="sticker sticker-pink absolute bottom-3 left-3 -rotate-2 px-3 py-1 font-hand text-base font-bold">
+                <span className="sticker sticker-pink absolute bottom-3 left-3 -rotate-2 px-3 py-1 font-hand text-base font-bold shadow-lg">
                   {effectiveSeed.toUpperCase()}
                 </span>
-                <span className="absolute right-3 top-3 border border-[var(--line)] bg-black/60 px-2 py-1 text-[10px] tracking-widest text-zinc-400">
-                  {size}×{size}
+                <span className="absolute right-3 top-3 border border-[var(--line)] bg-black/80 px-2 py-1 text-[10px] font-mono tracking-widest text-[var(--yellow)]">
+                  SPEC: {size}×{size} PX
                 </span>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-2">
