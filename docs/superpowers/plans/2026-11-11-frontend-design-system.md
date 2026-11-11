@@ -4038,7 +4038,7 @@ export function navHref(item: NavItem): string {
 }
 ```
 
-- [ ] **Step 1: Tulis 10 item**
+- [x] **Step 1: Tulis 10 item**
 
 Salin path ikon dari `navItems` lama bila sudah ada; untuk item baru, pakai path stroke sederhana bergaya sama (24x24 viewBox, `stroke-width` 1.8 di `sidebar.tsx`).
 
@@ -4071,7 +4071,7 @@ Label persis dari tabel §6. `moduleId` harus ada di `modules` (`lib/data.ts`) �
 
 Item lama yang hilang (`mission-control`, `dock` sebagai "Project Universe", `research-lab`, `world-monitor`, `publishing-hub`) **sengaja digantikan**: modulnya tetap bisa dibuka lewat Quick Actions (bagian 3), tile Studio (bagian 8), dan drawer — §6 menjamin tidak ada kemampuan yang hilang.
 
-- [ ] **Step 2: `sidebar.tsx` memakai `navHref` + penanda aktif**
+- [x] **Step 2: `sidebar.tsx` memakai `navHref` + penanda aktif**
 
 ```tsx
 "use client";
@@ -4126,7 +4126,7 @@ export function Sidebar({ items, active, activeSection, onNavigate }: SidebarPro
 
 Kelas di atas disalin dari `empire-shell.tsx:138-142` (versi sebelum dipecah), dengan dua perubahan yang memang diniatkan: kondisi aktif memakai `isActive` (bukan `active === item.id`) dan `min-h-11` dari Task 16. Jangan mengubah warna, shadow, atau spacing.
 
-- [ ] **Step 3: `active` dari pathname, `activeSection` lewat IntersectionObserver**
+- [x] **Step 3: `active` dari pathname, `activeSection` lewat IntersectionObserver**
 
 Tambah peta route → id item di `nav-items.ts`:
 
@@ -4196,7 +4196,7 @@ lalu observer memakai `sectionAnchors` dan dependency `[sectionAnchors]`.
 
 Anchor `cc-top`, `cc-workspace`, `cc-collections`, `cc-studios`, `cc-crew`, `cc-log` belum ada sampai Task 25 — observer hanya tidak menemukan elemennya, dan itu tidak melempar error. Sidebar di `/dock` tetap berfungsi karena `sectionItems` kosong di sana.
 
-- [ ] **Step 4: Pipeline + bukti perilaku di `/dock`**
+- [x] **Step 4: Pipeline + bukti perilaku di `/dock`**
 
 ```bash
 pnpm turbo run lint typecheck build
@@ -4213,12 +4213,16 @@ Ambil SHOT `.verify/phase4-task21/dock-*.png` dan bandingkan `.verify/phase2/doc
 
 Matikan server.
 
-- [ ] **Step 5: Commit**
+> **Bukti (2026-11-11):** `tsc --noEmit` web **EXIT=0**, `next build` **EXIT=0** (9 route). Perilaku di `/dock` (server prod 4317, lalu dimatikan): sidebar render **10 item** dengan href benar (`Dashboard→/mission-control#cc-top`, `Story Studio→/mission-control?module=story-forge`, `Archive→/dock`, `Settings→/shadow`), `Archive` menyala `aria-current=page` di `/dock`. Klik (pakai `waitForURL`, bukan networkidle yang tertinggal satu langkah): Dashboard→`/mission-control#cc-top` + aktif pindah ke `Dashboard`; Settings→`/shadow`; Archive→tetap `/dock` + aktif. 390px: drawer tertutup→buka (tombol `Open sidebar`)→klik item→drawer tertutup, tetap `/dock`. **Visual:** dibanding baseline build persis sebelum task (`phase3-task17`) → **hΔ0 di ketiga lebar**; 768 = 0,77% dan 390 = 0,44% (sidebar tersembunyi di sana, nol regresi), 1440 = 6,63% = perubahan daftar sidebar yang diniatkan + noise AVIF. Catatan jujur: rencana menyuruh bandingkan ke `phase2`, tapi itu mencampur Fase 3 (codec avif/webp + target sentuh) sehingga 768/390 tampak 37–53% + hΔ32/67 — selisih itu **bukan** dari Task 21; pembanding yang benar adalah build sebelumnya (phase3-task17), dan di sana Task 21 nol regresi layout. Console `/dock` load bersih (0 error); 1 warning = preload `next/image` hero yang sudah tercatat sejak Fase 3 (bukan dari sidebar). Server dimatikan, port 4317 closed.
+
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/web/src/components/shell apps/web/src/components/dock/index.tsx apps/web/src/components/mission-control.tsx
 git commit -m "feat(shell): sidebar 10 item dengan target section/drawer/route"
 ```
+
+> **Bukti:** commit `21e52ae` (5 file, +149/−68). Index hanya shell/ + dock/index.tsx + mission-control.tsx; WIP asing tidak di-stage.
 
 ---
 
