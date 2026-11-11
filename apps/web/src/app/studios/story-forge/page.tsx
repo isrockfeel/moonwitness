@@ -20,14 +20,23 @@ export default function StoryForgePage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="zine-card photocopy-grit relative p-6 lg:col-span-2">
             <Staple className="top-2 left-3 -rotate-12" />
-            <TactileTape variant="yellow" label="TRANSMISSION DRAFT" width={140} className="-top-2 right-4 rotate-3 text-[10px]" />
-            <h2 className="font-brush text-2xl text-white mb-2">RAW STORY INTERCEPT // VOICES IN THE FOG</h2>
+            <TactileTape
+              variant="yellow"
+              label="TRANSMISSION DRAFT"
+              width={140}
+              className="-top-2 right-4 rotate-3 text-[10px]"
+            />
+            <h2 className="font-brush text-2xl text-white mb-2">
+              RAW STORY INTERCEPT // VOICES IN THE FOG
+            </h2>
             <p className="font-mono text-xs text-zinc-300 leading-relaxed mb-4">
-              Recording captured on high-gain antenna near coordinates 35.6764° N, 139.6500° E. 
-              The signal carried harmonic vocal layers modulated through low-frequency radio rumble.
+              Recording captured on high-gain antenna near coordinates 35.6764° N, 139.6500° E. The
+              signal carried harmonic vocal layers modulated through low-frequency radio rumble.
             </p>
             <div className="border border-zinc-800 bg-black/60 p-4 font-mono text-xs text-zinc-400">
-              [00:04] WITNESS 09: &quot;The skyline looks different when the tower power drops. The moon isn&apos;t just reflecting sunlight; there&apos;s a pulse in the crater shadows.&quot;
+              [00:04] WITNESS 09: &quot;The skyline looks different when the tower power drops. The
+              moon isn&apos;t just reflecting sunlight; there&apos;s a pulse in the crater
+              shadows.&quot;
             </div>
           </div>
 
@@ -53,4 +62,3 @@ export default function StoryForgePage() {
     </EmpireShell>
   );
 }
-

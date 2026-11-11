@@ -20,11 +20,18 @@ export default function PosterLabPage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="zine-card photocopy-grit relative p-6 lg:col-span-2">
             <Staple className="top-2 left-3 -rotate-12" />
-            <TactileTape variant="black" label="PRINT PROOF" width={110} className="-top-2 right-4 -rotate-2 text-[10px]" />
-            <h2 className="font-brush text-2xl text-white mb-2">SILKSCREEN MATRIX // 4-PASS CMYK SLIP</h2>
+            <TactileTape
+              variant="black"
+              label="PRINT PROOF"
+              width={110}
+              className="-top-2 right-4 -rotate-2 text-[10px]"
+            />
+            <h2 className="font-brush text-2xl text-white mb-2">
+              SILKSCREEN MATRIX // 4-PASS CMYK SLIP
+            </h2>
             <p className="font-mono text-xs text-zinc-300 leading-relaxed mb-4">
-              Bootleg wheatpaste flyer templates designed for night runs. Supports 1-bit bitmap halftone screening,
-              photocopy burn margins, and stencil overlay registration.
+              Bootleg wheatpaste flyer templates designed for night runs. Supports 1-bit bitmap
+              halftone screening, photocopy burn margins, and stencil overlay registration.
             </p>
             <div className="flex gap-4">
               <div className="border border-zinc-800 bg-black/70 p-4 font-mono text-xs text-[var(--pink)]">
@@ -58,4 +65,3 @@ export default function PosterLabPage() {
     </EmpireShell>
   );
 }
-

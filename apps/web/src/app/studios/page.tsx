@@ -13,7 +13,11 @@ export default function StudiosHubPage() {
       <div className="px-4 py-8 sm:px-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b-2 border-dashed border-zinc-800 pb-4">
           <div>
-            <DistressedSticker variant="hazard" text="UNDERGROUND PRODUCTION LABS" className="mb-2" />
+            <DistressedSticker
+              variant="hazard"
+              text="UNDERGROUND PRODUCTION LABS"
+              className="mb-2"
+            />
             <h1 className="cmyk-slip font-brush text-4xl text-white">
               CREATIVE <span className="text-[var(--pink)]">STUDIOS</span>
             </h1>
@@ -33,4 +37,3 @@ export default function StudiosHubPage() {
     </EmpireShell>
   );
 }
-

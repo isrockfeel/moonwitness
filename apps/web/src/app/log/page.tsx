@@ -17,8 +17,8 @@ export default function LogPage() {
   const onToggleWorkflow = (id: string) => {
     setActiveWorkflows((list) =>
       list.map((w) =>
-        w.id === id ? { ...w, status: w.status === "Running" ? "Paused" : "Running" } : w
-      )
+        w.id === id ? { ...w, status: w.status === "Running" ? "Paused" : "Running" } : w,
+      ),
     );
   };
 
@@ -34,7 +34,11 @@ export default function LogPage() {
       <div className="px-4 py-8 sm:px-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b-2 border-dashed border-zinc-800 pb-4">
           <div>
-            <DistressedSticker variant="classified" text="TRANSMISSION INTERCEPTS" className="mb-2" />
+            <DistressedSticker
+              variant="classified"
+              text="TRANSMISSION INTERCEPTS"
+              className="mb-2"
+            />
             <h1 className="cmyk-slip font-brush text-4xl text-white">
               MISSION <span className="text-[var(--yellow)]">LOG & WORKFLOWS</span>
             </h1>
