@@ -4453,7 +4453,7 @@ function CollectionsGrid(props: {
 const STAGE_COLOR: Record<PipelineStage, string>;   // diekspor untuk dipakai orkestrator bila perlu
 ```
 
-- [ ] **Step 1: `kanban-column.tsx`**
+- [x] **Step 1: `kanban-column.tsx`**
 
 ```tsx
 "use client";
@@ -4521,7 +4521,7 @@ export function KanbanColumn({ column, onOpenItem }: KanbanColumnProps) {
 
 `min-w-0` pada `<section>` wajib — kolom ini masuk grid 4 kolom di desktop, dan tanpa itu judul panjang melebarkan track (penyebab overflow yang sudah pernah kejadian di sesi sebelumnya).
 
-- [ ] **Step 2: `collections-grid.tsx`**
+- [x] **Step 2: `collections-grid.tsx`**
 
 ```tsx
 "use client";
@@ -4572,7 +4572,7 @@ export function CollectionsGrid({ collections, onOpenCollection }: CollectionsGr
 
 `grid-cols-2` eksplisit di mobile (2 tile per baris pada 390px masih muat karena tinggi gambar tetap); kalau perbandingan screenshot menunjukkan tile terlalu sempit untuk teks, turunkan jadi `grid-cols-1 max-sm:grid-cols-1 sm:grid-cols-2` dan catat alasannya di commit.
 
-- [ ] **Step 3: Export + pipeline**
+- [x] **Step 3: Export + pipeline**
 
 Tambah ke `packages/ui/src/index.ts`:
 
@@ -4588,12 +4588,16 @@ grep -rn "next/\|drag\|onDragStart\|draggable" packages/ui/src
 
 Expected: hijau; grep 0 baris (baris kedua membuktikan §D6 — tidak ada API drag sama sekali di paket).
 
-- [ ] **Step 4: Commit**
+> **Bukti (2026-11-11):** grep hanya menyentuh komentar `next/link` pre-existing di skip-link.tsx — **0** drag/onDragStart/draggable, **0** impor `next/*` nyata. `tsc` ui EXIT=0, web EXIT=0, `next build` EXIT=0.
+
+- [x] **Step 4: Commit**
 
 ```bash
 git add packages/ui/src
 git commit -m "feat(ui): KanbanColumn (tanpa drag-and-drop) + CollectionsGrid"
 ```
+
+> **Bukti:** commit `54008c1` (3 file, +108).
 
 ---
 
