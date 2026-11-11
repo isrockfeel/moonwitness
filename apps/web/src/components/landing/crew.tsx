@@ -2,16 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { witnesses } from "@/lib/data";
+import { crewStats, witnesses } from "@/lib/data";
 import { artSrc } from "@/lib/art";
 import { ArrowRight } from "@moonwitness/ui/icons";
 import { CrewConstellation, Halftone } from "@moonwitness/ui";
-
-const CREW_STATS = [
-  { label: "CREW MEMBERS", target: 1324 },
-  { label: "COUNTRIES", target: 87 },
-  { label: "SIGNALS", target: 6912 },
-];
 
 export function Crew() {
   return (
@@ -40,7 +34,7 @@ export function Crew() {
         </div>
         <CrewConstellation
           witnesses={witnesses}
-          stats={CREW_STATS}
+          stats={crewStats}
           cta={
             <Link href="/shadow" className="btn-zine btn-blue px-5 py-3 text-base">
               EXPLORE THE CREW <ArrowRight className="h-4 w-4" />

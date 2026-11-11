@@ -525,6 +525,12 @@ export const witnesses: Witness[] = [
   },
 ];
 
+export const crewStats: { label: string; target: number }[] = [
+  { label: "CREW MEMBERS", target: 1324 },
+  { label: "COUNTRIES", target: 87 },
+  { label: "SIGNALS", target: 6912 },
+];
+
 export const universeStats: UniverseStat[] = [
   { label: "STORIES ACTIVE", value: "12", trend: "+3 this week", tone: "pink" },
   { label: "EPISODES PUBLISHED", value: "48", trend: "+6 this month", tone: "blue" },

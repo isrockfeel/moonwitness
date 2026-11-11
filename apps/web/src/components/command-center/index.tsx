@@ -1,99 +1,73 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import type { Module, QuickAction, Workflow } from "@moonwitness/types";
 import { Star4 } from "@moonwitness/ui/icons";
 import { EmpireShell } from "@/components/shell";
-import {
-  initialWorkflows,
-  modules,
-  projects,
-  quickActions,
-  universeStats,
-  workspaceItems,
-} from "@/lib/data";
+import { mapCities, modules, projects, quickActions, universeStats } from "@/lib/data";
+import { Collections } from "./collections";
 import { CommandHero } from "./hero";
+import { CrewOrbit } from "./crew";
 import { IdeasInMotion } from "./ideas";
+import { ItemDrawer } from "./item-drawer";
+import { MissionLog } from "./log";
 import { ModuleDrawer } from "./module-drawer";
+import { Pipeline } from "./pipeline";
+import { ProjectUniverse } from "./projects";
 import { QuickActions } from "./quick-actions";
+import { Studios } from "./studios";
+import { UniverseMap } from "./map";
 import { UniverseStatus } from "./status";
 import { Workspace } from "./workspace";
+import { useCommandCenter } from "./use-command-center";
 
 export function CommandCenter() {
-  const params = useSearchParams();
-  const [query, setQuery] = useState("");
-  const [openModule, setOpenModule] = useState<Module | null>(null);
-  const [, setWorkflows] = useState<Workflow[]>(initialWorkflows);
-  const [toast, setToast] = useState<string | null>(null);
-
-  useEffect(() => {
-    const id = params.get("module");
-    const m = modules.find((mod) => mod.id === id);
-    if (m) setOpenModule(m);
-  }, [params]);
-
-  useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(null), 2600);
-    return () => clearTimeout(t);
-  }, [toast]);
-
-  const q = query.trim().toLowerCase();
-  const visibleWorkspace = useMemo(
-    () => (q ? workspaceItems.filter((w) => w.title.toLowerCase().includes(q)) : workspaceItems),
-    [q],
-  );
-
-  function onAction(action: QuickAction) {
-    const m = modules.find((mod) => mod.id === action.moduleId);
-    if (m) setOpenModule(m);
-  }
-
-  function queueRun(m: Module) {
-    const wf: Workflow = {
-      id: `wf-${Date.now()}`,
-      name: `${m.name} Run`,
-      detail: "Queued from module console…",
-      status: "Running",
-    };
-    setWorkflows((ws) => [wf, ...ws]);
-    setToast(`${m.name}: new run queued and started.`);
-    setOpenModule(null);
-  }
+  const cc = useCommandCenter();
 
   return (
     <EmpireShell
       breadcrumb="Shadow Command Center"
       search={{
-        value: query,
-        onChange: setQuery,
+        value: cc.query,
+        onChange: cc.setQuery,
         placeholder: "Search projects, stories, research, or people…",
       }}
     >
       <CommandHero />
       <div className="space-y-6 px-4 py-6 sm:px-8">
         <UniverseStatus stats={universeStats} />
-        <QuickActions actions={quickActions} onAction={onAction} />
+        <QuickActions actions={quickActions} onAction={cc.onAction} />
         <IdeasInMotion />
-        <Workspace items={visibleWorkspace} onOpenItem={(id) => setToast(`Opening ${id}…`)} />
+        <Workspace items={cc.visible.workspace} onOpenItem={cc.onOpenWorkspaceItem} />
+        <Pipeline columns={cc.visible.pipeline} onOpenCard={cc.onOpenCard} />
+        <Collections collections={cc.visible.collections} onOpenCollection={cc.onOpenCollection} />
+        <ProjectUniverse projects={cc.visible.projects} />
+        <Studios modules={modules} onOpen={cc.onOpenModule} />
+        <UniverseMap cities={mapCities} selectedId={cc.selectedCity} onSelect={cc.setSelectedCity} />
+        <CrewOrbit />
+        <MissionLog
+          feed={cc.visible.feed}
+          alerts={cc.alerts}
+          workflows={cc.visible.workflows}
+          onDismissAlert={cc.onDismissAlert}
+          onToggleWorkflow={cc.onToggleWorkflow}
+        />
       </div>
 
-      {openModule && (
+      {cc.openModule && (
         <ModuleDrawer
-          module={openModule}
+          module={cc.openModule}
           projects={projects}
-          onQueue={queueRun}
-          onClose={() => setOpenModule(null)}
+          onQueue={cc.onQueue}
+          onClose={cc.closeOverlays}
         />
       )}
+      {cc.detail && <ItemDrawer detail={cc.detail} onClose={cc.closeOverlays} />}
 
-      {toast && (
+      {cc.toast && (
         <div
           role="status"
           className="sticker sticker-yellow fixed bottom-6 left-1/2 z-[60] -translate-x-1/2 px-5 py-2.5 font-brush text-sm"
         >
-          {toast}
+          {cc.toast}
         </div>
       )}
 
