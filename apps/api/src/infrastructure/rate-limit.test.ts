@@ -3,7 +3,7 @@ import { createRateLimiter } from "./rate-limit.js";
 
 describe("createRateLimiter", () => {
   it("allows up to max requests then blocks within the window", () => {
-    let t = 1000;
+    const t = 1000;
     const limiter = createRateLimiter({ windowMs: 1000, max: 3, now: () => t });
 
     expect(limiter.check("ip").allowed).toBe(true);
@@ -24,7 +24,7 @@ describe("createRateLimiter", () => {
   });
 
   it("tracks keys independently", () => {
-    let t = 0;
+    const t = 0;
     const limiter = createRateLimiter({ windowMs: 1000, max: 1, now: () => t });
     expect(limiter.check("a").allowed).toBe(true);
     expect(limiter.check("b").allowed).toBe(true);
