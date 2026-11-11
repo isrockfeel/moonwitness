@@ -17,6 +17,8 @@
     "@moonwitness/types": "workspace:*",
     "@moonwitness/ui": "workspace:*",
     "next": "^15.5.6",
+    "p5": "2.3.4",
+    "p5.brush": "3.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

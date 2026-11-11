@@ -1,0 +1,8 @@
+import { defineConfig } from "@moonwitness/typescript-config";
+
+export default defineConfig("react-library", {
+  compilerOptions: {
+    outDir: "dist",
+    rootDir: "src",
+  },
+});

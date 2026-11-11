@@ -6,8 +6,9 @@
   "license": "UNLICENSED",
   "exports": {
     "./base": "./base.js",
+    "./node": "./node.js",
     "./next": "./next.js",
-    "./react-internal": "./react-internal.js"
+    "./api": "./api.js"
   },
   "dependencies": {
     "@eslint/js": "^9.39.0",

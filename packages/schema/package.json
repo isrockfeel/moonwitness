@@ -1,0 +1,26 @@
+{
+  "name": "@moonwitness/schema",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "exports": {
+    ".": "./src/index.ts",
+    "./timeline": "./src/timeline/index.ts",
+    "./errors": "./src/errors.ts"
+  },
+  "dependencies": {
+    "@moonwitness/types": "workspace:*",
+    "zod": "^3.25.76"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf .turbo node_modules"
+  },
+  "devDependencies": {
+    "@moonwitness/eslint-config": "workspace:*",
+    "@moonwitness/typescript-config": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}

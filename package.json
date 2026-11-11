@@ -13,7 +13,12 @@
     "test": "turbo run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "api:dev": "tsx watch apps/api/src/index.ts",
+    "api:build": "tsc -b apps/api",
+    "web:dev": "next dev",
+    "web:build": "next build",
+    "web:start": "next start"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

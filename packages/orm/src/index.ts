@@ -1,0 +1,12 @@
+export { defineModel, uuidv7, BaseRepository } from "./define-model.js";
+export type {
+  DefineModelOptions,
+  DefineModelReturn,
+  AuditAction,
+  AuditEntry,
+} from "./define-model.js";
+export type { BaseMetadata, RecordStatus, RecordSource } from "./base-metadata.js";
+export { createActorContext, SYSTEM_ACTOR } from "./actor-context.js";
+export type { ActorContext, ActorSource } from "./actor-context.js";
+export { initDb, closeDb, getDb } from "./driver.js";
+export { BetterSqlite3Driver } from "./drivers/sqlite.driver.js";

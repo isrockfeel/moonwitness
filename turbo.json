@@ -20,6 +20,15 @@
     },
     "clean": {
       "cache": false
+    },
+    "api:dev": {
+      "dependsOn": ["^lint", "^typecheck"],
+      "inputs": ["apps/api/**"],
+      "env": ["PORT", "HOST", "NODE_ENV", "API_PREFIX"]
+    },
+    "api:build": {
+      "dependsOn": ["^build"],
+      "inputs": ["apps/api/**"]
     }
   }
 }

@@ -151,3 +151,18 @@ export interface MapCity {
   y: number;
   signals: number;
 }
+
+export interface TimelineFilters {
+  era?: string;
+  kind?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface TimelineStats {
+  total: number;
+  byEra: Record<string, number>;
+  byKind: Record<string, number>;
+}

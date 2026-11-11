@@ -1,0 +1,11 @@
+{
+  "name": "__base",
+  "version": "0.1.0",
+  "description": "Foundation addon: system tables, /_meta/* endpoints, health check",
+  "depends": [],
+  "provides": {
+    "routes": ["_meta", "health"],
+    "models": ["users", "settings"],
+    "auditActions": []
+  }
+}

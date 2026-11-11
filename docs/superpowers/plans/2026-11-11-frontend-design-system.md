@@ -6110,7 +6110,7 @@ Satu commit ini yang membuat halaman baru terlihat publik. Sebelum commit, route
 - Consumes: `CommandCenter` (Task 26).
 - Produces: route `/mission-control` yang merender Shadow Command Center dengan metadata title baru.
 
-- [ ] **Step 1: Ganti isi `app/mission-control/page.tsx`**
+- [x] **Step 1: Ganti isi `app/mission-control/page.tsx`**
 
 ```tsx
 import { Suspense } from "react";
@@ -6135,7 +6135,7 @@ export default function MissionControlPage() {
 
 URL tidak berubah (§D4: "menggantikan Mission Control di URL yang sama"). Hanya title dan komponennya. Nama fungsi `MissionControlPage` dibiarkan supaya diff-nya sekecil mungkin; Next tidak memakai nama itu untuk apa pun.
 
-- [ ] **Step 2: Hapus komponen lama**
+- [x] **Step 2: Hapus komponen lama**
 
 ```bash
 git rm apps/web/src/components/mission-control.tsx
@@ -6146,7 +6146,7 @@ Expected: grep 0 baris. Kalau masih ada yang mengimpor `MissionControl`, selesai
 
 `ModuleCard`, `ModuleGlyph`, dan `MODULE_GLYPHS` tetap hidup: dipakai `module-drawer.tsx` dan `studios.tsx` (Task 26 Step 5).
 
-- [ ] **Step 3: Hapus CSS orbit dari `packages/ui/src/base.css`**
+- [x] **Step 3: Hapus CSS orbit dari `packages/ui/src/base.css`**
 
 §D7 menghapus `OrbitDiagram`, jadi CSS-nya ikut. Hapus **persis** blok ini (di dalam `@layer components`, hasil pemindahan `globals.css:293-306` di Task 4):
 
@@ -6185,7 +6185,7 @@ jadi:
 
 `spin-slow` hanya dipakai dua kelas orbit (`grep -rn "spin-slow" apps/web/src packages` harus 0 baris setelah penghapusan), jadi keyframe-nya aman dibuang. Jangan menyentuh `pulse-dot` — dipakai `log.tsx` dan `world-map.tsx`.
 
-- [ ] **Step 4: Cek re-export tipe sementara sudah hilang**
+- [x] **Step 4: Cek re-export tipe sementara sudah hilang**
 
 Task 1 menambahkan re-export tipe di `lib/data.ts` dan Task 11-13 yang menghapusnya. Verifikasi, jangan berasumsi:
 
@@ -6195,7 +6195,11 @@ grep -n "export type {" -A 10 apps/web/src/lib/data.ts
 
 Expected: 0 baris. Kalau masih ada, hapus bloknya sekarang dan perbaiki impor di file yang masih mengambil tipe dari `@/lib/data` (pindah ke `@moonwitness/types`) — meninggalkan re-export berarti dua sumber kebenaran untuk tipe yang sama.
 
-- [ ] **Step 5: Pipeline + bukti browser**
+- [x] **Step 5: Pipeline + bukti browser**
+
+> **Bukti (2026-11-11):** `next build` EXIT=0; start server 4317, buka `/mission-control` → title "Shadow Command Center"; 11 bagian §6 hadir berurutan + PROJECT UNIVERSE; sidebar item Dashboard menyala saat bagian atas; scroll ke bawah → Episodes/Collections/Research/Crew/Mission Log menyala ganti (IntersectionObserver Task 21); Story Studio → URL `?module=story-forge` + drawer terbuka; Archive → `/dock`; kembali ke `#cc-top` via tombol sidebar; `Escape` menutup drawer; `scrollWidth` ≤ viewport di 390/768/1440. Screenshot `.verify/phase4-task26/*.png` (1440/768/390) 0 error; 2 warning preload `priority` hero. Navigasi `/cc-preview` Task 26 memberikan bukti semirip.
+
+> **Cacat plan ditemukan:** Step 5 memakai `pnpm --filter start` (khusus monorepo Turborepo), bukan `next start`. Workflow standar: `next start -p 4317` + browser verify.
 
 ```bash
 VER

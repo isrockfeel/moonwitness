@@ -1,0 +1,28 @@
+{
+  "name": "@moonwitness/orm",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx src/__tests__/orm.core.test.ts",
+    "clean": "rm -rf .turbo node_modules"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "zod": "^3.25.76",
+    "@moonwitness/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@moonwitness/eslint-config": "workspace:*",
+    "@moonwitness/typescript-config": "workspace:*",
+    "@types/better-sqlite3": "^7.6.13",
+    "typescript": "^5.9.3",
+    "tsx": "^4.19.0"
+  }
+}
