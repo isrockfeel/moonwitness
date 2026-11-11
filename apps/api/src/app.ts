@@ -10,9 +10,7 @@ export interface BootstrapOptions {
   prefix?: string;
 }
 
-export async function buildApp(
-  options: BootstrapOptions = {},
-): Promise<FastifyInstance> {
+export async function buildApp(options: BootstrapOptions = {}): Promise<FastifyInstance> {
   const dbPath = options.dbPath ?? env.DATABASE_URL ?? "./moonwitness.db";
   await initDb(dbPath);
 
@@ -21,9 +19,7 @@ export async function buildApp(
   const repository = new SqlTimelineRepository();
   const timelineUseCase = new TimelineUseCase(repository);
 
-  const { buildFastify } = await import(
-    "./infrastructure/adapters/fastify.adapter"
-  );
+  const { buildFastify } = await import("./infrastructure/adapters/fastify.adapter");
   const fastify = await buildFastify({
     timelineUseCase,
     prefix: options.prefix ?? env.API_PREFIX,

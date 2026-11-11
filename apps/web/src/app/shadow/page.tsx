@@ -7,6 +7,7 @@ import { useState } from "react";
 import { ArrowRight, Crown, EyeIcon, Smiley, Splatter, Star4 } from "@moonwitness/ui/icons";
 import { Grain, Tape, ZineInput } from "@moonwitness/ui";
 import { authenticate } from "@/lib/auth";
+import { notifySessionChange } from "@/lib/session";
 import { artSrc } from "@/lib/art";
 
 export default function ShadowPage() {
@@ -49,6 +50,7 @@ export default function ShadowPage() {
       } catch {
         // storage unavailable — session continues in memory
       }
+      notifySessionChange();
       router.push("/mission-control");
     }, 900);
   }
@@ -89,7 +91,10 @@ export default function ShadowPage() {
         </div>
       </header>
 
-      <main id="main" className="relative z-10 mx-auto flex min-h-[calc(100vh-8rem)] max-w-7xl items-center px-4 py-10 sm:px-8">
+      <main
+        id="main"
+        className="relative z-10 mx-auto flex min-h-[calc(100vh-8rem)] max-w-7xl items-center px-4 py-10 sm:px-8"
+      >
         <div className="w-full max-w-md">
           <div className="zine-card-rough relative p-7 sm:p-9">
             <Tape className="-top-3 left-10 -rotate-6" />
@@ -257,7 +262,10 @@ export default function ShadowPage() {
           <Link href="/dock" className="hover:text-[var(--pink)] max-lg:min-h-11 max-lg:min-w-11">
             Archive
           </Link>
-          <Link href="/mission-control" className="hover:text-[var(--pink)] max-lg:min-h-11 max-lg:min-w-11">
+          <Link
+            href="/mission-control"
+            className="hover:text-[var(--pink)] max-lg:min-h-11 max-lg:min-w-11"
+          >
             Mission Control
           </Link>
         </nav>

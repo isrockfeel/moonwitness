@@ -1,5 +1,6 @@
 {
   "name": "moonwitness",
+  "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@12.18.0",
   "engines": {
@@ -14,11 +15,21 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "clean": "turbo run clean",
-    "api:dev": "tsx watch apps/api/src/index.ts",
-    "api:build": "tsc -b apps/api",
+    "api:dev": "pnpm --filter @moonwitness/api dev",
+    "api:build": "pnpm --filter @moonwitness/api build",
+    "api:start": "pnpm --filter @moonwitness/api start",
+    "api:test": "pnpm --filter @moonwitness/api test",
     "web:dev": "next dev",
     "web:build": "next build",
-    "web:start": "next start"
+    "web:start": "next start",
+    "gate:quick": "node scripts/gatecheck.mjs quick",
+    "gate:local": "node scripts/gatecheck.mjs local",
+    "gate:push": "node scripts/gatecheck.mjs push",
+    "gate:release": "node scripts/gatecheck.mjs release",
+    "gate:doctor": "node scripts/gatecheck.mjs doctor",
+    "branch:guard": "node scripts/branch-guard.mjs",
+    "commitlint": "node scripts/commitlint.mjs",
+    "hooks:install": "node scripts/install-hooks.mjs"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { avatarDataUri, createAvatar, PALETTES, WITNESS_BACKGROUNDS, WITNESS_PALETTES } from "./index";
+import {
+  avatarDataUri,
+  createAvatar,
+  PALETTES,
+  WITNESS_BACKGROUNDS,
+  WITNESS_PALETTES,
+} from "./index";
 
 describe("witness avatar", () => {
   it("deterministik untuk seed yang sama", () => {
@@ -68,7 +74,7 @@ describe("witness avatar", () => {
   it("moon dan tape bisa dikontrol", () => {
     const svg = createAvatar({ seed: "Kenji", moon: false, tape: true }).toString();
     expect(svg).not.toContain('<circle cx="102" cy="26"');
-    expect(svg).toContain('rotate(-6 20 14)');
+    expect(svg).toContain("rotate(-6 20 14)");
   });
 
   it("radius memotong sudut (clip bulat)", () => {

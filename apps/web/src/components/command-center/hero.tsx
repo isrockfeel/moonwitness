@@ -17,8 +17,16 @@ export function CommandHero() {
         sizes="(max-width: 1024px) 100vw, 80vw"
       />
       <div className="absolute inset-0 bg-gradient-to-r from-[rgba(11,11,16,0.92)] via-[rgba(11,11,16,0.55)] to-transparent" />
-      <AtmosphereField variant="hero" interactive className="inset-0 z-[1] mix-blend-screen opacity-70" />
-      <AtmosphereField variant="brush" seed={11} className="inset-0 z-[2] mix-blend-screen opacity-50" />
+      <AtmosphereField
+        variant="hero"
+        interactive
+        className="inset-0 z-[1] mix-blend-screen opacity-70"
+      />
+      <AtmosphereField
+        variant="brush"
+        seed={11}
+        className="inset-0 z-[2] mix-blend-screen opacity-50"
+      />
       <Splatter className="absolute -left-6 top-6 h-32 w-32 text-[var(--pink)] opacity-60" />
       <div className="relative z-10 px-4 py-10 sm:px-8">
         <div className="relative inline-block">

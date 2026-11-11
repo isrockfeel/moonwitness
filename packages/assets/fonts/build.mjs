@@ -30,13 +30,39 @@ const VOICES = [
 ];
 
 const AGL = {
-  " ": "space", "!": "exclam", '"': "quotedbl", "#": "numbersign", $: "dollar",
-  "%": "percent", "&": "ampersand", "'": "quotesingle", "(": "parenleft",
-  ")": "parenright", "*": "asterisk", "+": "plus", ",": "comma", "-": "hyphen",
-  ".": "period", "/": "slash", ":": "colon", ";": "semicolon", "<": "less",
-  "=": "equal", ">": "greater", "?": "question", "@": "at", "[": "bracketleft",
-  "\\": "backslash", "]": "bracketright", "^": "asciicircum", _: "underscore",
-  "`": "grave", "{": "braceleft", "|": "bar", "}": "braceright", "~": "asciitilde",
+  " ": "space",
+  "!": "exclam",
+  '"': "quotedbl",
+  "#": "numbersign",
+  $: "dollar",
+  "%": "percent",
+  "&": "ampersand",
+  "'": "quotesingle",
+  "(": "parenleft",
+  ")": "parenright",
+  "*": "asterisk",
+  "+": "plus",
+  ",": "comma",
+  "-": "hyphen",
+  ".": "period",
+  "/": "slash",
+  ":": "colon",
+  ";": "semicolon",
+  "<": "less",
+  "=": "equal",
+  ">": "greater",
+  "?": "question",
+  "@": "at",
+  "[": "bracketleft",
+  "\\": "backslash",
+  "]": "bracketright",
+  "^": "asciicircum",
+  _: "underscore",
+  "`": "grave",
+  "{": "braceleft",
+  "|": "bar",
+  "}": "braceright",
+  "~": "asciitilde",
 };
 
 function glyphName(char) {
@@ -65,7 +91,9 @@ async function buildVoice(voice) {
     let winBottom = 240;
 
     const notdef = drawGlyph(".notdef", NOTDEF, voice.pen, weight);
-    glyphs.push(new Glyph({ name: ".notdef", advanceWidth: notdef.advance, path: ringsToPath(notdef.rings) }));
+    glyphs.push(
+      new Glyph({ name: ".notdef", advanceWidth: notdef.advance, path: ringsToPath(notdef.rings) }),
+    );
 
     for (const [char, def] of Object.entries(GLYPHS)) {
       const drawn = drawGlyph(char, def, voice.pen, weight, { slashedZero: !!voice.fixed });
@@ -108,7 +136,9 @@ async function buildVoice(voice) {
     for (const platform of ["unicode", "macintosh", "windows"]) {
       font.names[platform].preferredFamily = { en: "Saksi" };
       font.names[platform].preferredSubfamily = { en: `${voiceTitle} ${style}` };
-      font.names[platform].uniqueID = { en: `MoonWitnessTypeFoundry: ${voice.family} ${style}: 2026` };
+      font.names[platform].uniqueID = {
+        en: `MoonWitnessTypeFoundry: ${voice.family} ${style}: 2026`,
+      };
     }
 
     Object.assign(font.tables.os2, {
@@ -161,4 +191,6 @@ async function buildVoice(voice) {
 mkdirSync(WEB_DIR, { recursive: true });
 mkdirSync(MASTER_DIR, { recursive: true });
 for (const voice of VOICES) await buildVoice(voice);
-console.log(`Selesai. WOFF2 -> ${path.relative(ROOT, WEB_DIR)}, master OTF -> ${path.relative(ROOT, MASTER_DIR)}`);
+console.log(
+  `Selesai. WOFF2 -> ${path.relative(ROOT, WEB_DIR)}, master OTF -> ${path.relative(ROOT, MASTER_DIR)}`,
+);

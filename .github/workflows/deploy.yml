@@ -1,0 +1,108 @@
+name: Deploy
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to deploy (for example v0.1.0)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy release to production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL }}
+    steps:
+      - name: Resolve release tag
+        id: release
+        env:
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          tag="${EVENT_TAG:-$INPUT_TAG}"
+          if [ -z "$tag" ]; then
+            echo "::error::No release tag resolved for this run."
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Require deployment configuration
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
+          HEALTHCHECK_URL: ${{ vars.HEALTHCHECK_URL }}
+        run: |
+          missing=""
+          [ -z "$DEPLOY_HOOK_URL" ] && missing="$missing DEPLOY_HOOK_URL(secret)"
+          [ -z "$HEALTHCHECK_URL" ] && missing="$missing HEALTHCHECK_URL(variable)"
+          if [ -n "$missing" ]; then
+            echo "::error::Deployment is not configured. Missing:$missing"
+            echo "::error::Add them in Settings > Secrets and variables > Actions, then re-run."
+            echo "::error::This repository has no hosting target committed yet; see docs/engineering/DEPLOYMENT.md."
+            exit 1
+          fi
+
+      - name: Checkout release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.release.outputs.tag }}
+
+      - name: Trigger deployment
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          status=$(curl -sS -o deploy-response.txt -w "%{http_code}" \
+            -X POST "$DEPLOY_HOOK_URL" \
+            -H "Content-Type: application/json" \
+            --data "{\"ref\":\"$TAG\",\"sha\":\"$GITHUB_SHA\"}")
+          echo "deploy hook responded $status"
+          head -c 2000 deploy-response.txt || true
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            echo "::error::Deploy hook rejected the request with HTTP $status."
+            exit 1
+          fi
+
+      - name: Health check
+        env:
+          HEALTHCHECK_URL: ${{ vars.HEALTHCHECK_URL }}
+        run: |
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            code=$(curl -sS -o health.txt -w "%{http_code}" "$HEALTHCHECK_URL" || echo "000")
+            if [ "$code" = "200" ]; then
+              echo "health check passed on attempt $attempt"
+              head -c 500 health.txt || true
+              exit 0
+            fi
+            echo "attempt $attempt: HTTP $code"
+            sleep 15
+          done
+          echo "::error::Health check never returned 200. Treat this deploy as failed and follow docs/engineering/DEPLOYMENT.md#rollback."
+          exit 1
+
+      - name: Smoke test
+        env:
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+        run: |
+          if [ -z "$PRODUCTION_URL" ]; then
+            echo "::error::PRODUCTION_URL variable is required for the smoke test."
+            exit 1
+          fi
+          code=$(curl -sS -o page.html -w "%{http_code}" "$PRODUCTION_URL")
+          echo "root page responded $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::Smoke test failed with HTTP $code."
+            exit 1
+          fi

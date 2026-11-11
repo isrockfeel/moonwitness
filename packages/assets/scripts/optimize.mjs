@@ -32,8 +32,14 @@ for (const [key, rel] of Object.entries(SOURCES)) {
   mkdirSync(OUT_DIR, { recursive: true });
   for (const w of WIDTHS) {
     const base = sharp(input).resize({ width: w, withoutEnlargement: true }).rotate();
-    await base.clone().avif({ quality: QUALITY }).toFile(path.join(OUT_DIR, `${key}-${w}.avif`));
-    await base.clone().webp({ quality: QUALITY }).toFile(path.join(OUT_DIR, `${key}-${w}.webp`));
+    await base
+      .clone()
+      .avif({ quality: QUALITY })
+      .toFile(path.join(OUT_DIR, `${key}-${w}.avif`));
+    await base
+      .clone()
+      .webp({ quality: QUALITY })
+      .toFile(path.join(OUT_DIR, `${key}-${w}.webp`));
     made += 2;
   }
   console.log(`[ok] ${key}: ${WIDTHS.length * 2} file`);

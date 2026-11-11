@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 const SESSION_KEY = "mw-session";
+const SESSION_CHANGE_EVENT = "mw:session-change";
 
 export interface Session {
   identity: string;
@@ -27,8 +28,8 @@ function readSession(): Session | null {
 }
 
 /**
- * Hook: current demo identity, synced across tabs via storage events.
- * Tidak mengubah session — hanya membaca.
+ * Hook: current demo identity, synced across tabs via storage events
+ * and within the same tab via a custom event.
  */
 export function useCurrentIdentity(): Session | null {
   const [session, setSession] = useState<Session | null>(null);
@@ -39,18 +40,34 @@ export function useCurrentIdentity(): Session | null {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // Cross-tab sync
     function onStorage(e: StorageEvent) {
       if (e.key !== SESSION_KEY) return;
       setSession(readSession());
     }
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+
+    // Same-tab sync via custom event
+    function onSessionChange() {
+      setSession(readSession());
+    }
+    window.addEventListener(SESSION_CHANGE_EVENT, onSessionChange);
+
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener(SESSION_CHANGE_EVENT, onSessionChange);
+    };
   }, []);
 
   return session;
 }
 
-export function currentIdentity(): string {
-  const s = readSession();
-  return s?.identity ?? "";
+/**
+ * Call after setting mw-session to notify same-tab listeners.
+ */
+export function notifySessionChange() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(SESSION_CHANGE_EVENT));
+  }
 }

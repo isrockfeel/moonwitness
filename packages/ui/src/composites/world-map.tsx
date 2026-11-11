@@ -22,19 +22,21 @@ export function WorldMap({ cities, selectedId, onSelect }: WorldMapProps) {
         aria-label="Universe map"
       >
         {cities.map((a, i) =>
-          cities.slice(i + 1).map((b) => (
-            <line
-              key={`${a.id}-${b.id}`}
-              x1={a.x}
-              y1={a.y * 0.8}
-              x2={b.x}
-              y2={b.y * 0.8}
-              stroke={i % 2 ? "#ff2d78" : "#2ea8ff"}
-              strokeWidth="0.18"
-              strokeDasharray="1.2 1.6"
-              opacity="0.4"
-            />
-          )),
+          cities
+            .slice(i + 1)
+            .map((b) => (
+              <line
+                key={`${a.id}-${b.id}`}
+                x1={a.x}
+                y1={a.y * 0.8}
+                x2={b.x}
+                y2={b.y * 0.8}
+                stroke={i % 2 ? "#ff2d78" : "#2ea8ff"}
+                strokeWidth="0.18"
+                strokeDasharray="1.2 1.6"
+                opacity="0.4"
+              />
+            )),
         )}
         {cities.map((c) => (
           <circle

@@ -15,7 +15,6 @@ import type {
   WorkspaceItem,
 } from "@moonwitness/types";
 
-
 export const eras: Era[] = [
   {
     id: "origins",

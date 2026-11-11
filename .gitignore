@@ -15,6 +15,12 @@ next-env.d.ts
 
 # testing
 coverage/
+test-results/
+
+# local database artifacts (libSQL/SQLite write these next to the app)
+*.db
+*.db-shm
+*.db-wal
 
 # env
 .env

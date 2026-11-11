@@ -35,7 +35,11 @@ export function readPalette(el?: Element): Palette {
 
 export function hexToRgb(hex: string): [number, number, number] {
   let h = hex.trim().replace("#", "");
-  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  if (h.length === 3)
+    h = h
+      .split("")
+      .map((c) => c + c)
+      .join("");
   const n = Number.parseInt(h.slice(0, 6), 16);
   if (Number.isNaN(n)) return [255, 45, 120];
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];

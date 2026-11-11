@@ -6,10 +6,15 @@ import type { BaseMetadata, RecordSource, RecordStatus } from "./base-metadata.j
 import type { ActorContext } from "./actor-context.js";
 import { SYSTEM_ACTOR } from "./actor-context.js";
 
-export interface DefineModelOptions {
+type ZodObjectLike = z.AnyZodObject;
+
+/** A persisted row: business fields plus framework metadata columns. */
+export type ModelRecord<TBusiness extends ZodObjectLike> = z.infer<TBusiness> & BaseMetadata;
+
+export interface DefineModelOptions<TBusiness extends ZodObjectLike = ZodObjectLike> {
   name: string; // namespaced per addon (e.g. 'timeline.event')
   table: string; // database table name
-  schema: z.ZodObject<any, any>; // business fields only
+  schema: TBusiness; // business fields only
   softDelete?: boolean; // default true
   indexes?: Array<{ fields: string[]; unique?: boolean }>;
 }
@@ -29,22 +34,28 @@ export interface AuditEntry {
   request_id: string | null;
 }
 
-export interface DefineModelReturn<TBusiness extends z.ZodObject<any, any>> {
+export interface DefineModelReturn<TBusiness extends ZodObjectLike> {
   name: string;
   table: string;
   schema: TBusiness; // business schema
-  fullSchema: z.ZodObject<any, any>; // business + metadata
+  fullSchema: ZodObjectLike; // business + metadata
   type: z.infer<TBusiness>;
   repository: BaseRepository<TBusiness>;
   ddl: string;
-  auditHook: (record: any, action: AuditAction, before: any | null) => AuditEntry;
+  auditHook: (
+    record: Record<string, unknown>,
+    action: AuditAction,
+    before: Record<string, unknown> | null,
+  ) => AuditEntry;
 }
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 function assertIdentifier(value: string, label: string): void {
   if (!IDENTIFIER.test(value)) {
-    throw new Error(`Invalid ${label} '${value}'. Only letters, digits and underscores are allowed.`);
+    throw new Error(
+      `Invalid ${label} '${value}'. Only letters, digits and underscores are allowed.`,
+    );
   }
 }
 
@@ -124,6 +135,7 @@ type Codec = "text" | "integer" | "real" | "boolean" | "date" | "json";
 interface FieldSpec {
   codec: Codec;
   nullable: boolean;
+  optional: boolean;
   columnType: string;
 }
 
@@ -131,52 +143,54 @@ function isZodType(value: z.ZodTypeAny, name: string): boolean {
   return value.constructor.name === name;
 }
 
-function unwrap(schema: z.ZodTypeAny): { inner: z.ZodTypeAny; nullable: boolean } {
+function unwrap(schema: z.ZodTypeAny): {
+  inner: z.ZodTypeAny;
+  nullable: boolean;
+  optional: boolean;
+} {
   let current = schema;
   let nullable = false;
+  let optional = false;
   for (;;) {
     if (current instanceof z.ZodOptional || isZodType(current, "ZodOptional")) {
-      nullable = true;
+      optional = true;
       current = (current as z.ZodOptional<z.ZodTypeAny>).unwrap();
     } else if (current instanceof z.ZodNullable || isZodType(current, "ZodNullable")) {
       nullable = true;
       current = (current as z.ZodNullable<z.ZodTypeAny>).unwrap();
     } else if (current instanceof z.ZodDefault || isZodType(current, "ZodDefault")) {
-      nullable = true;
+      optional = true;
       current = (current as z.ZodDefault<z.ZodTypeAny>).removeDefault();
     } else if (current instanceof z.ZodEffects || isZodType(current, "ZodEffects")) {
       current = (current as z.ZodEffects<z.ZodTypeAny>).innerType();
     } else {
-      return { inner: current, nullable };
+      return { inner: current, nullable, optional };
     }
   }
 }
 
 function fieldSpec(schema: z.ZodTypeAny, field: string): FieldSpec {
-  const { inner, nullable } = unwrap(schema);
-  if (
-    inner instanceof z.ZodString ||
-    inner instanceof z.ZodEnum ||
-    inner instanceof z.ZodLiteral
-  ) {
-    return { codec: "text", nullable, columnType: "TEXT" };
+  const { inner, nullable, optional } = unwrap(schema);
+  const both = { nullable, optional };
+  if (inner instanceof z.ZodString || inner instanceof z.ZodEnum || inner instanceof z.ZodLiteral) {
+    return { ...both, codec: "text", columnType: "TEXT" };
   }
   if (inner instanceof z.ZodNumber) {
     const integer = (inner as z.ZodNumber).isInt;
     return {
+      ...both,
       codec: integer ? "integer" : "real",
-      nullable,
       columnType: integer ? "INTEGER" : "REAL",
     };
   }
   if (inner instanceof z.ZodBoolean) {
-    return { codec: "boolean", nullable, columnType: "INTEGER" };
+    return { ...both, codec: "boolean", columnType: "INTEGER" };
   }
   if (inner instanceof z.ZodDate) {
-    return { codec: "date", nullable, columnType: "TEXT" };
+    return { ...both, codec: "date", columnType: "TEXT" };
   }
   if (inner instanceof z.ZodArray || inner instanceof z.ZodObject || inner instanceof z.ZodRecord) {
-    return { codec: "json", nullable, columnType: "TEXT" };
+    return { ...both, codec: "json", columnType: "TEXT" };
   }
   throw new Error(
     `Unsupported schema type for field '${field}'. Supported: string, enum, literal, number, boolean, date, array, object, record (plus optional/nullable/default wrappers).`,
@@ -227,13 +241,13 @@ function decodeValue(value: unknown, codec: Codec): unknown {
   }
 }
 
-export class BaseRepository<TBusiness extends z.ZodObject<any, any>> {
+export class BaseRepository<TBusiness extends ZodObjectLike = ZodObjectLike> {
   private readonly fields: Map<string, FieldSpec>;
 
   constructor(
     public readonly name: string,
     public readonly table: string,
-    public readonly fullSchema: z.ZodObject<any, any>,
+    public readonly fullSchema: ZodObjectLike,
     public readonly softDelete: boolean,
     businessFields: Map<string, FieldSpec> = new Map(),
   ) {
@@ -254,7 +268,11 @@ export class BaseRepository<TBusiness extends z.ZodObject<any, any>> {
       if (typeof record[key] === "string") record[key] = new Date(record[key] as string);
     }
     for (const [key, spec] of this.fields) {
-      if (key in record) record[key] = decodeValue(record[key], spec.codec);
+      if (!(key in record)) continue;
+      const decoded = decodeValue(record[key], spec.codec);
+      // A NULL column for an optional-but-not-nullable field means "absent",
+      // so revive it as undefined instead of failing schema validation.
+      record[key] = decoded === null && spec.optional && !spec.nullable ? undefined : decoded;
     }
     return record as T;
   }
@@ -275,7 +293,7 @@ export class BaseRepository<TBusiness extends z.ZodObject<any, any>> {
   async find(
     filters: Record<string, unknown> = {},
     opts: { includeDeleted?: boolean } = {},
-  ): Promise<any[]> {
+  ): Promise<ModelRecord<TBusiness>[]> {
     const clauses: string[] = [];
     const params: unknown[] = [];
 
@@ -293,15 +311,21 @@ export class BaseRepository<TBusiness extends z.ZodObject<any, any>> {
       `SELECT * FROM ${this.table}${where} ORDER BY id`,
       params,
     );
-    return rows.map((row) => this.decodeRow<Record<string, unknown>>(row));
+    return rows.map((row) => this.decodeRow<ModelRecord<TBusiness>>(row));
   }
 
-  async findOne(id: string, opts: { includeDeleted?: boolean } = {}): Promise<any | null> {
+  async findOne(
+    id: string,
+    opts: { includeDeleted?: boolean } = {},
+  ): Promise<ModelRecord<TBusiness> | null> {
     const rows = await this.find({ id }, opts);
     return rows[0] ?? null;
   }
 
-  async create(data: any, actor: ActorContext = SYSTEM_ACTOR): Promise<any> {
+  async create(
+    data: Record<string, unknown>,
+    actor: ActorContext = SYSTEM_ACTOR,
+  ): Promise<ModelRecord<TBusiness>> {
     await ensureAuditTable();
     const now = new Date();
     const record = {
@@ -333,10 +357,14 @@ export class BaseRepository<TBusiness extends z.ZodObject<any, any>> {
       await this.writeAudit(tx, parsed, "CREATE", null, actor);
     });
 
-    return this.decodeRow(parsed);
+    return this.decodeRow<ModelRecord<TBusiness>>(parsed);
   }
 
-  async update(id: string, data: any, actor: ActorContext = SYSTEM_ACTOR): Promise<any | null> {
+  async update(
+    id: string,
+    data: Record<string, unknown>,
+    actor: ActorContext = SYSTEM_ACTOR,
+  ): Promise<ModelRecord<TBusiness> | null> {
     await ensureAuditTable();
 
     return getDb().transaction(async (tx) => {
@@ -363,6 +391,9 @@ export class BaseRepository<TBusiness extends z.ZodObject<any, any>> {
         create_date: current.create_date,
         write_uid: actor.actorId,
         write_date: now,
+        status: current.status,
+        deleted_uid: current.deleted_uid,
+        deleted_date: current.deleted_date,
         version: Number(current.version) + 1,
         source: actor.source,
         source_ref: current.source_ref,
@@ -387,27 +418,36 @@ export class BaseRepository<TBusiness extends z.ZodObject<any, any>> {
       }
 
       await this.writeAudit(tx, parsed, "UPDATE", current, actor);
-      return this.decodeRow(parsed);
+      return this.decodeRow<ModelRecord<TBusiness>>(parsed);
     });
   }
 
-  async archive(id: string, actor: ActorContext = SYSTEM_ACTOR): Promise<any | null> {
+  async archive(
+    id: string,
+    actor: ActorContext = SYSTEM_ACTOR,
+  ): Promise<ModelRecord<TBusiness> | null> {
     return this.setStatus(id, "archived", "ARCHIVE", actor);
   }
 
-  async restore(id: string, actor: ActorContext = SYSTEM_ACTOR): Promise<any | null> {
+  async restore(
+    id: string,
+    actor: ActorContext = SYSTEM_ACTOR,
+  ): Promise<ModelRecord<TBusiness> | null> {
     return this.setStatus(id, "active", "RESTORE", actor);
   }
 
   /** Soft delete — never issues a physical DELETE. */
-  async delete(id: string, actor: ActorContext = SYSTEM_ACTOR): Promise<any | null> {
+  async delete(
+    id: string,
+    actor: ActorContext = SYSTEM_ACTOR,
+  ): Promise<ModelRecord<TBusiness> | null> {
     return this.setStatus(id, "deleted", "DELETE", actor, { setDeletedFields: true });
   }
 
   async history(id: string): Promise<AuditEntry[]> {
     await ensureAuditTable();
     return getDb().all<AuditEntry>(
-      `SELECT * FROM _orm_audit_log WHERE model = ? AND entity_id = ? ORDER BY changed_at`,
+      `SELECT * FROM _orm_audit_log WHERE model = ? AND entity_id = ? ORDER BY changed_at, rowid`,
       [this.name, id],
     );
   }
@@ -418,7 +458,7 @@ export class BaseRepository<TBusiness extends z.ZodObject<any, any>> {
     action: AuditAction,
     actor: ActorContext,
     opts: { setDeletedFields?: boolean } = {},
-  ): Promise<any | null> {
+  ): Promise<ModelRecord<TBusiness> | null> {
     await ensureAuditTable();
 
     return getDb().transaction(async (tx) => {
@@ -459,7 +499,7 @@ export class BaseRepository<TBusiness extends z.ZodObject<any, any>> {
       }
 
       await this.writeAudit(tx, parsed, action, current, actor);
-      return this.decodeRow(parsed);
+      return this.decodeRow<ModelRecord<TBusiness>>(parsed);
     });
   }
 
@@ -524,8 +564,8 @@ function auditHookFor(model: string) {
   };
 }
 
-export function defineModel<TBusiness extends z.ZodObject<any, any>>(
-  options: DefineModelOptions & { schema: TBusiness },
+export function defineModel<TBusiness extends ZodObjectLike>(
+  options: DefineModelOptions<TBusiness>,
 ): DefineModelReturn<TBusiness> {
   const { name, table, schema, softDelete = true, indexes } = options;
 
@@ -538,7 +578,9 @@ export function defineModel<TBusiness extends z.ZodObject<any, any>>(
     const spec = fieldSpec(fieldSchema as z.ZodTypeAny, field);
     fields.set(field, spec);
     if (!METADATA_NAMES.has(field)) {
-      businessColumns.push(`"${field}" ${spec.columnType}${spec.nullable ? "" : " NOT NULL"}`);
+      businessColumns.push(
+        `"${field}" ${spec.columnType}${spec.nullable || spec.optional ? "" : " NOT NULL"}`,
+      );
     }
   }
 
@@ -562,7 +604,7 @@ export function defineModel<TBusiness extends z.ZodObject<any, any>>(
       if (!fields.has(field) && !METADATA_NAMES.has(field)) {
         throw new Error(`Index on '${table}' references unknown column '${field}'.`);
       }
-      return `${field}_`;
+      return field;
     });
     const idxName = `idx_${table}_${columns.join("_")}`;
     assertIdentifier(idxName, "index name");

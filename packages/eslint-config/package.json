@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "license": "UNLICENSED",
+  "main": "./base.js",
   "exports": {
+    ".": "./base.js",
     "./base": "./base.js",
     "./node": "./node.js",
     "./next": "./next.js",

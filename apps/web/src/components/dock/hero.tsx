@@ -1,12 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { timelineEvents } from "@/lib/data";
 import { artSrc } from "@/lib/art";
 import { Grain } from "@moonwitness/ui";
 import { Splatter } from "@moonwitness/ui/icons";
 
-export function DockHero({ visibleCount }: { visibleCount: number }) {
+export function DockHero({ visibleCount, total }: { visibleCount: number; total: number }) {
   return (
     <div className="relative overflow-hidden border-b-2 border-[var(--line)]">
       <Grain />
@@ -33,7 +32,7 @@ export function DockHero({ visibleCount }: { visibleCount: number }) {
         <div className="text-right">
           <div className="font-brush text-5xl text-[var(--yellow)]">
             {visibleCount}
-            <span className="text-2xl text-zinc-400">/{timelineEvents.length}</span>
+            <span className="text-2xl text-zinc-400">/{total}</span>
           </div>
           <div className="text-[10px] tracking-widest text-zinc-400">EVENTS VISIBLE</div>
         </div>

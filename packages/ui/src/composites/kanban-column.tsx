@@ -6,10 +6,10 @@ import { kindColors } from "./kind-colors";
 
 /** Border berwarna per stage, sama seperti referensi 06-shadow-command-center.png. */
 export const STAGE_COLOR: Record<PipelineStage, string> = {
-  DRAFT: "#a855f7",
-  "IN REVIEW": "#ffd21f",
-  APPROVED: "#3ddc84",
-  PUBLISHED: "#ff2d78",
+  DRAFT: "#9ca3af",
+  "IN REVIEW": "#ff2d78",
+  APPROVED: "#ffd21f",
+  PUBLISHED: "#3b82f6",
 };
 
 export interface KanbanColumnProps {

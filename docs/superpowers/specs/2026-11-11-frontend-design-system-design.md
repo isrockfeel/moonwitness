@@ -16,18 +16,18 @@ Batas kerja: **UI/UX dan frontend saja.** Auth, API, database, dan deploy dikerj
 
 ## 2. Keputusan yang sudah diambil
 
-| # | Keputusan | Alasan |
-|---|---|---|
-| D1 | `packages/ui` jadi **komponen penuh**: primitif + komposit, bukan hanya token | Owner memilih pendekatan 2 |
-| D2 | Tipe domain pindah ke `packages/types` (paket baru, nol dependensi) | Komposit butuh tipe tanpa menyeret zod/next ke UI |
-| D3 | `packages/assets` memegang manifest + skrip optimasi; **byte tetap di `apps/web/public/art`** | Next hanya melayani `public/` dari app; paket tak bisa jadi docroot |
-| D4 | Shadow Command Center **menggantikan** isi `/mission-control`, URL tetap | Owner memilih "ganti Mission Control" |
-| D5 | 10 item sidebar = satu tujuan masing-masing (bagian di halaman ini, drawer modul, atau route), bukan 10 route | 7 route kosong akan tampak hidup tapi mati |
-| D6 | Kanban editorial pipeline **tanpa drag-and-drop** di v1 | Memindahkan item antar kolom adalah operasi backend |
-| D7 | `OrbitDiagram` dihapus (komponen + pemakaian) | Halaman barunya tidak punya orbit; menyimpannya = kode mati |
-| D8 | ARTS **disalin** ke `packages/assets/references/` dengan nama rapi, `ARTS/` dibiarkan utuh | `ARTS/` tetap jadi tempat owner menaruh kiriman baru |
-| D9 | Tipografi dikerjakan **paling terakhir** | Mengganti font mengubah metrik spasi di semua halaman |
-| D10 | `lib/data.ts` tetap di app, tidak dipaketkan | Itu sambungan tunggal yang nanti diganti tim backend |
+| #   | Keputusan                                                                                                     | Alasan                                                              |
+| --- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| D1  | `packages/ui` jadi **komponen penuh**: primitif + komposit, bukan hanya token                                 | Owner memilih pendekatan 2                                          |
+| D2  | Tipe domain pindah ke `packages/types` (paket baru, nol dependensi)                                           | Komposit butuh tipe tanpa menyeret zod/next ke UI                   |
+| D3  | `packages/assets` memegang manifest + skrip optimasi; **byte tetap di `apps/web/public/art`**                 | Next hanya melayani `public/` dari app; paket tak bisa jadi docroot |
+| D4  | Shadow Command Center **menggantikan** isi `/mission-control`, URL tetap                                      | Owner memilih "ganti Mission Control"                               |
+| D5  | 10 item sidebar = satu tujuan masing-masing (bagian di halaman ini, drawer modul, atau route), bukan 10 route | 7 route kosong akan tampak hidup tapi mati                          |
+| D6  | Kanban editorial pipeline **tanpa drag-and-drop** di v1                                                       | Memindahkan item antar kolom adalah operasi backend                 |
+| D7  | `OrbitDiagram` dihapus (komponen + pemakaian)                                                                 | Halaman barunya tidak punya orbit; menyimpannya = kode mati         |
+| D8  | ARTS **disalin** ke `packages/assets/references/` dengan nama rapi, `ARTS/` dibiarkan utuh                    | `ARTS/` tetap jadi tempat owner menaruh kiriman baru                |
+| D9  | Tipografi dikerjakan **paling terakhir**                                                                      | Mengganti font mengubah metrik spasi di semua halaman               |
+| D10 | `lib/data.ts` tetap di app, tidak dipaketkan                                                                  | Itu sambungan tunggal yang nanti diganti tim backend                |
 
 ## 3. Topologi paket
 
@@ -49,13 +49,50 @@ Mendeklarasikan: `EraId`, `Era`, `EventKind`, `TimelineEvent`, `Module`, `Module
 export type ItemStatus = "DRAFT" | "READY" | "IN REVIEW" | "APPROVED" | "PUBLISHED";
 export type PipelineStage = "DRAFT" | "IN REVIEW" | "APPROVED" | "PUBLISHED";
 
-export interface UniverseStat { label: string; value: string; trend?: string; tone: "pink" | "blue" | "yellow" | "green"; }
-export interface QuickAction { id: string; label: string; icon: "plus" | "image" | "pen" | "stack"; moduleId: string; }
-export interface WorkspaceItem { id: string; title: string; kind: EventKind; updatedAt: string; status: ItemStatus; }
-export interface PipelineColumn { stage: PipelineStage; count: number; more: number; items: PipelineCard[]; }
-export interface PipelineCard { id: string; title: string; type: EventKind; thumb: ArtKey; }
-export interface Collection { id: string; name: string; episodes: number; cover: ArtKey; }
-export interface MapCity { id: string; city: string; x: number; y: number; signals: number; }
+export interface UniverseStat {
+  label: string;
+  value: string;
+  trend?: string;
+  tone: "pink" | "blue" | "yellow" | "green";
+}
+export interface QuickAction {
+  id: string;
+  label: string;
+  icon: "plus" | "image" | "pen" | "stack";
+  moduleId: string;
+}
+export interface WorkspaceItem {
+  id: string;
+  title: string;
+  kind: EventKind;
+  updatedAt: string;
+  status: ItemStatus;
+}
+export interface PipelineColumn {
+  stage: PipelineStage;
+  count: number;
+  more: number;
+  items: PipelineCard[];
+}
+export interface PipelineCard {
+  id: string;
+  title: string;
+  type: EventKind;
+  thumb: ArtKey;
+}
+export interface Collection {
+  id: string;
+  name: string;
+  episodes: number;
+  cover: ArtKey;
+}
+export interface MapCity {
+  id: string;
+  city: string;
+  x: number;
+  y: number;
+  signals: number;
+}
 ```
 
 `ArtKey` adalah union kunci artwork (`"hero-witness" | "city-shadow" | "crew-rooftop" | "signal-tunnel" | "shadow-command"`), supaya komponen UI tidak pernah menerima path mentah.
@@ -65,8 +102,12 @@ export interface MapCity { id: string; city: string; x: number; y: number; signa
 `package.json` exports:
 
 ```json
-{ ".": "./src/index.ts", "./icons": "./src/icons/index.ts",
-  "./theme.css": "./src/theme.css", "./base.css": "./src/base.css" }
+{
+  ".": "./src/index.ts",
+  "./icons": "./src/icons/index.ts",
+  "./theme.css": "./src/theme.css",
+  "./base.css": "./src/base.css"
+}
 ```
 
 Struktur:
@@ -120,9 +161,13 @@ Manifest:
 
 ```ts
 export const ARTWORK = {
-  "hero-witness": { src: "/art/hero-witness.avif", fallback: "/art/hero-witness.webp",
+  "hero-witness": {
+    src: "/art/hero-witness.avif",
+    fallback: "/art/hero-witness.webp",
     alt: "Saksi berjaket magenta menatap bulan di atas kota neon",
-    position: "30% center", credit: "01-landing.png" },
+    position: "30% center",
+    credit: "01-landing.png",
+  },
   // city-shadow, crew-rooftop, signal-tunnel, shadow-command
 } satisfies Record<ArtKey, ArtEntry>;
 ```
@@ -131,14 +176,14 @@ export const ARTWORK = {
 
 ### 3.4 Peta rename referensi
 
-| Nama baru | Asal di `ARTS/` | Peran |
-|---|---|---|
-| `01-landing.png` | `image(1).png` | acuan `/` |
-| `02-mission-control.png` | `image (2).png` (dengan spasi) | acuan lama `/mission-control`, digantikan D4 |
-| `03-shadow-login.png` | `image(3).png` | acuan `/shadow` |
-| `04-dock-timeline.png` | `image-gen-2(20261027-002736).png` | acuan `/dock` |
-| `05-style-ska-poster.png` | `image(2).png` (tanpa spasi) | gaya saja, bukan layout |
-| `06-shadow-command-center.png` | `image-gen-2.png` | acuan baru `/mission-control` |
+| Nama baru                      | Asal di `ARTS/`                    | Peran                                        |
+| ------------------------------ | ---------------------------------- | -------------------------------------------- |
+| `01-landing.png`               | `image(1).png`                     | acuan `/`                                    |
+| `02-mission-control.png`       | `image (2).png` (dengan spasi)     | acuan lama `/mission-control`, digantikan D4 |
+| `03-shadow-login.png`          | `image(3).png`                     | acuan `/shadow`                              |
+| `04-dock-timeline.png`         | `image-gen-2(20261027-002736).png` | acuan `/dock`                                |
+| `05-style-ska-poster.png`      | `image(2).png` (tanpa spasi)       | gaya saja, bukan layout                      |
+| `06-shadow-command-center.png` | `image-gen-2.png`                  | acuan baru `/mission-control`                |
 
 Enam file ini sudah diverifikasi berbeda (md5 unik), jadi pemetaan di atas bukan tebakan.
 
@@ -186,18 +231,18 @@ Referensi hanya menggambarkan 1–9. Bagian 10 dan 11 **ditambahkan di luar refe
 
 Sidebar `EmpireShell` diperluas ke 10 item sesuai referensi. Aturannya: **satu item, satu tujuan** — dan tujuannya harus salah satu dari ini.
 
-| Item sidebar | Tujuan |
-|---|---|
-| Dashboard | scroll ke bagian 1–3 |
+| Item sidebar | Tujuan                          |
+| ------------ | ------------------------------- |
+| Dashboard    | scroll ke bagian 1–3            |
 | Story Studio | buka drawer modul `story-forge` |
-| Episodes | scroll ke bagian 5 |
-| Poster Forge | buka drawer modul `poster-lab` |
-| Collections | scroll ke bagian 7 |
-| Research | scroll ke bagian 8 |
-| Crew | scroll ke bagian 10 |
-| Mission Log | scroll ke bagian 11 |
-| Archive | route `/dock` |
-| Settings | route `/shadow` |
+| Episodes     | scroll ke bagian 5              |
+| Poster Forge | buka drawer modul `poster-lab`  |
+| Collections  | scroll ke bagian 7              |
+| Research     | scroll ke bagian 8              |
+| Crew         | scroll ke bagian 10             |
+| Mission Log  | scroll ke bagian 11             |
+| Archive      | route `/dock`                   |
+| Settings     | route `/shadow`                 |
 
 Delapan item pertama adalah state di dalam halaman (scroll-into-view atau drawer), hanya dua yang keluar route. Pola `IntersectionObserver` untuk menandai item aktif sama dengan yang sudah dipakai `site-nav`.
 
@@ -209,20 +254,21 @@ Yang hilang dari Mission Control lama: OrbitDiagram (D7) dan grid modul 3 kolom 
 
 Target: setiap file komponen < 150 baris.
 
-| Sekarang | Jadi |
-|---|---|
-| `components/landing.tsx` | `components/landing/{hero,signals,crew,archive,about,footer}.tsx` + orkestrator |
+| Sekarang                         | Jadi                                                                                                         |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `components/landing.tsx`         | `components/landing/{hero,signals,crew,archive,about,footer}.tsx` + orkestrator                              |
 | `components/mission-control.tsx` | `components/command-center/{hero,status,quick-actions,pipeline,workspace,collections,map}.tsx` + orkestrator |
-| `components/dock.tsx` | `components/dock/{hero,filter-bar,era-band,event-list,event-detail}.tsx` + orkestrator |
-| `components/empire-shell.tsx` | `components/shell/{sidebar,topbar,notifications,profile-menu}.tsx` |
+| `components/dock.tsx`            | `components/dock/{hero,filter-bar,era-band,event-list,event-detail}.tsx` + orkestrator                       |
+| `components/empire-shell.tsx`    | `components/shell/{sidebar,topbar,notifications,profile-menu}.tsx`                                           |
 
-**Fase 0** — `git init` + commit baseline. *Selesai: `d2af4e7`.*
+**Fase 0** — `git init` + commit baseline. _Selesai: `d2af4e7`._
 
 **Fase 1** — `packages/types`, tulis ulang `packages/ui`, buat `packages/assets`, `apps/web` jadi konsumen.
 
 > **Fase 1 selesai 2026-11-11 (gerbang Task 10).** Pipeline frontend hijau 11/11 (paket backend `api`/`errors`/`schema`/`contracts` di-eksklusi: `'eslint' is not recognized`, cacat lingkungan milik tim lain). `packages/core` tetap **7 tes**; `packages/assets` **4 lulus + 1 skip** (skip = tes filesystem yang dibuka di Task 19). `@source` terbukti: `.18em` muncul 3× di CSS build. 0 pemakaian `next/*` di `packages/ui`/`packages/types`; `packages/types` tanpa blok `dependencies`; 0 path `/art/` mentah di `data.ts`. `scrollWidth` ≤ viewport di 4 route × 3 viewport (390px: 390/390/380/390). **Perbandingan visual `.verify/phase0` vs `.verify/phase1`: 12/12 dimensi halaman identik** (setelah tangkap pada keadaan settled). Selisih pixel yang tersisa seluruhnya terkurung di region gambar (profil baris + heatmap): (a) re-encode dari pipeline aset statis avif/webp menggantikan `next/image`, dan (b) beda state lazy-load antar sesi tangkap — keduanya konsekuensi arsitektur fase 1, bukan regresi; konten gambar, crop (`imagePosition` tetap diteruskan), teks, warna, spasi, tinggi section sama. **Satu catatan jujur:** `packages/ui/src/composites/event-detail.tsx` = 153 baris, melewati target <150 sejak dibuat di Task 7; pemecahan file besar memang tugas Fase 2 (gerbang §7 baris 228), jadi tidak dipotong paksa di task verifikasi ini.
 
 Gerbang:
+
 - `pnpm turbo run lint typecheck test build` hijau.
 - **Bukti `@source` benar-benar memindai paket**, bukan sekadar build tanpa error: satu komponen di `packages/ui` memakai kelas `tracking-[0.18em]` yang tidak dipakai di bagian lain repo, lalu CSS hasil build di-grep untuk `0.18em`. Kelas itu harus ditemukan. Kalau tidak, style dari paket hilang dan ini harus ketahuan sekarang, bukan saat halaman tampil polos.
 - Perbandingan visual 390×844 dan 1440×900 sebelum vs sesudah: tidak boleh ada perbedaan yang tidak disengaja. Perbedaan yang disengaja baru boleh muncul mulai fase 3.
@@ -247,7 +293,7 @@ Setiap fase = satu commit. Rollback = `git revert` commit fase tersebut.
 
 ## 8. Tipografi
 
-Keterbatasan yang jujur: membuat *typeface* sungguhan adalah kerja desainer huruf dengan font editor, bukan sesuatu yang bisa saya hasilkan sebagai kode. Yang bisa dikerjakan:
+Keterbatasan yang jujur: membuat _typeface_ sungguhan adalah kerja desainer huruf dengan font editor, bukan sesuatu yang bisa saya hasilkan sebagai kode. Yang bisa dikerjakan:
 
 - **(a) Wordmark SVG kustom** untuk MOONWITNESS dan SHADOW — paling memberi kesan "kental dan kuat", nol risiko lisensi, tajam di semua ukuran. Dipakai di nav dan hero saja.
 - **(b) Ganti wajah brush.** `Permanent_Marker` hanya punya weight 400, jadi tidak bisa ditebalkan dan faux-bold browser hasilnya buruk — inilah akar kesan lemah. Penggantinya: display face berlisensi **SIL OFL** yang punya bobot 700–900, di-subset ke Latin, di-load lewat `next/font/local`. Keluarga spesifiknya ditentukan saat implementasi dengan memeriksa lisensi dan ketersediaan file, bukan ditebak di spec.
@@ -264,14 +310,14 @@ Rekomendasi: (a) + (b) di fase 5, (c) menyusul.
 
 ## 10. Risiko
 
-| Risiko | Mitigasi |
-|---|---|
-| `@source` tidak memindai `packages/ui`, hasil build kehilangan style | Gerbang fase 1 memeriksa kelas khusus di CSS build, bukan hanya "build sukses" |
-| `"use client"` di dalam paket JIT tidak ter-transpile | `transpilePackages` sudah memuat `@moonwitness/ui`; diverifikasi di fase 1 dengan `TransmissionCard` |
-| Membuang gambar menurunkan kualitas visual | Sumber PNG lama tetap di `references/raw/`; kalau hasil tidak cocok, generate ulang diizinkan |
-| Restrukturisasi besar tanpa tes komponen | Baseline git + perbandingan screenshot per fase; revert satu commit |
-| Bentrok dengan tim backend | Spec ini tidak menyentuh `lib/auth.ts`, `app/api/`, atau menambah dependensi runtime baru di app |
-| Biner ~40 MB di git lokal | Tidak di-push; kalau nanti mau di-push, `references/` perlu LFS — keputusan terpisah |
+| Risiko                                                               | Mitigasi                                                                                             |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `@source` tidak memindai `packages/ui`, hasil build kehilangan style | Gerbang fase 1 memeriksa kelas khusus di CSS build, bukan hanya "build sukses"                       |
+| `"use client"` di dalam paket JIT tidak ter-transpile                | `transpilePackages` sudah memuat `@moonwitness/ui`; diverifikasi di fase 1 dengan `TransmissionCard` |
+| Membuang gambar menurunkan kualitas visual                           | Sumber PNG lama tetap di `references/raw/`; kalau hasil tidak cocok, generate ulang diizinkan        |
+| Restrukturisasi besar tanpa tes komponen                             | Baseline git + perbandingan screenshot per fase; revert satu commit                                  |
+| Bentrok dengan tim backend                                           | Spec ini tidak menyentuh `lib/auth.ts`, `app/api/`, atau menambah dependensi runtime baru di app     |
+| Biner ~40 MB di git lokal                                            | Tidak di-push; kalau nanti mau di-push, `references/` perlu LFS — keputusan terpisah                 |
 
 ## 11. Di luar cakupan
 

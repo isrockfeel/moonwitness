@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
     "@moonwitness/types",
     "@moonwitness/assets",
     "@moonwitness/avatars",
+    "@tanstack/react-query",
   ],
   reactStrictMode: true,
   poweredByHeader: false,
@@ -15,6 +16,14 @@ const nextConfig: NextConfig = {
     deviceSizes: [480, 960, 1440, 1920],
     imageSizes: [240, 480],
     minimumCacheTTL: 31_536_000,
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: "http://localhost:3002/api/v1/:path*",
+      },
+    ];
   },
 };
 

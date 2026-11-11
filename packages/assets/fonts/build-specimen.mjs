@@ -633,4 +633,6 @@ footer{border-top:2px dashed var(--line);margin-top:64px;padding:48px 0 72px}
 
 const out = path.join(HERE, "specimen.html");
 writeFileSync(out, html);
-console.log(`[ok] specimen.html ${(html.length / 1024).toFixed(0)} KB (font tertanam base64) -> ${out}`);
+console.log(
+  `[ok] specimen.html ${(html.length / 1024).toFixed(0)} KB (font tertanam base64) -> ${out}`,
+);

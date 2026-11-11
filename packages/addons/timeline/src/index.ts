@@ -12,12 +12,16 @@ export async function registerTimelineAddon(fastify: FastifyInstance): Promise<v
     {
       schema: {
         querystring: {
-          era?: string,
-          kind?: string,
-          from?: string,
-          to?: string,
-          limit?: number,
-          offset?: number,
+          type: "object",
+          properties: {
+            era: { type: "string" },
+            kind: { type: "string" },
+            from: { type: "string" },
+            to: { type: "string" },
+            limit: { type: "number" },
+            offset: { type: "number" },
+          },
+          additionalProperties: false,
         },
         response: {
           200: {
@@ -44,8 +48,19 @@ export async function registerTimelineAddon(fastify: FastifyInstance): Promise<v
                     related: { type: "array", items: { type: "string" } },
                   },
                   required: [
-                    "id", "kind", "date", "era", "title", "excerpt", "body",
-                    "location", "tags", "sources", "notes", "image", "related",
+                    "id",
+                    "kind",
+                    "date",
+                    "era",
+                    "title",
+                    "excerpt",
+                    "body",
+                    "location",
+                    "tags",
+                    "sources",
+                    "notes",
+                    "image",
+                    "related",
                   ],
                 },
               },
@@ -68,9 +83,7 @@ export async function registerTimelineAddon(fastify: FastifyInstance): Promise<v
         offset?: number;
       };
       const db = await import("@moonwitness/orm").then((m) => m.getDb());
-      const rows = db.all(
-        `SELECT * FROM timeline_events WHERE status != 'deleted'`,
-      );
+      const rows = db.all(`SELECT * FROM timeline_events WHERE status != 'deleted'`);
       const data = rows.map((r) => ({
         id: r.id,
         kind: r.kind,
@@ -119,8 +132,19 @@ export async function registerTimelineAddon(fastify: FastifyInstance): Promise<v
                   related: { type: "array", items: { type: "string" } },
                 },
                 required: [
-                  "id", "kind", "date", "era", "title", "excerpt", "body",
-                  "location", "tags", "sources", "notes", "image", "related",
+                  "id",
+                  "kind",
+                  "date",
+                  "era",
+                  "title",
+                  "excerpt",
+                  "body",
+                  "location",
+                  "tags",
+                  "sources",
+                  "notes",
+                  "image",
+                  "related",
                 ],
               },
             },
@@ -182,12 +206,16 @@ export async function registerTimelineAddon(fastify: FastifyInstance): Promise<v
     async (_request, reply) => {
       const db = await import("@moonwitness/orm").then((m) => m.getDb());
       const total = db.get(`SELECT COUNT(*) as c FROM timeline_events WHERE status != 'deleted'`).c;
-      const byEra = db.all(
-        `SELECT era, COUNT(*) as c FROM timeline_events WHERE status != 'deleted' GROUP BY era`,
-      ).reduce((acc, r) => ({ ...acc, [r.era]: r.c }), {} as Record<string, number>);
-      const byKind = db.all(
-        `SELECT kind, COUNT(*) as c FROM timeline_events WHERE status != 'deleted' GROUP BY kind`,
-      ).reduce((acc, r) => ({ ...acc, [r.kind]: r.c }), {} as Record<string, number>);
+      const byEra = db
+        .all(
+          `SELECT era, COUNT(*) as c FROM timeline_events WHERE status != 'deleted' GROUP BY era`,
+        )
+        .reduce((acc, r) => ({ ...acc, [r.era]: r.c }), {} as Record<string, number>);
+      const byKind = db
+        .all(
+          `SELECT kind, COUNT(*) as c FROM timeline_events WHERE status != 'deleted' GROUP BY kind`,
+        )
+        .reduce((acc, r) => ({ ...acc, [r.kind]: r.c }), {} as Record<string, number>);
       return { total, byEra, byKind };
     },
   );

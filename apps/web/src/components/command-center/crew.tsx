@@ -15,7 +15,9 @@ export function CrewOrbit() {
       <CrewConstellation
         witnesses={witnesses}
         stats={crewStats}
-        backdrop={<AtmosphereField variant="crew" className="inset-0 mix-blend-screen opacity-70" />}
+        backdrop={
+          <AtmosphereField variant="crew" className="inset-0 mix-blend-screen opacity-70" />
+        }
       />
     </section>
   );

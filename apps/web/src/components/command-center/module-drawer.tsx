@@ -1,6 +1,9 @@
+"use client";
+
 import type { Module, Project } from "@moonwitness/types";
 import { ModuleGlyph } from "@moonwitness/ui";
 import { ArrowRight } from "@moonwitness/ui/icons";
+import { useFocusTrap } from "./use-focus-trap";
 
 export interface ModuleDrawerProps {
   module: Module;
@@ -10,8 +13,11 @@ export interface ModuleDrawerProps {
 }
 
 export function ModuleDrawer({ module, projects, onQueue, onClose }: ModuleDrawerProps) {
+  const dialogRef = useFocusTrap(true, onClose);
+
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-50"
       role="dialog"
       aria-modal="true"

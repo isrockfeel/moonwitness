@@ -21,8 +21,21 @@ export function createAvatar(options: WitnessAvatarOptions = {}): Result {
 }
 
 /** Seed → data URI siap dipakai di <img src>. */
-export function avatarDataUri(seed: string, options: Omit<WitnessAvatarOptions, "seed"> = {}): string {
+export function avatarDataUri(
+  seed: string,
+  options: Omit<WitnessAvatarOptions, "seed"> = {},
+): string {
   return createAvatar({ ...options, seed }).toDataUri();
 }
 
 export type { Options, Result };
+
+export {
+  AVATAR_STORAGE_VERSION,
+  DEFAULT_AVATAR_OPTIONS,
+  validateSavedAvatar,
+  buildSavedAvatar,
+  normalizeSeed,
+  type SavedAvatar,
+  type SavedAvatarOptions,
+} from "./contract";

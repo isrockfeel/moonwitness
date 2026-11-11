@@ -1,4 +1,4 @@
-import type { FastifyInstance, FastifyRegisterOptions } from "fastify";
+import type { FastifyInstance } from "fastify";
 import Fastify from "fastify";
 import FastifyCors from "@fastify/cors";
 import FastifySwagger from "@fastify/swagger";
@@ -11,9 +11,7 @@ export interface BootstrapOptions {
   prefix?: string;
 }
 
-export async function buildFastify(
-  options: BootstrapOptions,
-): Promise<FastifyInstance> {
+export async function buildFastify(options: BootstrapOptions): Promise<FastifyInstance> {
   const fastify: FastifyInstance = Fastify({
     logger: {
       level: env.NODE_ENV === "production" ? "info" : "debug",

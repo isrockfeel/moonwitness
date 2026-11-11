@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { WitnessAvatar } from "@moonwitness/ui";
+import type { WitnessAvatarOptions } from "@moonwitness/avatars";
 
 interface ProfileMenuProps {
   open: boolean;
@@ -9,9 +10,19 @@ interface ProfileMenuProps {
   identity: string;
   role: string;
   onExit: () => void;
+  avatarSeed?: string;
+  avatarOptions?: Omit<WitnessAvatarOptions, "seed" | "size">;
 }
 
-export function ProfileMenu({ open, onToggle, identity, role, onExit }: ProfileMenuProps) {
+export function ProfileMenu({
+  open,
+  onToggle,
+  identity,
+  role,
+  onExit,
+  avatarSeed,
+  avatarOptions,
+}: ProfileMenuProps) {
   return (
     <>
       <button
@@ -21,19 +32,25 @@ export function ProfileMenu({ open, onToggle, identity, role, onExit }: ProfileM
         className="flex min-h-11 items-center gap-2 rounded-md px-2 py-1.5 hover:bg-[var(--panel-2)]"
       >
         <WitnessAvatar
-          seed={identity}
+          seed={avatarSeed ?? identity}
           size={32}
           alt=""
           className="rounded-full border-2 border-[var(--pink)]"
-          options={{ radius: 50 }}
+          options={{ radius: 50, ...avatarOptions }}
         />
         <span className="hidden text-left md:block">
-          <span className="block max-w-[140px] truncate text-xs font-bold text-white">{identity}</span>
+          <span className="block max-w-[140px] truncate text-xs font-bold text-white">
+            {identity}
+          </span>
           <span className="block text-[10px] text-zinc-500">{role}</span>
         </span>
       </button>
       {open && (
-        <div className="zine-card absolute right-0 top-12 w-56 p-2" role="menu" aria-label="Profile">
+        <div
+          className="zine-card absolute right-0 top-12 w-56 p-2"
+          role="menu"
+          aria-label="Profile"
+        >
           <div className="border-b border-[var(--line)] px-3 py-2">
             <p className="truncate text-xs font-bold text-white">{identity}</p>
             <p className="text-[10px] text-zinc-500">Authorized crew</p>

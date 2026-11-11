@@ -87,10 +87,22 @@ export function ambientSketch(opts: AmbientOptions) {
         if (opts.mode === "flow") {
           pt.x += p.cos(ang) * pt.s + ox * 0.6;
           pt.y += p.sin(ang) * pt.s + 0.2 + oy * 0.6;
-          if (pt.x < -5) { pt.x = p.width + 5; pt.px = pt.x; }
-          if (pt.x > p.width + 5) { pt.x = -5; pt.px = pt.x; }
-          if (pt.y < -5) { pt.y = p.height + 5; pt.py = pt.y; }
-          if (pt.y > p.height + 5) { pt.y = -5; pt.py = pt.y; }
+          if (pt.x < -5) {
+            pt.x = p.width + 5;
+            pt.px = pt.x;
+          }
+          if (pt.x > p.width + 5) {
+            pt.x = -5;
+            pt.px = pt.x;
+          }
+          if (pt.y < -5) {
+            pt.y = p.height + 5;
+            pt.py = pt.y;
+          }
+          if (pt.y > p.height + 5) {
+            pt.y = -5;
+            pt.py = pt.y;
+          }
         } else {
           pt.x += p.cos(ang) * pt.s * 0.3 + ox * 0.3;
           pt.y += p.sin(ang) * pt.s * 0.3 + oy * 0.3;
