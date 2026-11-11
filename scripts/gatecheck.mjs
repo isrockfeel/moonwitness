@@ -1,303 +1,459 @@
 #!/usr/bin/env node
 /**
- * MoonWitness Local Gatecheck Engine
- * Enterprise-grade quality gates for local development
+ * MoonWitness local gate engine.
+ *
+ * Every step reports exactly one state: PASS, FAIL, BLOCKED or NOT APPLICABLE.
+ * No step may swallow an exit code.
  */
 
 import { spawnSync } from "node:child_process";
-import { readFileSync, existsSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const __dirname = resolve(fileURLToPath(import.meta.url), "..");
-const ROOT = resolve(__dirname, "..");
+const ROOT = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
+
+const STATE = {
+  PASS: "PASS",
+  FAIL: "FAIL",
+  BLOCKED: "BLOCKED",
+  NA: "NOT APPLICABLE",
+};
 
 const COLORS = {
   reset: "\x1b[0m",
   red: "\x1b[31m",
   green: "\x1b[32m",
   yellow: "\x1b[33m",
-  blue: "\x1b[34m",
   cyan: "\x1b[36m",
+  dim: "\x1b[2m",
   bold: "\x1b[1m",
 };
 
-function log(level, message) {
-  const prefix = {
-    info: `${COLORS.blue}[INFO]${COLORS.reset}`,
-    warn: `${COLORS.yellow}[WARN]${COLORS.reset}`,
-    error: `${COLORS.red}[ERROR]${COLORS.reset}`,
-    pass: `${COLORS.green}[PASS]${COLORS.reset}`,
-    fail: `${COLORS.red}[FAIL]${COLORS.reset}`,
-    blocked: `${COLORS.yellow}[BLOCKED]${COLORS.reset}`,
-  };
-  console.log(`${prefix[level]} ${message}`);
-}
+const STATE_COLOR = {
+  [STATE.PASS]: COLORS.green,
+  [STATE.FAIL]: COLORS.red,
+  [STATE.BLOCKED]: COLORS.yellow,
+  [STATE.NA]: COLORS.dim,
+};
 
-function runCommand(name, cmd, args, cwd = ROOT, env = {}) {
-  const start = Date.now();
+const PROTECTED_BRANCHES = ["main", "master"];
+const TEXT_EXTENSIONS = new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".json",
+  ".yml",
+  ".yaml",
+  ".md",
+  ".sh",
+  ".toml",
+]);
+
+function run(cmd, args, options = {}) {
+  const started = Date.now();
   const result = spawnSync(cmd, args, {
-    cwd,
+    cwd: options.cwd ?? ROOT,
     stdio: "pipe",
     encoding: "utf-8",
-    env: { ...process.env, ...env },
+    env: { ...process.env, ...(options.env ?? {}) },
     shell: true,
+    maxBuffer: 32 * 1024 * 1024,
   });
-  const duration = Date.now() - start;
   return {
-    name,
     code: result.status ?? -1,
-    stdout: result.stdout?.trim() ?? "",
-    stderr: result.stderr?.trim() ?? "",
-    duration,
+    stdout: (result.stdout ?? "").trim(),
+    stderr: (result.stderr ?? "").trim(),
+    duration: Date.now() - started,
   };
 }
 
-function checkNodeVersion() {
-  const required = ">=20.0.0";
-  const current = process.version;
-  const major = parseInt(current.slice(1).split(".")[0], 10);
-  if (major < 20) {
-    return { pass: false, message: `Node ${current} does not satisfy ${required}` };
-  }
-  return { pass: true, message: `Node ${current} OK` };
+function tail(text, lines = 40) {
+  if (!text) return "";
+  const parts = text.split(/\r?\n/);
+  return parts.slice(Math.max(0, parts.length - lines)).join("\n");
 }
 
-function checkPnpmVersion() {
-  // Try pnpm directly, then via corepack, then via npx
-  let result = runCommand("pnpm-version", "pnpm", ["--version"]);
-  if (result.code !== 0) {
-    result = runCommand("pnpm-version-corepack", "corepack", ["pnpm", "--version"]);
-  }
-  if (result.code !== 0) {
-    result = runCommand("pnpm-version-npx", "npx", ["pnpm@latest", "--version"]);
-  }
-  if (result.code !== 0) {
-    return { pass: false, message: "pnpm not found" };
-  }
-  return { pass: true, message: `pnpm ${result.stdout} OK` };
+function readJson(path) {
+  return JSON.parse(readFileSync(join(ROOT, path), "utf-8"));
 }
 
-function checkLockfile() {
-  const lockfile = join(ROOT, "pnpm-lock.yaml");
-  if (!existsSync(lockfile)) {
-    return { pass: false, message: "pnpm-lock.yaml missing" };
+class Gate {
+  constructor(name) {
+    this.name = name;
+    this.results = [];
   }
-  return { pass: true, message: "Lockfile present" };
+
+  add(state, step, detail = "", output = "") {
+    this.results.push({ state, step, detail, output });
+    return state;
+  }
+
+  passed() {
+    return this.results.every((r) => r.state === STATE.PASS || r.state === STATE.NA);
+  }
+
+  report() {
+    const counts = { [STATE.PASS]: 0, [STATE.FAIL]: 0, [STATE.BLOCKED]: 0, [STATE.NA]: 0 };
+    for (const r of this.results) counts[r.state] += 1;
+
+    console.log(`\n${COLORS.bold}gate:${this.name}${COLORS.reset}`);
+    for (const r of this.results) {
+      const color = STATE_COLOR[r.state];
+      console.log(
+        `  ${color}${r.state.padEnd(15)}${COLORS.reset} ${r.step.padEnd(22)} ${COLORS.dim}${r.detail}${COLORS.reset}`,
+      );
+      if (r.output && r.state !== STATE.PASS) {
+        console.log(
+          r.output
+            .split(/\r?\n/)
+            .map((line) => `      ${line}`)
+            .join("\n"),
+        );
+      }
+    }
+
+    const summary = [
+      `${counts[STATE.PASS]} passed`,
+      `${counts[STATE.FAIL]} failed`,
+      `${counts[STATE.BLOCKED]} blocked`,
+      `${counts[STATE.NA]} not applicable`,
+    ].join(", ");
+    const color = this.passed() ? COLORS.green : COLORS.red;
+    console.log(`  ${color}${COLORS.bold}${summary}${COLORS.reset}\n`);
+  }
+
+  exitCode() {
+    return this.passed() ? 0 : 1;
+  }
 }
 
-function checkWorkspace() {
-  const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf-8"));
-  if (!pkg.workspaces && !pkg.private) {
-    return { pass: false, message: "Not a workspace or private package" };
+function currentBranch() {
+  const result = run("git", ["branch", "--show-current"]);
+  return result.code === 0 ? result.stdout : "";
+}
+
+function commitRange() {
+  if (run("git", ["rev-parse", "--verify", "--quiet", "@{upstream}"]).code === 0) {
+    return "@{upstream}..HEAD";
   }
-  return { pass: true, message: "Workspace valid" };
+  if (run("git", ["rev-parse", "--verify", "--quiet", "origin/dev"]).code === 0) {
+    return "origin/dev..HEAD";
+  }
+  return "HEAD~1..HEAD";
+}
+
+function stepToolchain(gate) {
+  const major = Number(process.version.slice(1).split(".")[0]);
+  gate.add(
+    major >= 20 ? STATE.PASS : STATE.FAIL,
+    "node-version",
+    `${process.version} (requires >=20)`,
+  );
+
+  const pnpm = run("pnpm", ["--version"]);
+  if (pnpm.code !== 0) {
+    gate.add(STATE.FAIL, "pnpm", "pnpm is not resolvable on PATH");
+  } else {
+    const expected = readJson("package.json").packageManager?.split("@")[1];
+    if (expected && pnpm.stdout !== expected) {
+      gate.add(
+        STATE.BLOCKED,
+        "pnpm",
+        `packageManager pins ${expected}, PATH resolves ${pnpm.stdout}`,
+      );
+    } else {
+      gate.add(STATE.PASS, "pnpm", pnpm.stdout);
+    }
+  }
+
+  gate.add(
+    existsSync(join(ROOT, "pnpm-lock.yaml")) ? STATE.PASS : STATE.FAIL,
+    "lockfile",
+    "pnpm-lock.yaml",
+  );
+  gate.add(
+    existsSync(join(ROOT, "pnpm-workspace.yaml")) ? STATE.PASS : STATE.FAIL,
+    "workspace",
+    "pnpm-workspace.yaml",
+  );
+}
+
+function stepCommand(gate, step, cmd, args, options = {}) {
+  const result = run(cmd, args, options);
+  if (result.code === 0) {
+    gate.add(STATE.PASS, step, `${result.duration}ms`);
+  } else {
+    gate.add(
+      STATE.FAIL,
+      step,
+      `exit ${result.code} after ${result.duration}ms`,
+      tail([result.stdout, result.stderr].filter(Boolean).join("\n")),
+    );
+  }
+  return result.code === 0;
+}
+
+const SECRET_PATTERNS = [
+  { name: "private-key", re: /-----BEGIN (?:RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----/ },
+  { name: "github-token", re: /\bgh[pousr]_[A-Za-z0-9]{36,}\b/ },
+  { name: "github-pat", re: /\bgithub_pat_[A-Za-z0-9_]{22,}\b/ },
+  { name: "openai-key", re: /\bsk-[A-Za-z0-9]{32,}\b/ },
+  { name: "aws-key", re: /\bAKIA[0-9A-Z]{16}\b/ },
+  { name: "slack-token", re: /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/ },
+];
+
+function stepSecretScan(gate) {
+  const listed = run("git", ["ls-files", "-z"]);
+  if (listed.code !== 0) {
+    gate.add(STATE.BLOCKED, "secret-scan", "git ls-files failed");
+    return;
+  }
+
+  const files = listed.stdout.split("\0").filter(Boolean);
+  const findings = [];
+  for (const file of files) {
+    if (!TEXT_EXTENSIONS.has(extname(file))) continue;
+    if (file.includes("node_modules/") || file.endsWith("pnpm-lock.yaml")) continue;
+
+    let content;
+    try {
+      content = readFileSync(join(ROOT, file), "utf-8");
+    } catch {
+      continue;
+    }
+    const lines = content.split(/\r?\n/);
+    for (let i = 0; i < lines.length; i += 1) {
+      for (const pattern of SECRET_PATTERNS) {
+        if (pattern.re.test(lines[i])) findings.push(`${file}:${i + 1} ${pattern.name}`);
+      }
+    }
+  }
+
+  if (findings.length === 0) {
+    gate.add(STATE.PASS, "secret-scan", `${files.length} tracked files`);
+  } else {
+    gate.add(STATE.FAIL, "secret-scan", `${findings.length} finding(s)`, findings.join("\n"));
+  }
+}
+
+function stepBranchPolicy(gate) {
+  const branch = currentBranch();
+  if (!branch) {
+    gate.add(STATE.BLOCKED, "branch", "detached HEAD — check out dev first");
+    return;
+  }
+  if (PROTECTED_BRANCHES.includes(branch)) {
+    gate.add(STATE.BLOCKED, "branch", `'${branch}' is protected; integration happens on dev`);
+    return;
+  }
+  gate.add(STATE.PASS, "branch", branch);
+}
+
+function stepWorktree(gate, allowDirty) {
+  const result = run("git", ["status", "--porcelain"]);
+  if (result.code !== 0) {
+    gate.add(STATE.BLOCKED, "worktree", "git status failed");
+    return;
+  }
+  if (!result.stdout) {
+    gate.add(STATE.PASS, "worktree", "clean");
+    return;
+  }
+  const count = result.stdout.split(/\r?\n/).length;
+  if (allowDirty) {
+    gate.add(STATE.NA, "worktree", `${count} uncommitted path(s), acknowledged`, result.stdout);
+  } else {
+    gate.add(STATE.BLOCKED, "worktree", `${count} uncommitted path(s)`, result.stdout);
+  }
+}
+
+function stepAudit(gate) {
+  const result = run("pnpm", ["audit", "--prod", "--audit-level=high"]);
+  const text = [result.stdout, result.stderr].filter(Boolean).join("\n");
+  if (result.code === 0 || /No known vulnerabilities|found 0 vulnerabilities/i.test(text)) {
+    gate.add(STATE.PASS, "dependency-audit", "no high/critical advisories");
+    return;
+  }
+  if (/ERR_PNPM|ENOTFOUND|ECONNREFUSED|EAI_AGAIN|network/i.test(text)) {
+    gate.add(
+      STATE.BLOCKED,
+      "dependency-audit",
+      "registry unreachable, audit not performed",
+      tail(text, 10),
+    );
+    return;
+  }
+  gate.add(STATE.FAIL, "dependency-audit", "high/critical advisories found", tail(text, 30));
+}
+
+function stepCommitMessages(gate) {
+  const range = commitRange();
+  const result = run("node", ["scripts/commitlint.mjs", "--range", range]);
+  if (result.code === 0) {
+    gate.add(STATE.PASS, "commit-messages", range);
+  } else {
+    gate.add(
+      STATE.FAIL,
+      "commit-messages",
+      `non-conventional commit(s) in ${range}`,
+      tail([result.stdout, result.stderr].filter(Boolean).join("\n")),
+    );
+  }
+}
+
+function quickSteps(gate) {
+  stepToolchain(gate);
+  if (!gate.passed()) return;
+  stepCommand(gate, "format", "pnpm", ["format:check"]);
+  stepCommand(gate, "lint", "pnpm", ["lint", "--filter=@moonwitness/*"]);
+  stepCommand(gate, "typecheck", "pnpm", ["typecheck", "--filter=@moonwitness/*"]);
+}
+
+function localSteps(gate) {
+  stepToolchain(gate);
+  if (!gate.passed()) return;
+  stepCommand(gate, "install", "pnpm", ["install", "--frozen-lockfile"]);
+  stepCommand(gate, "format", "pnpm", ["format:check"]);
+  stepCommand(gate, "lint", "pnpm", ["lint"]);
+  stepCommand(gate, "typecheck", "pnpm", ["typecheck"]);
+  stepCommand(gate, "test", "pnpm", ["test"]);
+  stepCommand(gate, "build", "pnpm", ["build"]);
 }
 
 function gateQuick() {
-  log("info", "Running gate:quick...");
-  const checks = [
-    { name: "Node version", fn: checkNodeVersion },
-    { name: "pnpm version", fn: checkPnpmVersion },
-    { name: "Lockfile", fn: checkLockfile },
-    { name: "Workspace", fn: checkWorkspace },
-  ];
-
-  let allPass = true;
-  for (const check of checks) {
-    const result = check.fn();
-    if (result.pass) {
-      log("pass", `${check.name}: ${result.message}`);
-    } else {
-      log("fail", `${check.name}: ${result.message}`);
-      allPass = false;
-    }
-  }
-
-  // Format check
-  const fmt = runCommand("format:check", "pnpm", ["format:check"]);
-  if (fmt.code === 0) {
-    log("pass", "Format check passed");
-  } else {
-    log("fail", "Format check failed");
-    allPass = false;
-  }
-
-  // Lint (targeted)
-  const lint = runCommand("lint", "pnpm", ["lint", "--filter=@moonwitness/*"]);
-  if (lint.code === 0) {
-    log("pass", "Lint passed");
-  } else {
-    log("fail", "Lint failed");
-    allPass = false;
-  }
-
-  // Typecheck (targeted)
-  const tsc = runCommand("typecheck", "pnpm", ["typecheck", "--filter=@moonwitness/*"]);
-  if (tsc.code === 0) {
-    log("pass", "Typecheck passed");
-  } else {
-    log("fail", "Typecheck failed");
-    allPass = false;
-  }
-
-  return allPass ? 0 : 1;
+  const gate = new Gate("quick");
+  quickSteps(gate);
+  gate.report();
+  return gate.exitCode();
 }
 
 function gateLocal() {
-  log("info", "Running gate:local (full verification)...");
-  const checks = [
-    { name: "Node version", fn: checkNodeVersion },
-    { name: "pnpm version", fn: checkPnpmVersion },
-    { name: "Lockfile", fn: checkLockfile },
-    { name: "Workspace", fn: checkWorkspace },
-  ];
-
-  let allPass = true;
-  for (const check of checks) {
-    const result = check.fn();
-    if (result.pass) {
-      log("pass", `${check.name}: ${result.message}`);
-    } else {
-      log("fail", `${check.name}: ${result.message}`);
-      allPass = false;
-    }
-  }
-
-  if (!allPass) return 1;
-
-  const steps = [
-    ["Install (frozen)", "pnpm", ["install", "--frozen-lockfile"]],
-    ["Format check", "pnpm", ["format:check"]],
-    ["Lint", "pnpm", ["lint"]],
-    ["Typecheck", "pnpm", ["typecheck"]],
-    ["Unit tests", "pnpm", ["test"]],
-    ["Build all", "pnpm", ["build"]],
-  ];
-
-  for (const [name, cmd, args] of steps) {
-    const result = runCommand(name.toLowerCase().replace(/\s+/g, "-"), cmd, args);
-    if (result.code === 0) {
-      log("pass", `${name} passed (${result.duration}ms)`);
-    } else {
-      log("fail", `${name} failed (${result.duration}ms)`);
-      if (result.stdout) console.log(result.stdout);
-      if (result.stderr) console.log(result.stderr);
-      allPass = false;
-      break;
-    }
-  }
-
-  return allPass ? 0 : 1;
+  const gate = new Gate("local");
+  localSteps(gate);
+  gate.report();
+  return gate.exitCode();
 }
 
-function gatePush() {
-  log("info", "Running gate:push (pre-push verification)...");
-
-  // Run gate:local first
-  if (gateLocal() !== 0) {
-    return 1;
-  }
-
-  // Additional push-specific checks
-  let allPass = true;
-
-  // Dependency audit
-  const audit = runCommand("audit", "pnpm", ["audit", "--prod"]);
-  if (audit.code === 0) {
-    log("pass", "Dependency audit passed");
-  } else {
-    log("warn", "Dependency audit has findings (review required)");
-  }
-
-  // Secret scanning (basic)
-  const secretScan = runCommand("secret-scan", "npx", [
-    "secretlint@latest",
-    "**/*",
-    "--format",
-    "stylish",
-  ]);
-  if (secretScan.code === 0) {
-    log("pass", "Secret scan clean");
-  } else {
-    log("warn", "Secret scan findings (review required)");
-  }
-
-  // Git diff validation
-  const diff = runCommand("git-diff", "git", ["diff", "--check"]);
-  if (diff.code === 0) {
-    log("pass", "Git diff clean (no whitespace errors)");
-  } else {
-    log("fail", "Git diff has whitespace errors");
-    allPass = false;
-  }
-
-  // Forbidden branch detection
-  const branch = runCommand("current-branch", "git", ["branch", "--show-current"]);
-  if (branch.stdout === "main" || branch.stdout === "master") {
-    log("fail", `On forbidden branch: ${branch.stdout}`);
-    allPass = false;
-  } else {
-    log("pass", `Current branch: ${branch.stdout}`);
-  }
-
-  // Uncommitted change detection
-  const status = runCommand("git-status", "git", ["status", "--porcelain"]);
-  if (status.stdout.trim()) {
-    log("warn", "Uncommitted changes detected");
-    console.log(status.stdout);
-  } else {
-    log("pass", "Working tree clean");
-  }
-
-  return allPass ? 0 : 1;
+function gatePush(argv) {
+  const allowDirty = argv.includes("--allow-dirty");
+  const gate = new Gate("push");
+  stepBranchPolicy(gate);
+  stepWorktree(gate, allowDirty);
+  localSteps(gate);
+  stepCommand(gate, "whitespace", "git", ["diff", "--check", "HEAD"]);
+  stepSecretScan(gate);
+  stepAudit(gate);
+  stepCommitMessages(gate);
+  gate.report();
+  return gate.exitCode();
 }
 
 function gateRelease() {
-  log("info", "Running gate:release (release readiness)...");
-  return gatePush(); // Same as push for now, can be extended
+  const gate = new Gate("release");
+
+  const branch = currentBranch();
+  if (branch !== "main") {
+    gate.add(
+      STATE.BLOCKED,
+      "branch",
+      `release is validated on 'main' (currently '${branch}'); promotion is owner-approved`,
+    );
+  } else {
+    gate.add(STATE.PASS, "branch", branch);
+  }
+
+  const status = run("git", ["status", "--porcelain"]);
+  gate.add(
+    status.code === 0 && !status.stdout ? STATE.PASS : STATE.BLOCKED,
+    "worktree",
+    status.code === 0 && !status.stdout ? "clean" : "release requires a clean working tree",
+  );
+
+  localSteps(gate);
+
+  const version = readJson("package.json").version;
+  if (!version) {
+    gate.add(STATE.FAIL, "release-manifest", "package.json has no version");
+  } else if (!existsSync(join(ROOT, ".release-please-manifest.json"))) {
+    gate.add(STATE.FAIL, "release-manifest", ".release-please-manifest.json missing");
+  } else {
+    const manifest = readJson(".release-please-manifest.json")["."];
+    gate.add(
+      manifest === version ? STATE.PASS : STATE.FAIL,
+      "release-manifest",
+      `manifest ${manifest ?? "(none)"} vs package.json ${version}`,
+    );
+  }
+
+  const changelog = existsSync(join(ROOT, "CHANGELOG.md"))
+    ? readFileSync(join(ROOT, "CHANGELOG.md"), "utf-8")
+    : "";
+  const hasEntry = version
+    ? new RegExp(`^##+ \\[?${version.replace(/\./g, "\\.")}\\]?`, "m").test(changelog)
+    : false;
+  gate.add(
+    hasEntry ? STATE.PASS : STATE.FAIL,
+    "changelog",
+    hasEntry ? `entry for ${version}` : `no CHANGELOG entry for ${version ?? "(no version)"}`,
+  );
+
+  const tag = version ? run("git", ["tag", "--list", `v${version}`]) : { stdout: "" };
+  gate.add(
+    tag.stdout ? STATE.FAIL : STATE.PASS,
+    "release-tag",
+    tag.stdout ? `tag v${version} already exists` : `v${version} is free`,
+  );
+
+  gate.report();
+  return gate.exitCode();
 }
 
 function gateDoctor() {
-  log("info", "Running gate:doctor (environment diagnosis)...");
+  const gate = new Gate("doctor");
+  stepToolchain(gate);
 
-  checkNodeVersion().pass
-    ? log("pass", `Node: ${process.version}`)
-    : log("fail", `Node: ${process.version} (need >=20)`);
-  checkPnpmVersion().pass ? log("pass", `pnpm available`) : log("fail", `pnpm not found`);
-  checkLockfile().pass ? log("pass", "Lockfile present") : log("fail", "Lockfile missing");
-  checkWorkspace().pass ? log("pass", "Workspace valid") : log("fail", "Workspace invalid");
+  const user = run("git", ["config", "user.name"]);
+  gate.add(user.stdout ? STATE.PASS : STATE.BLOCKED, "git-user", user.stdout || "unset");
+  const email = run("git", ["config", "user.email"]);
+  gate.add(email.stdout ? STATE.PASS : STATE.BLOCKED, "git-email", email.stdout || "unset");
 
-  // Git config
-  const gitUser = runCommand("git-user", "git", ["config", "user.name"]);
-  const gitEmail = runCommand("git-email", "git", ["config", "user.email"]);
-  if (gitUser.code === 0 && gitUser.stdout) {
-    log("pass", `Git user: ${gitUser.stdout}`);
+  const remote = run("git", ["remote", "get-url", "origin"]);
+  gate.add(remote.code === 0 ? STATE.PASS : STATE.BLOCKED, "remote", remote.stdout || "missing");
+
+  const branch = currentBranch();
+  if (!branch) {
+    gate.add(STATE.BLOCKED, "branch", "detached HEAD");
+  } else if (PROTECTED_BRANCHES.includes(branch)) {
+    gate.add(STATE.BLOCKED, "branch", `'${branch}' is protected; switch to dev`);
   } else {
-    log("warn", "Git user.name not set");
-  }
-  if (gitEmail.code === 0 && gitEmail.stdout) {
-    log("pass", `Git email: ${gitEmail.stdout}`);
-  } else {
-    log("warn", "Git user.email not set");
+    gate.add(STATE.PASS, "branch", branch);
   }
 
-  // Remote
-  const remote = runCommand("git-remote", "git", ["remote", "-v"]);
-  if (remote.code === 0) {
-    log("pass", "Git remote configured");
-  } else {
-    log("fail", "No git remote");
-  }
+  const upstream = run("git", ["rev-parse", "--abbrev-ref", "@{upstream}"]);
+  gate.add(
+    upstream.code === 0 ? STATE.PASS : STATE.NA,
+    "upstream",
+    upstream.code === 0 ? upstream.stdout : "no upstream configured",
+  );
 
-  // Current branch
-  const currentBranch = runCommand("current-branch", "git", ["branch", "--show-current"]);
-  log("info", `Current branch: ${currentBranch.stdout}`);
+  const hooksDir = run("git", ["rev-parse", "--git-path", "hooks"]);
+  const hookPath = hooksDir.code === 0 ? join(ROOT, hooksDir.stdout, "pre-push") : "";
+  const installed = hookPath !== "" && existsSync(hookPath);
+  gate.add(
+    installed ? STATE.PASS : STATE.NA,
+    "pre-push-hook",
+    installed ? "installed" : "run pnpm hooks:install",
+  );
 
-  return 0;
+  gate.report();
+  return gate.exitCode();
 }
 
-const gates = {
+const GATES = {
   quick: gateQuick,
   local: gateLocal,
   push: gatePush,
@@ -306,26 +462,22 @@ const gates = {
 };
 
 const gateName = process.argv[2];
-if (!gateName || !gates[gateName]) {
+if (!gateName || !GATES[gateName]) {
   console.log(`
-${COLORS.bold}MoonWitness Gatecheck Engine${COLORS.reset}
+${COLORS.bold}MoonWitness gate engine${COLORS.reset}
 
-Usage: pnpm gate:<command>
+Usage: pnpm gate:<command> [--allow-dirty]
 
 Commands:
-  quick     - Fast feedback during implementation
-  local     - Comprehensive repository verification
-  push      - Full mandatory verification before pushing to dev
-  release   - Full release readiness validation
-  doctor    - Diagnose local engineering environment
+  quick     fast feedback: format, lint, typecheck
+  local     full verification: install, format, lint, typecheck, test, build
+  push      branch policy, worktree, local verification, secrets, audit, commits
+  release   release readiness on main: verification, version, changelog, tag
+  doctor    diagnose the local engineering environment
+
+States: PASS, FAIL, BLOCKED, NOT APPLICABLE
 `);
   process.exit(1);
 }
 
-const exitCode = gates[gateName]();
-if (exitCode === 0) {
-  log("pass", `gate:${gateName} completed successfully`);
-} else {
-  log("fail", `gate:${gateName} failed`);
-}
-process.exit(exitCode);
+process.exit(GATES[gateName](process.argv.slice(3)));

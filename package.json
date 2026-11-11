@@ -1,5 +1,6 @@
 {
   "name": "moonwitness",
+  "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@12.18.0",
   "engines": {
@@ -26,7 +27,9 @@
     "gate:push": "node scripts/gatecheck.mjs push",
     "gate:release": "node scripts/gatecheck.mjs release",
     "gate:doctor": "node scripts/gatecheck.mjs doctor",
-    "branch:guard": "node scripts/branch-guard.mjs"
+    "branch:guard": "node scripts/branch-guard.mjs",
+    "commitlint": "node scripts/commitlint.mjs",
+    "hooks:install": "node scripts/install-hooks.mjs"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

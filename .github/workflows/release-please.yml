@@ -1,0 +1,41 @@
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: release-please-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Run Release Please
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          target-branch: main
+
+      - name: Report release outcome
+        if: always()
+        env:
+          RELEASES_CREATED: ${{ steps.release.outputs.releases_created }}
+          TAG_NAME: ${{ steps.release.outputs.tag_name }}
+        run: |
+          if [ "$RELEASES_CREATED" = "true" ]; then
+            echo "Release created: $TAG_NAME"
+          else
+            echo "No release created on this push (release PR updated or no releasable commits)."
+          fi
