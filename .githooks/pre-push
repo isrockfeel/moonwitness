@@ -1,0 +1,23 @@
+#!/bin/sh
+# Blocks pushes to protected branches, then runs the mandatory push gate.
+
+current=$(git branch --show-current)
+case "$current" in
+  main | master)
+    echo "pre-push: refusing to push from protected branch '$current'." >&2
+    echo "pre-push: integration happens on 'dev' (git switch dev)." >&2
+    exit 1
+    ;;
+esac
+
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main | refs/heads/master)
+      echo "pre-push: refusing to push to protected ref '$remote_ref'." >&2
+      echo "pre-push: promote via a reviewed pull request instead." >&2
+      exit 1
+      ;;
+  esac
+done
+
+exec node scripts/gatecheck.mjs push

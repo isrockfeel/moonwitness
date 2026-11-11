@@ -16,10 +16,11 @@ function toUrl(path: string): string {
   return `file:${path}`;
 }
 
-function rowToObject(row: Record<string, unknown> | unknown[], columns: string[]): Record<string, unknown> {
+function rowToObject(row: unknown, columns: string[]): Record<string, unknown> {
+  const values = row as unknown as unknown[];
   const record: Record<string, unknown> = {};
   columns.forEach((column, index) => {
-    record[column] = (row as unknown[])[index];
+    record[column] = values[index];
   });
   return record;
 }
@@ -63,10 +64,13 @@ export class LibSqlDriver implements LibSqlExecutor {
 
   async all<T = Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T[]> {
     const result = await this.run(sql, params);
-    return result.rows.map((row) => rowToObject(row as unknown[], result.columns)) as T[];
+    return result.rows.map((row) => rowToObject(row, result.columns)) as T[];
   }
 
-  async get<T = Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T | undefined> {
+  async get<T = Record<string, unknown>>(
+    sql: string,
+    params: unknown[] = [],
+  ): Promise<T | undefined> {
     const rows = await this.all<T>(sql, params);
     return rows[0];
   }
@@ -82,12 +86,12 @@ export class LibSqlDriver implements LibSqlExecutor {
       run: (sql, params = []) => transaction.execute({ sql, args: params as never }),
       all: async <R = Record<string, unknown>>(sql: string, params: unknown[] = []) => {
         const result = await transaction.execute({ sql, args: params as never });
-        return result.rows.map((row) => rowToObject(row as unknown[], result.columns)) as R[];
+        return result.rows.map((row) => rowToObject(row, result.columns)) as R[];
       },
       get: async <R = Record<string, unknown>>(sql: string, params: unknown[] = []) => {
         const result = await transaction.execute({ sql, args: params as never });
         const row = result.rows[0];
-        return row ? (rowToObject(row as unknown[], result.columns) as R) : undefined;
+        return row ? (rowToObject(row, result.columns) as R) : undefined;
       },
       exec: (sql) => transaction.executeMultiple(sql),
     };

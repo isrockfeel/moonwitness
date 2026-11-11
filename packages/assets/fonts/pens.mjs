@@ -14,7 +14,9 @@ function unionRings(allRings) {
     multi = polygonClipping.union(asPolys(allRings));
   } catch {
     const rand = rng(0x5eed);
-    const nudged = allRings.map((r) => r.map(([x, y]) => [x + (rand() - 0.5) * 0.3, y + (rand() - 0.5) * 0.3]));
+    const nudged = allRings.map((r) =>
+      r.map(([x, y]) => [x + (rand() - 0.5) * 0.3, y + (rand() - 0.5) * 0.3]),
+    );
     multi = polygonClipping.union(asPolys(nudged));
   }
   const rings = [];
@@ -143,7 +145,14 @@ function expandStroke(pts, h, { cap, join, closed }) {
     } else {
       const n1 = left(d1);
       const n2 = left(d2);
-      rings.push(hull([add(p, mul(n1, h1)), add(p, mul(n1, -h1)), add(p, mul(n2, h2)), add(p, mul(n2, -h2))]));
+      rings.push(
+        hull([
+          add(p, mul(n1, h1)),
+          add(p, mul(n1, -h1)),
+          add(p, mul(n2, h2)),
+          add(p, mul(n2, -h2)),
+        ]),
+      );
     }
   };
   if (closed) {
@@ -156,7 +165,12 @@ function expandStroke(pts, h, { cap, join, closed }) {
         rings.push(circle(p[0], p[1], hh, joinN));
       } else if (cap === "square") {
         const e = mul(d, forward ? hh : -hh);
-        rings.push([add(p, mul(nn, hh)), add(add(p, e), mul(nn, hh)), add(add(p, e), mul(nn, -hh)), add(p, mul(nn, -hh))]);
+        rings.push([
+          add(p, mul(nn, hh)),
+          add(add(p, e), mul(nn, hh)),
+          add(add(p, e), mul(nn, -hh)),
+          add(p, mul(nn, -hh)),
+        ]);
       }
     };
     capAt(pts[0], dirs[0], h[0], false);
@@ -325,13 +339,17 @@ export function drawGlyph(char, def, penName, weight, { slashedZero = false } = 
 }
 
 function finish(rings, char, pen, weight, rand, advOverride) {
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (const r of rings) for (const [x, y] of r) {
-    if (x < minX) minX = x;
-    if (x > maxX) maxX = x;
-    if (y < minY) minY = y;
-    if (y > maxY) maxY = y;
-  }
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
+  for (const r of rings)
+    for (const [x, y] of r) {
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
   const hasInk = rings.length > 0;
 
   // Per-glyph rotation + baseline bounce for the hand-set voices.
@@ -349,13 +367,17 @@ function finish(rings, char, pen, weight, rand, advOverride) {
         return [cx + dx * cos - dyy * sin, cy + dx * sin + dyy * cos + dy];
       }),
     );
-    minX = Infinity; minY = Infinity; maxX = -Infinity; maxY = -Infinity;
-    for (const r of rings) for (const [x, y] of r) {
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
-    }
+    minX = Infinity;
+    minY = Infinity;
+    maxX = -Infinity;
+    maxY = -Infinity;
+    for (const r of rings)
+      for (const [x, y] of r) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
   }
 
   let advance;

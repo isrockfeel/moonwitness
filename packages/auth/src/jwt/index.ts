@@ -12,9 +12,9 @@ export type Payload = {
 };
 
 export type JwtVerifyOptions = {
-  secret: string;
-  /** Maximum age in seconds (default: 7 days) */
-  maxAge?: number;
+  secret?: string;
+  /** Maximum age in seconds or string (default: 7d) */
+  maxAge?: string | number;
 };
 
 export type JwtVerifyResult = {
@@ -26,11 +26,11 @@ export type JwtVerifyResult = {
 export async function verifyJwt(
   token: string,
   secret: string,
-  options?: JwtVerifyOptions
+  options?: JwtVerifyOptions,
 ): Promise<JwtVerifyResult> {
   try {
     const { payload } = await jwtVerify(token, new TextEncoder().encode(secret), {
-      maxAge: options?.maxAge ?? "7d",
+      maxTokenAge: options?.maxAge ?? "7d",
     });
     return { success: true, payload: payload as Payload };
   } catch (error) {
@@ -41,7 +41,7 @@ export async function verifyJwt(
 export async function signJwt(
   payload: Payload,
   secret: string,
-  options?: { algorithm?: "HS256"; expiresIn?: string }
+  options?: { algorithm?: "HS256"; expiresIn?: string },
 ): Promise<string> {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: options?.algorithm ?? "HS256" })
@@ -57,7 +57,7 @@ export function createAuthPayload(
     role?: "user" | "admin";
     artworkId?: string;
     artworkKey?: ArtKey;
-  }
+  },
 ): Payload {
   return {
     userId,
@@ -67,3 +67,6 @@ export function createAuthPayload(
     artworkKey: options?.artworkKey,
   };
 }
+
+export const signToken = signJwt;
+export const verifyToken = verifyJwt;

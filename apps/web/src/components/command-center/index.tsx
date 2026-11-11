@@ -32,24 +32,46 @@ export function CommandCenter() {
       }}
     >
       <CommandHero />
-      <div className="space-y-6 px-4 py-6 sm:px-8">
-        <UniverseStatus stats={universeStats} />
-        <QuickActions actions={quickActions} onAction={cc.onAction} />
-        <IdeasInMotion />
-        <Workspace items={cc.visible.workspace} onOpenItem={cc.onOpenWorkspaceItem} />
-        <Pipeline columns={cc.visible.pipeline} onOpenCard={cc.onOpenCard} />
-        <Collections collections={cc.visible.collections} onOpenCollection={cc.onOpenCollection} />
-        <ProjectUniverse projects={cc.visible.projects} />
-        <Studios modules={modules} onOpen={cc.onOpenModule} />
-        <UniverseMap cities={mapCities} selectedId={cc.selectedCity} onSelect={cc.setSelectedCity} />
-        <CrewOrbit />
-        <MissionLog
-          feed={cc.visible.feed}
-          alerts={cc.alerts}
-          workflows={cc.visible.workflows}
-          onDismissAlert={cc.onDismissAlert}
-          onToggleWorkflow={cc.onToggleWorkflow}
-        />
+      <div className="px-4 py-6 sm:px-8">
+        {/* Row 1: Universe Status | Quick Actions | Ideas In Motion */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)]">
+          <UniverseStatus stats={universeStats} />
+          <QuickActions actions={quickActions} onAction={cc.onAction} />
+          <IdeasInMotion />
+        </div>
+
+        {/* Row 2: Recent Workspace | Editorial Pipeline (2 cols) */}
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+          <Workspace items={cc.visible.workspace} onOpenItem={cc.onOpenWorkspaceItem} />
+          <Pipeline columns={cc.visible.pipeline} onOpenCard={cc.onOpenCard} />
+        </div>
+
+        {/* Row 3: Collections | Studios | Universe Map */}
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+          <Collections
+            collections={cc.visible.collections}
+            onOpenCollection={cc.onOpenCollection}
+          />
+          <Studios modules={modules} onOpen={cc.onOpenModule} />
+          <UniverseMap
+            cities={mapCities}
+            selectedId={cc.selectedCity}
+            onSelect={cc.setSelectedCity}
+          />
+        </div>
+
+        {/* Row 4: Project Universe | Crew Orbit | Mission Log */}
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+          <ProjectUniverse projects={cc.visible.projects} />
+          <CrewOrbit />
+          <MissionLog
+            feed={cc.visible.feed}
+            alerts={cc.alerts}
+            workflows={cc.visible.workflows}
+            onDismissAlert={cc.onDismissAlert}
+            onToggleWorkflow={cc.onToggleWorkflow}
+          />
+        </div>
       </div>
 
       {cc.openModule && (

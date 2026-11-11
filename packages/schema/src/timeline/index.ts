@@ -1,11 +1,5 @@
 import { z } from "zod";
-import type {
-  ArtKey,
-  Era,
-  EraId,
-  EventKind,
-  TimelineEvent,
-} from "@moonwitness/types";
+import type { ArtKey, Era, EraId, EventKind, TimelineEvent } from "@moonwitness/types";
 
 export const ArtKeySchema = z.enum([
   "hero-witness",
@@ -13,6 +7,12 @@ export const ArtKeySchema = z.enum([
   "crew-rooftop",
   "signal-tunnel",
   "shadow-command",
+  "night-shift",
+  "signal-sky",
+  "fog-voices",
+  "mirror-archive",
+  "crew-wall",
+  "crowd-moon",
 ]) satisfies z.ZodType<ArtKey>;
 
 export const EraIdSchema = z.enum([

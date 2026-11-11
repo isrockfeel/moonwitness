@@ -1,18 +1,18 @@
 import { Suspense } from "react";
-import { CommandCenter } from "@/components/command-center";
+import { DashboardView } from "@/views/dashboard";
 
-export const metadata = { title: "Shadow Command Center" };
+export const metadata = { title: "Mission Control — MoonWitness" };
 
 export default function MissionControlPage() {
   return (
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center font-brush text-2xl text-[var(--pink)]">
-          LOADING THE EMPIRE…
+          LOADING MISSION CONTROL…
         </div>
       }
     >
-      <CommandCenter />
+      <DashboardView />
     </Suspense>
   );
 }

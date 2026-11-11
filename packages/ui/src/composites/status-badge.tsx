@@ -1,7 +1,15 @@
-import type { ItemStatus } from "@moonwitness/types";
 import { ZineBadge } from "../primitives/zine-badge";
 
-const STATUS_COLOR: Record<ItemStatus, string> = {
+export interface StatusBadgeProps {
+  /** Status teks yang akan ditampilkan di badge */
+  status: string;
+  /** Warna teks (CSS custom property name) */
+  tone?: string;
+  /** Apakah menggunakan background gelap (dark) */
+  dark?: boolean;
+}
+
+const STATUS_COLOR: Record<string, string> = {
   DRAFT: "#a855f7",
   READY: "#2ea8ff",
   "IN REVIEW": "#ffd21f",
@@ -9,7 +17,7 @@ const STATUS_COLOR: Record<ItemStatus, string> = {
   PUBLISHED: "#ff2d78",
 };
 
-const STATUS_DARK: Record<ItemStatus, boolean> = {
+const STATUS_DARK: Record<string, boolean> = {
   DRAFT: false,
   READY: false,
   "IN REVIEW": true,
@@ -17,9 +25,11 @@ const STATUS_DARK: Record<ItemStatus, boolean> = {
   PUBLISHED: false,
 };
 
-export function StatusBadge({ status }: { status: ItemStatus }) {
+export function StatusBadge({ status, tone, dark }: StatusBadgeProps) {
+  const color = tone ?? STATUS_COLOR[status] ?? "#9ca3af";
+  const isDark = dark ?? STATUS_DARK[status] ?? false;
   return (
-    <ZineBadge color={STATUS_COLOR[status]} dark={STATUS_DARK[status]}>
+    <ZineBadge color={color} dark={isDark}>
       {status}
     </ZineBadge>
   );

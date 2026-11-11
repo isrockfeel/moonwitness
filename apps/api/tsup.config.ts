@@ -5,7 +5,8 @@ export default defineConfig({
   format: ["esm"],
   dts: true,
   splitting: true,
-  noExternal: ["@moonwitness/*"],
+  // Workspace packages ship raw TypeScript, so they must be bundled.
+  noExternal: [/^@moonwitness\//],
   platform: "node",
   target: "node20",
   outDir: "dist",

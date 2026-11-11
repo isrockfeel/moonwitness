@@ -41,7 +41,11 @@ export function SiteNav() {
     <>
       <header className="fixed inset-x-0 top-0 z-50 border-b-2 border-[var(--line)] bg-[rgba(11,11,16,0.88)] backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2 max-lg:min-h-11" aria-label="Moonwitness home">
+          <Link
+            href="/"
+            className="flex items-center gap-2 max-lg:min-h-11"
+            aria-label="Moonwitness home"
+          >
             <Crown className="h-5 w-8 text-[var(--yellow)]" />
             <span className="font-brush text-xl tracking-wide text-white sm:text-2xl">
               MOON<span className="text-[var(--pink)]">WITNESS</span>

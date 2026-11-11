@@ -1,29 +1,50 @@
 "use client";
 
-import type { Era, TimelineEvent } from "@moonwitness/types";
 import { useState } from "react";
 import { Crown } from "../icons";
 import { ZineImage } from "../primitives/zine-image";
 import { KindBadge } from "./event-card";
-import { EventDetailRelated } from "./event-detail-related";
+import { EventDetailRelated, type RelatedEventItem } from "./event-detail-related";
 
-export interface EventDetailProps {
-  event: TimelineEvent;
-  era: Era;
-  relatedEvents: TimelineEvent[];
+export interface EventDetailData {
+  title: string;
+  body: string;
+  kind: string;
+  date: string;
+  image: string;
+  imagePosition?: string;
+  location: string;
+  tags: string[];
+  excerpt: string;
+  sources?: number;
+  notes?: number;
+}
+
+export interface EventDetailEra {
+  name: string;
+  years: string;
+}
+
+export interface EventDetailProps<
+  E extends EventDetailData = EventDetailData,
+  R extends RelatedEventItem = RelatedEventItem,
+> {
+  event: E;
+  era: EventDetailEra;
+  relatedEvents: R[];
   shareUrl: string;
   onRelated: (id: string) => void;
   onClose?: () => void;
 }
 
-export function EventDetail({
+export function EventDetail<E extends EventDetailData, R extends RelatedEventItem>({
   event,
   era,
   relatedEvents,
   shareUrl,
   onRelated,
   onClose,
-}: EventDetailProps) {
+}: EventDetailProps<E, R>) {
   const [copied, setCopied] = useState(false);
 
   async function share() {
@@ -111,7 +132,7 @@ export function EventDetail({
             <div className="flex justify-between gap-2">
               <dt className="text-zinc-500">Related</dt>
               <dd className="text-zinc-200">
-                {event.sources} sources · {event.notes} notes
+                {event.sources ?? 0} sources · {event.notes ?? 0} notes
               </dd>
             </div>
           </dl>

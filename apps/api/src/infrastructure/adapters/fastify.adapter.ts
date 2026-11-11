@@ -1,4 +1,4 @@
-import type { FastifyInstance, FastifyRegisterOptions } from "fastify";
+import type { FastifyInstance } from "fastify";
 import Fastify from "fastify";
 import FastifyCors from "@fastify/cors";
 import FastifySwagger from "@fastify/swagger";
@@ -8,12 +8,9 @@ import type { ITimelineUseCase } from "../../domain/usecases/timeline/timeline.u
 
 export interface BootstrapOptions {
   timelineUseCase: ITimelineUseCase;
-  prefix?: string;
 }
 
-export async function buildFastify(
-  options: BootstrapOptions,
-): Promise<FastifyInstance> {
+export async function buildFastify(options: BootstrapOptions): Promise<FastifyInstance> {
   const fastify: FastifyInstance = Fastify({
     logger: {
       level: env.NODE_ENV === "production" ? "info" : "debug",
@@ -58,16 +55,6 @@ export async function buildFastify(
         deepLinking: false,
       },
     });
-  }
-
-  if (options.prefix) {
-    await fastify.register(
-      async (instance: FastifyInstance) => {
-        const { registerRoutes } = await import("../../interface/routes");
-        await registerRoutes(instance);
-      },
-      { prefix: options.prefix },
-    );
   }
 
   return fastify;

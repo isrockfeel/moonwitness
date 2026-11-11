@@ -6,11 +6,11 @@ import type { EraId } from "@moonwitness/types";
 import { EmpireShell } from "../shell";
 import { Star4 } from "@moonwitness/ui/icons";
 import { EraBand } from "@moonwitness/ui";
-import { timelineEvents, eras } from "@/lib/data";
 import { DockHero } from "./hero";
 import { FilterBar, type SortKey } from "./filter-bar";
 import { EventList } from "./event-list";
 import { EventDetailPanel } from "./event-detail-panel";
+import { useTimelineEvents, useTimelineEras } from "@/lib/api/timeline";
 
 export function Dock() {
   const params = useSearchParams();
@@ -20,12 +20,31 @@ export function Dock() {
   const [view, setView] = useState<"grid" | "list">("grid");
   const [selectedId, setSelectedId] = useState<string | null>(() => {
     const id = params.get("event");
-    return timelineEvents.some((e) => e.id === id) ? id : "moonwitness-born";
+    return id; // will be validated after data loads
   });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [origin, setOrigin] = useState("");
 
+  const { data: eventsData, isLoading: eventsLoading } = useTimelineEvents({
+    era: era === "all" ? undefined : era,
+    limit: 100,
+  });
+  const { data: erasData, isLoading: erasLoading } = useTimelineEras();
+
   useEffect(() => setOrigin(window.location.origin), []);
+
+  const timelineEvents = useMemo(() => eventsData?.data ?? [], [eventsData?.data]);
+  const eras = erasData?.data ?? [];
+
+  useEffect(() => {
+    const id = params.get("event");
+    if (id && timelineEvents.some((e) => e.id === id)) {
+      setSelectedId(id);
+    } else if (timelineEvents.length > 0) {
+      const first = timelineEvents[0];
+      if (first) setSelectedId(first.id);
+    }
+  }, [timelineEvents, params]);
 
   const q = query.trim().toLowerCase();
   const visible = useMemo(() => {
@@ -39,7 +58,7 @@ export function Dock() {
     return [...list].sort((a, b) =>
       sort === "newest" ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date),
     );
-  }, [era, q, sort]);
+  }, [era, q, sort, timelineEvents]);
 
   const selected = timelineEvents.find((e) => e.id === selectedId) ?? null;
   const selectedEra = selected ? eras.find((e) => e.id === selected.era) : undefined;
@@ -57,12 +76,25 @@ export function Dock() {
     setEra("all");
   }
 
+  if (eventsLoading || erasLoading) {
+    return (
+      <EmpireShell
+        breadcrumb="Dock / Lighthouse"
+        search={{ value: query, onChange: setQuery, placeholder: "Search timeline events…" }}
+      >
+        <div className="flex h-[60vh] items-center justify-center font-brush text-xl text-[var(--pink)]">
+          LOADING THE DOCK…
+        </div>
+      </EmpireShell>
+    );
+  }
+
   return (
     <EmpireShell
       breadcrumb="Dock / Lighthouse"
       search={{ value: query, onChange: setQuery, placeholder: "Search timeline events…" }}
     >
-      <DockHero visibleCount={visible.length} />
+      <DockHero visibleCount={visible.length} total={eventsData?.total ?? timelineEvents.length} />
 
       <div className="space-y-5 px-4 py-6 sm:px-8">
         <FilterBar
@@ -74,12 +106,12 @@ export function Dock() {
           onViewChange={setView}
         />
 
-        <EraBand eras={eras} active={era} onSelect={setEra} />
+        <EraBand eras={eras} active={era} onSelect={(e) => setEra(e as EraId | "all")} />
 
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
           <EventList
             events={visible}
-            total={timelineEvents.length}
+            total={eventsData?.total ?? timelineEvents.length}
             view={view}
             selectedId={selectedId}
             query={query}

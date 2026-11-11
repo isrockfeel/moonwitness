@@ -1,0 +1,1 @@
+export { RadiusCenter as RadiusView } from "@/components/radius";

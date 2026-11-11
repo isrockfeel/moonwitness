@@ -1,5 +1,8 @@
+"use client";
+
 import type { ArtKey } from "@moonwitness/types";
 import { ZineImage } from "@moonwitness/ui";
+import { useFocusTrap } from "./use-focus-trap";
 
 export interface ItemDrawerDetail {
   title: string;
@@ -14,8 +17,11 @@ export interface ItemDrawerProps {
 }
 
 export function ItemDrawer({ detail, onClose }: ItemDrawerProps) {
+  const dialogRef = useFocusTrap(true, onClose);
+
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-50"
       role="dialog"
       aria-modal="true"
@@ -47,7 +53,9 @@ export function ItemDrawer({ detail, onClose }: ItemDrawerProps) {
         <dl className="mt-5 divide-y divide-[var(--line)]">
           {detail.rows.map((row) => (
             <div key={row.label} className="flex items-center justify-between gap-3 py-2.5">
-              <dt className="text-[10px] tracking-wider text-zinc-500">{row.label.toUpperCase()}</dt>
+              <dt className="text-[10px] tracking-wider text-zinc-500">
+                {row.label.toUpperCase()}
+              </dt>
               <dd className="min-w-0 truncate text-right text-xs text-zinc-200">{row.value}</dd>
             </div>
           ))}

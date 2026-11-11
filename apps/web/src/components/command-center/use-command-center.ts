@@ -52,6 +52,8 @@ export interface CommandCenterState {
   onQueue: (m: Module) => void;
   onDismissAlert: (id: string) => void;
   onToggleWorkflow: (id: string) => void;
+  previousFocus: HTMLElement | null;
+  setPreviousFocus: (el: HTMLElement | null) => void;
 }
 
 export function useCommandCenter(): CommandCenterState {
@@ -63,6 +65,7 @@ export function useCommandCenter(): CommandCenterState {
   const [toast, setToast] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [detail, setDetail] = useState<ItemDrawerDetail | null>(null);
+  const [previousFocus, setPreviousFocus] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     const m = modules.find((mod) => mod.id === params.get("module"));
@@ -78,7 +81,11 @@ export function useCommandCenter(): CommandCenterState {
   const closeOverlays = useCallback(() => {
     setOpenModule(null);
     setDetail(null);
-  }, []);
+    if (previousFocus) {
+      previousFocus.focus();
+      setPreviousFocus(null);
+    }
+  }, [previousFocus]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -112,16 +119,21 @@ export function useCommandCenter(): CommandCenterState {
 
   function onAction(a: QuickAction) {
     const m = modules.find((mod) => mod.id === a.moduleId);
-    if (m) setOpenModule(m);
+    if (m) {
+      setPreviousFocus(document.activeElement as HTMLElement);
+      setOpenModule(m);
+    }
   }
 
   function onOpenModule(m: Module) {
+    setPreviousFocus(document.activeElement as HTMLElement);
     setOpenModule(m);
   }
 
   function onOpenWorkspaceItem(id: string) {
     const item = workspaceItems.find((w) => w.id === id);
     if (!item) return;
+    setPreviousFocus(document.activeElement as HTMLElement);
     setDetail({
       title: item.title,
       subtitle: item.kind,
@@ -133,6 +145,7 @@ export function useCommandCenter(): CommandCenterState {
   }
 
   function onOpenCard(card: PipelineCard) {
+    setPreviousFocus(document.activeElement as HTMLElement);
     setDetail({
       title: card.title,
       subtitle: card.type,
@@ -144,6 +157,7 @@ export function useCommandCenter(): CommandCenterState {
   function onOpenCollection(id: string) {
     const c = collections.find((x) => x.id === id);
     if (!c) return;
+    setPreviousFocus(document.activeElement as HTMLElement);
     setDetail({
       title: c.name,
       subtitle: "COLLECTION",
@@ -196,5 +210,7 @@ export function useCommandCenter(): CommandCenterState {
     onQueue,
     onDismissAlert,
     onToggleWorkflow,
+    previousFocus,
+    setPreviousFocus,
   };
 }

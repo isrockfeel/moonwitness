@@ -9,10 +9,21 @@ import {
   type BackgroundName,
   type PaletteName,
 } from "@moonwitness/avatars";
-import { Sticker, Tape, WitnessAvatar, ZineButton, ZineCard, ZineCardRough, ZineInput } from "@moonwitness/ui";
+import {
+  Sticker,
+  WitnessAvatar,
+  ZineButton,
+  ZineCard,
+  ZineCardRough,
+  ZineInput,
+  TactileTape,
+  DistressedSticker,
+  MangaSpeedLines,
+} from "@moonwitness/ui";
 import { Crown } from "@moonwitness/ui/icons";
 import { EmpireShell } from "@/components/shell";
-import { defaultAvatarOptions, savedOptions, savedSeed, useAvatarStore } from "@/lib/avatar-store";
+import { savedOptions, savedSeed, useAvatarStore } from "@/lib/avatar-store";
+import { useCurrentIdentity } from "@/lib/session";
 
 const SEED_POOL = [
   "Zill",
@@ -40,7 +51,13 @@ const BG_LABEL: Record<BackgroundName, string> = {
 };
 
 function slugify(seed: string): string {
-  return seed.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "witness";
+  return (
+    seed
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "witness"
+  );
 }
 
 function Control({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
@@ -138,7 +155,10 @@ export function IdLab() {
   const previewRef = useRef<HTMLImageElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { saved, storageAvailable, apply, reset } = useAvatarStore(savedSeed(null));
+  const session = useCurrentIdentity();
+  const identity = session?.identity ?? "Creator // Empire";
+
+  const { saved, storageAvailable, apply, reset: resetStore } = useAvatarStore(identity);
 
   // Buka avatar yang sudah tersimpan untuk identitas ini saat pertama kali mount.
   useEffect(() => {
@@ -146,7 +166,7 @@ export function IdLab() {
     const o = savedOptions(saved);
     setSeed(s);
     setPalette(o.palette);
-    setDescription(o.background);
+    setBackground(o.background);
     setRadius(o.radius);
     setHalftone(o.halftone);
     setCrown(o.crown);
@@ -154,8 +174,6 @@ export function IdLab() {
     setTape(o.tape);
     setApplied(saved !== null);
   }, [saved]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const options = useMemo(
     () => ({ palette, background, radius, halftone, crown, moon, tape }),
@@ -183,7 +201,9 @@ export function IdLab() {
   function randomizeAll() {
     randomSeed();
     setPalette(PALETTES[Math.floor(Math.random() * PALETTES.length)] ?? "street");
-    setBackground(WITNESS_BACKGROUNDS[Math.floor(Math.random() * WITNESS_BACKGROUNDS.length)] ?? "ink");
+    setBackground(
+      WITNESS_BACKGROUNDS[Math.floor(Math.random() * WITNESS_BACKGROUNDS.length)] ?? "ink",
+    );
     setHalftone(Math.random() > 0.25);
     setCrown(Math.random() > 0.3);
     setMoon(Math.random() > 0.25);
@@ -203,6 +223,43 @@ export function IdLab() {
     setMoon(true);
     setTape(false);
     flash("BACK TO DEFAULT");
+  }
+
+  function applyAvatar() {
+    const ok = apply(seed, {
+      palette,
+      background,
+      radius,
+      halftone,
+      crown,
+      moon,
+      tape,
+    });
+    if (ok) {
+      setApplied(true);
+      flash("AVATAR SAVED TO PROFILE");
+    } else {
+      flash("STORAGE BLOCKED \u2014 AVATAR NOT SAVED");
+    }
+  }
+
+  function resetToDefault() {
+    const ok = resetStore();
+    if (ok) {
+      setSeed(savedSeed(null));
+      const o = savedOptions(null);
+      setPalette(o.palette);
+      setBackground(o.background);
+      setRadius(o.radius);
+      setHalftone(o.halftone);
+      setCrown(o.crown);
+      setMoon(o.moon);
+      setTape(o.tape);
+      setApplied(false);
+      flash("BACK TO DEFAULT");
+    } else {
+      flash("STORAGE BLOCKED \u2014 CANNOT RESET");
+    }
   }
 
   function download(blob: Blob, filename: string) {
@@ -254,31 +311,46 @@ export function IdLab() {
       search={{ value: query, onChange: setQuery, placeholder: "Search the lab notes…" }}
     >
       <div className="space-y-6 px-4 py-6 sm:px-8">
-        <header className="flex flex-wrap items-end justify-between gap-3">
+        <header className="flex flex-wrap items-end justify-between gap-3 border-b-2 border-dashed border-[var(--line)] pb-4">
           <div>
-            <h1 className="font-brush text-3xl text-white sm:text-4xl">
-              ID <span className="text-[var(--pink)]">LAB</span>
-            </h1>
-            <p className="mt-1 max-w-xl font-hand text-xl text-zinc-400">
-              Every witness gets a face. Same seed, same face — printed in our own ink.
+            <div className="flex items-center gap-3">
+              <h1 className="font-brush text-3xl text-white sm:text-5xl tracking-wide">
+                ID <span className="text-[var(--pink)]">LAB</span>
+              </h1>
+              <DistressedSticker variant="classified" className="text-[10px] -rotate-3" text="BOOTLEG-PASSPORT" />
+            </div>
+            <p className="mt-2 max-w-xl font-hand text-xl text-zinc-300">
+              Every witness gets a face. Same seed, same face — forged in our own underground ink.
             </p>
           </div>
-          <Sticker tone="yellow" className="-rotate-2 px-3 py-1 font-brush text-xs">
-            DICEBEAR ENGINE × MOONWITNESS DNA
-          </Sticker>
+          <div className="flex items-center gap-2">
+            <DistressedSticker variant="foil" className="rotate-2 px-3 py-1 text-xs">
+              BIO-SEALED
+            </DistressedSticker>
+            <Sticker tone="yellow" className="-rotate-2 px-3 py-1 font-brush text-xs">
+              DICEBEAR × RIOT-DNA
+            </Sticker>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           {/* ---- preview stage ---- */}
           <div className="space-y-6">
-            <ZineCardRough className="relative overflow-hidden p-6">
-              <Tape className="-top-3 left-10 -rotate-3" />
-              <div className="halftone relative flex min-h-[320px] items-center justify-center overflow-hidden rounded-md bg-[#0d0d16] p-8">
+            <ZineCardRough className="relative overflow-hidden p-6 border-2 border-[var(--line)]">
+              <TactileTape variant="yellow" className="-top-3 left-10 -rotate-2" />
+              <TactileTape variant="black" className="-top-3 right-12 rotate-3" />
+              <div className="halftone relative flex min-h-[340px] items-center justify-center overflow-hidden rounded-md bg-[#0a0a10] p-8 border border-[var(--line)]">
+                {/* Manga action backdrop inside avatar chamber */}
+                <MangaSpeedLines
+                  density={24}
+                  opacity={0.25}
+                  className="opacity-70 text-[var(--pink)]"
+                />
                 <div
                   className="pointer-events-none absolute inset-0 opacity-40"
                   style={{
                     background:
-                      "radial-gradient(circle at 30% 20%, rgba(46,168,255,0.16), transparent 55%), radial-gradient(circle at 75% 80%, rgba(255,45,120,0.14), transparent 55%)",
+                      "radial-gradient(circle at 30% 20%, rgba(46,168,255,0.22), transparent 55%), radial-gradient(circle at 75% 80%, rgba(255,45,120,0.2), transparent 55%)",
                   }}
                 />
                 <img
@@ -288,15 +360,15 @@ export function IdLab() {
                   alt={`Preview avatar ${effectiveSeed}`}
                   width={size}
                   height={size}
-                  className="avatar-pop relative drop-shadow-[0_10px_24px_rgba(0,0,0,0.6)]"
+                  className="avatar-pop relative drop-shadow-[0_12px_32px_rgba(0,0,0,0.8)] filter contrast-110"
                   style={{ width: size, height: size }}
                   draggable={false}
                 />
-                <span className="sticker sticker-pink absolute bottom-3 left-3 -rotate-2 px-3 py-1 font-hand text-base font-bold">
+                <span className="sticker sticker-pink absolute bottom-3 left-3 -rotate-2 px-3 py-1 font-hand text-base font-bold shadow-lg">
                   {effectiveSeed.toUpperCase()}
                 </span>
-                <span className="absolute right-3 top-3 border border-[var(--line)] bg-black/60 px-2 py-1 text-[10px] tracking-widest text-zinc-400">
-                  {size}×{size}
+                <span className="absolute right-3 top-3 border border-[var(--line)] bg-black/80 px-2 py-1 text-[10px] font-mono tracking-widest text-[var(--yellow)]">
+                  SPEC: {size}×{size} PX
                 </span>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -325,7 +397,12 @@ export function IdLab() {
                 <div className="border border-[var(--line)] bg-[var(--panel-2)] p-3">
                   <p className="mb-2 text-[9px] tracking-[0.2em] text-zinc-500">TOPBAR</p>
                   <div className="flex items-center gap-2">
-                    <WitnessAvatar seed={effectiveSeed} size={32} options={{ ...options, radius: 50 }} className="rounded-full border-2 border-[var(--pink)]" />
+                    <WitnessAvatar
+                      seed={effectiveSeed}
+                      size={32}
+                      options={{ ...options, radius: 50 }}
+                      className="rounded-full border-2 border-[var(--pink)]"
+                    />
                     <div className="min-w-0">
                       <p className="truncate text-xs font-bold text-white">{effectiveSeed}</p>
                       <p className="text-[10px] text-zinc-500">Authorized crew</p>
@@ -335,7 +412,12 @@ export function IdLab() {
                 <div className="border border-[var(--line)] bg-[var(--panel-2)] p-3">
                   <p className="mb-2 text-[9px] tracking-[0.2em] text-zinc-500">CREW CARD</p>
                   <div className="flex items-center gap-2">
-                    <WitnessAvatar seed={effectiveSeed} size={44} options={{ ...options, radius: 50 }} className="rounded-full border-2 border-[var(--pink)]" />
+                    <WitnessAvatar
+                      seed={effectiveSeed}
+                      size={44}
+                      options={{ ...options, radius: 50 }}
+                      className="rounded-full border-2 border-[var(--pink)]"
+                    />
                     <div className="min-w-0">
                       <p className="truncate font-brush text-sm text-white">{effectiveSeed}</p>
                       <p className="text-[10px] text-zinc-500">Same sky</p>
@@ -346,7 +428,13 @@ export function IdLab() {
                   <p className="mb-2 text-[9px] tracking-[0.2em] text-zinc-500">SIZES</p>
                   <div className="flex items-end gap-2">
                     {[20, 32, 48].map((s) => (
-                      <WitnessAvatar key={s} seed={effectiveSeed} size={s} options={{ ...options, radius: 50 }} className="rounded-full" />
+                      <WitnessAvatar
+                        key={s}
+                        seed={effectiveSeed}
+                        size={s}
+                        options={{ ...options, radius: 50 }}
+                        className="rounded-full"
+                      />
                     ))}
                   </div>
                 </div>
@@ -357,7 +445,9 @@ export function IdLab() {
             <ZineCard className="p-5">
               <h2 className="mb-3 font-brush text-lg text-white">
                 CREW <span className="text-[var(--pink)]">ROLL</span>
-                <span className="ml-2 font-hand text-base text-zinc-500">tap a face to wear it</span>
+                <span className="ml-2 font-hand text-base text-zinc-500">
+                  tap a face to wear it
+                </span>
               </h2>
               <div className="grid grid-cols-4 gap-3 sm:grid-cols-8">
                 {SEED_POOL.map((name) => (
@@ -372,7 +462,12 @@ export function IdLab() {
                         : "border-transparent hover:border-[var(--pink)] hover:bg-[var(--panel-2)]"
                     }`}
                   >
-                    <WitnessAvatar seed={name} size={44} options={{ radius: 50 }} className="rounded-full transition-transform group-hover:scale-110" />
+                    <WitnessAvatar
+                      seed={name}
+                      size={44}
+                      options={{ radius: 50 }}
+                      className="rounded-full transition-transform group-hover:scale-110"
+                    />
                     <span className="w-full truncate text-center text-[9px] tracking-wider text-zinc-400 group-hover:text-white">
                       {name.toUpperCase()}
                     </span>
@@ -401,7 +496,12 @@ export function IdLab() {
                     aria-label="Avatar seed"
                     className="min-h-10 flex-1"
                   />
-                  <ZineButton tone="pink" onClick={randomSeed} className="min-h-10 px-3 text-xs" aria-label="Random seed">
+                  <ZineButton
+                    tone="pink"
+                    onClick={randomSeed}
+                    className="min-h-10 px-3 text-xs"
+                    aria-label="Random seed"
+                  >
                     ⤳
                   </ZineButton>
                 </div>
@@ -424,9 +524,18 @@ export function IdLab() {
                         }`}
                       >
                         <span className="flex shrink-0 -space-x-1">
-                          <span className="h-3.5 w-3.5 rounded-full border border-black" style={{ background: p.accent }} />
-                          <span className="h-3.5 w-3.5 rounded-full border border-black" style={{ background: p.accent2 }} />
-                          <span className="h-3.5 w-3.5 rounded-full border border-black" style={{ background: p.crown }} />
+                          <span
+                            className="h-3.5 w-3.5 rounded-full border border-black"
+                            style={{ background: p.accent }}
+                          />
+                          <span
+                            className="h-3.5 w-3.5 rounded-full border border-black"
+                            style={{ background: p.accent2 }}
+                          />
+                          <span
+                            className="h-3.5 w-3.5 rounded-full border border-black"
+                            style={{ background: p.crown }}
+                          />
                         </span>
                         {p.label.toUpperCase()}
                       </button>
@@ -436,7 +545,13 @@ export function IdLab() {
               </Control>
 
               <Control label="BACKGROUND">
-                <Segmented value={background} options={WITNESS_BACKGROUNDS} onChange={setBackground} ariaLabel="Background" render={(v) => BG_LABEL[v]} />
+                <Segmented
+                  value={background}
+                  options={WITNESS_BACKGROUNDS}
+                  onChange={setBackground}
+                  ariaLabel="Background"
+                  render={(v) => BG_LABEL[v]}
+                />
               </Control>
 
               <Control label="PREVIEW SIZE" hint={`${size}px`}>
@@ -479,8 +594,53 @@ export function IdLab() {
                   RANDOMIZE
                 </ZineButton>
                 <ZineButton tone="paper" onClick={reset} className="min-h-11 text-sm">
-                  RESET
+                  RESET PREVIEW
                 </ZineButton>
+                <ZineButton
+                  tone="pink"
+                  onClick={applyAvatar}
+                  className="col-span-2 min-h-11 px-4 text-sm"
+                >
+                  GUNAKAN AVATAR
+                </ZineButton>
+                <ZineButton
+                  tone="paper"
+                  onClick={resetToDefault}
+                  className="col-span-2 min-h-11 px-4 text-sm"
+                  disabled={!applied}
+                >
+                  KEMBALI KE AVATAR DEFAULT
+                </ZineButton>
+              </div>
+
+              <div className="border-t-2 border-[var(--line)] px-4 py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold tracking-wider ${
+                      applied
+                        ? "border-[var(--yellow)] bg-[var(--yellow)]/10 text-[var(--yellow)]"
+                        : "border-[var(--line)] bg-[var(--panel-2)] text-zinc-500"
+                    }`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${applied ? "bg-[var(--yellow)]" : "bg-zinc-600"}`}
+                    />
+                    {applied ? "TERPASANG" : "DRAFT"}
+                  </span>
+                  <span className="text-[9px] tracking-[0.2em] text-zinc-600">
+                    LOKAL DI BROWSER
+                  </span>
+                </div>
+                <p className="mt-2 font-hand text-base leading-snug text-zinc-500">
+                  {applied
+                    ? "Wajah ini yang tampil di topbar profilmu."
+                    : "Eksperimen di sini belum mengubah profilmu — tekan Gunakan Avatar untuk memasangnya."}
+                </p>
+                {!storageAvailable && (
+                  <p className="mt-2 border border-[var(--pink)]/60 bg-[var(--pink)]/10 px-3 py-2 text-xs text-[var(--pink)]">
+                    Penyimpanan lokal tidak tersedia — avatar tidak bisa disimpan di browser ini.
+                  </p>
+                )}
               </div>
             </ZineCardRough>
             <p className="mt-3 px-1 font-hand text-lg leading-snug text-zinc-500">

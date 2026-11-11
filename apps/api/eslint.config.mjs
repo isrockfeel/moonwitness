@@ -1,6 +1,22 @@
-import { defineConfig } from "@moonwitness/eslint-config";
+import apiConfig from "@moonwitness/eslint-config/api";
 
-export default defineConfig({
-  root: true,
-  patterns: ["src"],
-});
+export default [
+  ...apiConfig,
+  {
+    files: ["src/**/*.ts"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+      parserOptions: {
+        project: "./tsconfig.json",
+      },
+    },
+    settings: {
+      "import/resolver": {
+        typescript: {
+          project: "./tsconfig.json",
+        },
+      },
+    },
+  },
+];

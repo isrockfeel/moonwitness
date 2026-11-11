@@ -4,6 +4,8 @@ import Link from "next/link";
 import type { ReactNode, RefObject } from "react";
 import { Crown, SearchIcon } from "@moonwitness/ui/icons";
 import { ZineInput } from "@moonwitness/ui";
+import { useI18n } from "@/contexts/I18nContext";
+import { sfx } from "@/lib/audio-sfx";
 
 interface TopbarProps {
   breadcrumb: string;
@@ -22,6 +24,8 @@ export function Topbar({
   profileMenu,
   containerRef,
 }: TopbarProps) {
+  const { locale, setLocale } = useI18n();
+
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b-2 border-[var(--line)] bg-[rgba(11,11,16,0.9)] px-4 backdrop-blur-md">
       <button
@@ -60,7 +64,22 @@ export function Topbar({
         />
       </div>
 
-      <div className="relative flex items-center gap-1" ref={containerRef}>
+      <div className="relative flex items-center gap-2" ref={containerRef}>
+        {/* Vuexy-standard Language Switcher */}
+        <button
+          type="button"
+          onClick={() => {
+            sfx.playClick();
+            setLocale(locale === "en" ? "id" : "en");
+          }}
+          className="flex min-h-9 items-center gap-1 border border-[var(--line)] bg-[var(--panel-2)] px-2 py-1 font-mono text-[10px] font-bold tracking-widest text-[var(--yellow)] hover:border-[var(--pink)] hover:text-white transition-colors"
+          title={`Switch language: currently ${locale.toUpperCase()}`}
+          aria-label="Toggle language"
+        >
+          <span>🌐</span>
+          <span>{locale.toUpperCase()}</span>
+        </button>
+
         {notifications}
         {profileMenu}
       </div>

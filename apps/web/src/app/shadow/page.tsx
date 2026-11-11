@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowRight, Crown, EyeIcon, Smiley, Splatter, Star4 } from "@moonwitness/ui/icons";
-import { Grain, Tape, ZineInput } from "@moonwitness/ui";
+import { Grain, ZineInput, TactileTape, DistressedSticker, CinematicFrame } from "@moonwitness/ui";
 import { authenticate } from "@/lib/auth";
+import { notifySessionChange } from "@/lib/session";
 import { artSrc } from "@/lib/art";
 
 export default function ShadowPage() {
@@ -49,6 +50,7 @@ export default function ShadowPage() {
       } catch {
         // storage unavailable — session continues in memory
       }
+      notifySessionChange();
       router.push("/mission-control");
     }, 900);
   }
@@ -89,19 +91,30 @@ export default function ShadowPage() {
         </div>
       </header>
 
-      <main id="main" className="relative z-10 mx-auto flex min-h-[calc(100vh-8rem)] max-w-7xl items-center px-4 py-10 sm:px-8">
+      <main
+        id="main"
+        className="relative z-10 mx-auto flex min-h-[calc(100vh-8rem)] max-w-7xl items-center px-4 py-10 sm:px-8"
+      >
         <div className="w-full max-w-md">
-          <div className="zine-card-rough relative p-7 sm:p-9">
-            <Tape className="-top-3 left-10 -rotate-6" />
-            <Tape className="-top-2 right-8 rotate-3" />
-            <Crown className="absolute right-6 top-6 h-6 w-9 rotate-12 text-[var(--yellow)]" />
+          <CinematicFrame
+            reel="GATE-AUTH [SEC-L4]"
+            className="w-full shadow-[0_24px_50px_rgba(0,0,0,0.85)]"
+          >
+            <div className="zine-card-rough relative p-7 sm:p-9 bg-[var(--ink)]/95">
+              <TactileTape variant="yellow" className="-top-3 left-10 -rotate-3" />
+              <TactileTape variant="black" className="-top-3 right-8 rotate-3" />
+              <Crown className="absolute right-6 top-6 h-6 w-9 rotate-12 text-[var(--yellow)] opacity-80" />
 
-            <h1 className="font-brush text-4xl leading-tight text-white sm:text-5xl">
-              ENTER <span className="text-[var(--pink)]">THE SHADOW</span>
-            </h1>
-            <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-              Private command center for stories, research, posters, and publishing.
-            </p>
+              <div className="flex items-center gap-2 mb-2">
+                <DistressedSticker variant="classified" className="text-[10px] -rotate-2" text="RESTRICTED // LEVEL 04" />
+              </div>
+
+              <h1 className="font-brush text-4xl leading-tight text-white sm:text-5xl">
+                ENTER <span className="text-[var(--pink)]">THE SHADOW</span>
+              </h1>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 font-mono">
+                Private command center for stories, research, posters, and encrypted broadcast.
+              </p>
 
             <form onSubmit={submit} className="mt-7 space-y-5" noValidate>
               <div>
@@ -213,16 +226,17 @@ export default function ShadowPage() {
                 Authorized crew only.
                 <span className="h-px flex-1 bg-[var(--line)]" />
               </div>
-              <p className="text-center text-[11px] text-zinc-600">
+              <p className="text-center text-[11px] text-zinc-600 font-mono">
                 Hardcoded demo crew — admin / admin123
               </p>
             </form>
           </div>
+        </CinematicFrame>
 
-          <div className="sticker mt-6 inline-block -rotate-2 px-4 py-2 font-hand text-lg font-bold">
-            WITNESS THE REAL.
-          </div>
+        <div className="sticker mt-6 inline-block -rotate-2 px-4 py-2 font-hand text-lg font-bold">
+          WITNESS THE REAL.
         </div>
+      </div>
 
         <div className="ml-auto hidden flex-col items-end gap-6 lg:flex">
           <div
@@ -257,7 +271,10 @@ export default function ShadowPage() {
           <Link href="/dock" className="hover:text-[var(--pink)] max-lg:min-h-11 max-lg:min-w-11">
             Archive
           </Link>
-          <Link href="/mission-control" className="hover:text-[var(--pink)] max-lg:min-h-11 max-lg:min-w-11">
+          <Link
+            href="/mission-control"
+            className="hover:text-[var(--pink)] max-lg:min-h-11 max-lg:min-w-11"
+          >
             Mission Control
           </Link>
         </nav>

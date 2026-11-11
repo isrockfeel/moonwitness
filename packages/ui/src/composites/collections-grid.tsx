@@ -1,15 +1,24 @@
 "use client";
 
-import type { Collection } from "@moonwitness/types";
 import { ZineCard } from "../primitives/zine-card";
 import { ZineImage } from "../primitives/zine-image";
 
-export interface CollectionsGridProps {
-  collections: Collection[];
+export interface CollectionItem {
+  id: string;
+  name: string;
+  cover: string;
+  episodes: number;
+}
+
+export interface CollectionsGridProps<T extends CollectionItem = CollectionItem> {
+  collections: T[];
   onOpenCollection: (id: string) => void;
 }
 
-export function CollectionsGrid({ collections, onOpenCollection }: CollectionsGridProps) {
+export function CollectionsGrid<T extends CollectionItem>({
+  collections,
+  onOpenCollection,
+}: CollectionsGridProps<T>) {
   return (
     <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
       {collections.map((collection) => (

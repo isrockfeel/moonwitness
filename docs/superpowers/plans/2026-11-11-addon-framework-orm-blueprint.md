@@ -14,43 +14,43 @@ Keputusan: bangun **framework sendiri** (bukan pakai Odoo/Medplum langsung) deng
 
 ## 2. Hasil Research (2026-11-11)
 
-| Sumber | Insight | Yang Kita Adopsi |
-|--------|---------|------------------|
-| GitHub Trending 2026 | Era AI-agent (`claude-mem`, agent workspaces, `billion-context`) | Agent-native metadata: `/_meta/llms.txt`, machine-readable manifest |
-| Encore.ts | Infrastructure-from-code: `new SQLDatabase("todo")` → auto-provisioning | `defineModel()` → auto DDL + auto migration |
-| Mikro-ORM (9.2k★) | Unit of Work + Identity Map | Backlog: batch audit commit |
-| Deepkit (3.5k★) | DI + validator + serializer + ORM kohesif | Validasi arah: satu framework terintegrasi |
-| Medplum | Paling mirip Odoo di TS: repository + hooks + bots + UI | Addon = model + hooks + UI + automation |
-| WardOS | Local-first + event-sourced audit + SQLite-WASM | Audit sebagai event stream (bukan tabel mati); local-first = backlog |
-| TypeSchema | Universal adapter, hindari lock-in validator | Schema abstraction boundary (backlog) |
-| Odoo | `create_uid/write_date/active` magic fields | Diperbaiki → lihat §4 |
+| Sumber               | Insight                                                                 | Yang Kita Adopsi                                                     |
+| -------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| GitHub Trending 2026 | Era AI-agent (`claude-mem`, agent workspaces, `billion-context`)        | Agent-native metadata: `/_meta/llms.txt`, machine-readable manifest  |
+| Encore.ts            | Infrastructure-from-code: `new SQLDatabase("todo")` → auto-provisioning | `defineModel()` → auto DDL + auto migration                          |
+| Mikro-ORM (9.2k★)    | Unit of Work + Identity Map                                             | Backlog: batch audit commit                                          |
+| Deepkit (3.5k★)      | DI + validator + serializer + ORM kohesif                               | Validasi arah: satu framework terintegrasi                           |
+| Medplum              | Paling mirip Odoo di TS: repository + hooks + bots + UI                 | Addon = model + hooks + UI + automation                              |
+| WardOS               | Local-first + event-sourced audit + SQLite-WASM                         | Audit sebagai event stream (bukan tabel mati); local-first = backlog |
+| TypeSchema           | Universal adapter, hindari lock-in validator                            | Schema abstraction boundary (backlog)                                |
+| Odoo                 | `create_uid/write_date/active` magic fields                             | Diperbaiki → lihat §4                                                |
 
 ## 3. Keputusan Desain Kunci
 
 ### 3.1 Magic Fields (Odoo, diperbaiki)
 
-| Odoo | Kelemahan | Moonwitness |
-|------|-----------|-------------|
-| `active` boolean | Tidak tahu siapa/kapan delete | `status: "active" \| "archived" \| "deleted"` + `deleted_uid` + `deleted_date` |
-| `write_uid/write_date` | Hanya last-write, history hilang | Last-write di record + full history di `_orm_audit_log` |
-| Magic fields implicit | Developer bingung | **Explicit via `defineModel()`** — TypeScript tahu semua |
-| Tanpa versioning | Lost update | `version` int untuk optimistic locking |
-| Tanpa source tracking | Asal data tak diketahui | `source: "seed" \| "api" \| "import" \| "migration"` |
-| `id` serial | Random order | **UUID v7** (time-sortable) |
+| Odoo                   | Kelemahan                        | Moonwitness                                                                    |
+| ---------------------- | -------------------------------- | ------------------------------------------------------------------------------ |
+| `active` boolean       | Tidak tahu siapa/kapan delete    | `status: "active" \| "archived" \| "deleted"` + `deleted_uid` + `deleted_date` |
+| `write_uid/write_date` | Hanya last-write, history hilang | Last-write di record + full history di `_orm_audit_log`                        |
+| Magic fields implicit  | Developer bingung                | **Explicit via `defineModel()`** — TypeScript tahu semua                       |
+| Tanpa versioning       | Lost update                      | `version` int untuk optimistic locking                                         |
+| Tanpa source tracking  | Asal data tak diketahui          | `source: "seed" \| "api" \| "import" \| "migration"`                           |
+| `id` serial            | Random order                     | **UUID v7** (time-sortable)                                                    |
 
 **BaseMetadata contract** (di-inject framework, developer hanya tulis field bisnis):
 
 ```typescript
 export interface BaseMetadata {
-  id: string;                  // UUID v7
-  create_uid: string | null;   // null = system/seed
+  id: string; // UUID v7
+  create_uid: string | null; // null = system/seed
   create_date: Date;
   write_uid: string | null;
   write_date: Date;
   status: "active" | "archived" | "deleted";
   deleted_uid: string | null;
   deleted_date: Date | null;
-  version: number;             // optimistic locking
+  version: number; // optimistic locking
   source: "seed" | "api" | "import" | "migration";
   source_ref: string | null;
 }
@@ -71,6 +71,7 @@ const TimelineEvent = defineModel({
 ```
 
 Repository behavior:
+
 - `find()` default exclude soft-deleted (`status != 'deleted'` auto-injected)
 - `create/update/delete/archive/restore` otomatis set magic fields + tulis audit
 - `update` cek `version` → ConflictError kalau mismatch
@@ -89,9 +90,9 @@ Tabel `_orm_audit_log`: `id, model, entity_id, action (CREATE|UPDATE|ARCHIVE|RES
 
 ```typescript
 export interface ActorContext {
-  actorId: string | null;    // null = system job (seed/cron/migration)
+  actorId: string | null; // null = system job (seed/cron/migration)
   source: "seed" | "api" | "import" | "migration";
-  requestId?: string;        // correlation ID
+  requestId?: string; // correlation ID
 }
 ```
 
@@ -112,6 +113,7 @@ packages/addons/<nama>/
 ```
 
 Aturan:
+
 - **`__base` addon wajib ter-load pertama** — foundation: system tables, `/_meta/*`, health check
 - Dependency resolution: `depends` dicek sebelum register; urutan load = topological sort
 - Route prefix per addon (`/timeline/*`, `/auth/*`) → tidak pernah collision
@@ -158,13 +160,13 @@ Dependency direction tetap clean architecture: domain tidak tahu Fastify/ORM; OR
 
 ## 5. Roadmap Implementasi
 
-| Fase | Isi | Status |
-|------|-----|--------|
-| **1** | `packages/orm` MVP: `defineModel()`, BaseMetadata, magic fields, SQLite driver (libsql/better-sqlite3), repository CRUD + soft delete + versioning | ⬜ belum mulai |
-| **2** | Event stream: `_orm_audit_log`, pre/post write hooks, ActorContext middleware di Fastify | ⬜ |
-| **3** | `__base` addon: system tables, addon registry, auto-migration, `/_meta/*` endpoints (agent-native) | ⬜ |
-| **4** | `timeline` addon: migrasi dari InMemory → ORM (bukti konsep) | ⬜ |
-| **5** | Backlog: computed fields (dependency graph), time-travel/replay, webhook addon, search index, local-first (SQLite-WASM), schema portability (TypeSchema-style adapter) | ⬜ |
+| Fase  | Isi                                                                                                                                                                    | Status         |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| **1** | `packages/orm` MVP: `defineModel()`, BaseMetadata, magic fields, SQLite driver (libsql/better-sqlite3), repository CRUD + soft delete + versioning                     | ⬜ belum mulai |
+| **2** | Event stream: `_orm_audit_log`, pre/post write hooks, ActorContext middleware di Fastify                                                                               | ⬜             |
+| **3** | `__base` addon: system tables, addon registry, auto-migration, `/_meta/*` endpoints (agent-native)                                                                     | ⬜             |
+| **4** | `timeline` addon: migrasi dari InMemory → ORM (bukti konsep)                                                                                                           | ⬜             |
+| **5** | Backlog: computed fields (dependency graph), time-travel/replay, webhook addon, search index, local-first (SQLite-WASM), schema portability (TypeSchema-style adapter) | ⬜             |
 
 **Prinsip:** fase 1-2 dulu, jangan semua sekaligus. Fase 5 masuk backlog sampai fase 4 terbukti.
 

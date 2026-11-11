@@ -130,8 +130,8 @@ export async function seedTimeline(): Promise<void> {
   for (const era of eras) {
     await db.run(
       `INSERT OR IGNORE INTO ${timelineEraModel.table}
-       (id, name, years, tagline, color, create_date, write_date)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       (id, name, years, tagline, color, create_date, write_date, source)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'seed')`,
       [era.id, era.name, era.years, era.tagline, era.color, now, now],
     );
   }
@@ -139,8 +139,8 @@ export async function seedTimeline(): Promise<void> {
   for (const event of events) {
     await db.run(
       `INSERT OR IGNORE INTO ${timelineEventModel.table}
-       (id, kind, date, era, title, excerpt, body, location, tags, sources, notes, image, imagePosition, related, create_date, write_date)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (id, kind, date, era, title, excerpt, body, location, tags, sources, notes, image, imagePosition, related, create_date, write_date, source)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'seed')`,
       [
         event.id,
         event.kind,

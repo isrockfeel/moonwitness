@@ -1,17 +1,28 @@
 "use client";
 
-import type { MapCity } from "@moonwitness/types";
 import { Halftone } from "../primitives/texture";
 import { ZineCardRough } from "../primitives/zine-card";
 
-export interface WorldMapProps {
-  cities: MapCity[];
+export interface MapCityItem {
+  id: string;
+  city: string;
+  x: number;
+  y: number;
+  signals: number;
+}
+
+export interface WorldMapProps<T extends MapCityItem = MapCityItem> {
+  cities: T[];
   selectedId: string | null;
   onSelect: (id: string) => void;
 }
 
 /** Peta sinyal stylized: bukan proyeksi geografis, hanya posisi relatif dari data. */
-export function WorldMap({ cities, selectedId, onSelect }: WorldMapProps) {
+export function WorldMap<T extends MapCityItem>({
+  cities,
+  selectedId,
+  onSelect,
+}: WorldMapProps<T>) {
   return (
     <ZineCardRough className="relative overflow-hidden p-4">
       <Halftone className="absolute inset-0 opacity-30" />
@@ -22,19 +33,21 @@ export function WorldMap({ cities, selectedId, onSelect }: WorldMapProps) {
         aria-label="Universe map"
       >
         {cities.map((a, i) =>
-          cities.slice(i + 1).map((b) => (
-            <line
-              key={`${a.id}-${b.id}`}
-              x1={a.x}
-              y1={a.y * 0.8}
-              x2={b.x}
-              y2={b.y * 0.8}
-              stroke={i % 2 ? "#ff2d78" : "#2ea8ff"}
-              strokeWidth="0.18"
-              strokeDasharray="1.2 1.6"
-              opacity="0.4"
-            />
-          )),
+          cities
+            .slice(i + 1)
+            .map((b) => (
+              <line
+                key={`${a.id}-${b.id}`}
+                x1={a.x}
+                y1={a.y * 0.8}
+                x2={b.x}
+                y2={b.y * 0.8}
+                stroke={i % 2 ? "#ff2d78" : "#2ea8ff"}
+                strokeWidth="0.18"
+                strokeDasharray="1.2 1.6"
+                opacity="0.4"
+              />
+            )),
         )}
         {cities.map((c) => (
           <circle

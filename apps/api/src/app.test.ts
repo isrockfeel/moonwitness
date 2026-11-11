@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -9,9 +9,11 @@ import { seedTimeline } from "./infrastructure/persistence/seed-data";
 let app: FastifyInstance;
 let dbDir: string;
 let dbPath: string;
+const dirs: string[] = [];
 
 beforeEach(async () => {
   dbDir = await mkdtemp(join(tmpdir(), "moonwitness-api-"));
+  dirs.push(dbDir);
   dbPath = join(dbDir, "timeline.db");
   app = await buildApp({ dbPath, prefix: "/api/v1" });
   await seedTimeline();
@@ -19,7 +21,14 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await app.close();
-  await rm(dbDir, { recursive: true, force: true });
+});
+
+afterAll(async () => {
+  for (const path of dirs) {
+    await rm(path, { recursive: true, force: true, maxRetries: 20, retryDelay: 100 }).catch(
+      () => {},
+    );
+  }
 });
 
 describe("timeline API", () => {
@@ -154,7 +163,7 @@ describe("timeline API", () => {
       data: { id: string; name: string; years: string; color: string }[];
     };
     expect(body.data).toHaveLength(5);
-    expect(body.data[0]).toEqual({
+    expect(body.data.find((era) => era.id === "origins")).toEqual({
       id: "origins",
       name: "Origins",
       years: "2020-2022",
@@ -194,5 +203,19 @@ describe("timeline API", () => {
     expect(response.statusCode).toBe(200);
     const body = response.json() as { data: unknown[]; total: number };
     expect(body.total).toBe(5);
+  });
+
+  it("mounts routes strictly under prefix and returns 404 for unversioned root route", async () => {
+    const versionedResponse = await app.inject({
+      method: "GET",
+      url: "/api/v1/timeline/events",
+    });
+    expect(versionedResponse.statusCode).toBe(200);
+
+    const rootResponse = await app.inject({
+      method: "GET",
+      url: "/timeline/events",
+    });
+    expect(rootResponse.statusCode).toBe(404);
   });
 });

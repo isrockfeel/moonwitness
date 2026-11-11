@@ -3,10 +3,11 @@ import {
   AVATAR_STORAGE_VERSION,
   DEFAULT_AVATAR_OPTIONS,
   type SavedAvatar,
+  type SavedAvatarOptions,
   buildSavedAvatar,
   normalizeSeed,
   validateSavedAvatar,
-} from "./avatar-contract";
+} from "@moonwitness/avatars";
 
 export const STORE_KEY = "mw-avatars";
 
@@ -29,7 +30,7 @@ export function readStore(): Record<string, SavedAvatar> {
   }
 }
 
-/** Tulis peta avatar; mengembalikan true jika penyimpanan_berhasil. */
+/** Tulis peta avatar; mengembalikan true jika penyimpanan berhasil. */
 export function writeStore(map: Record<string, SavedAvatar>): boolean {
   if (typeof window === "undefined") return false;
   try {
@@ -40,31 +41,12 @@ export function writeStore(map: Record<string, SavedAvatar>): boolean {
   }
 }
 
-export interface AvatarStoreState {
-  saved: SavedAvatar | null;
-  /** True ketika storage tidak tersedia atau write gagal — state tidak pernah optimis. */
-  storageAvailable: boolean;
-}
-
-export interface AvatarStoreActions {
-  apply: (seed: string, options: Omit<SavedAvatar["options"], "palette" | "background"> & {
-    palette?: string;
-    background?: string;
-  }) => boolean;
-  reset: () => boolean;
-  /** Seed+options yang sedang di-preview (draft), belum tersimpan. */
-  draft: { seed: string; options: SavedAvatar["options"] } | null;
-}
-
 /** Fungsi murni: terapkan avatar untuk identity ke dalam peta yang ada. */
 export function applyToStore(
   store: Record<string, SavedAvatar>,
   identity: string,
   seed: string,
-  options: Omit<SavedAvatar["options"], "palette" | "background"> & {
-    palette?: string;
-    background?: string;
-  },
+  options: SavedAvatarOptions,
 ): { next: Record<string, SavedAvatar>; ok: boolean } {
   const built = buildSavedAvatar(identity, seed, options);
   if (!built) return { next: store, ok: false };
@@ -82,14 +64,21 @@ export function resetInStore(
   return { next, ok: writeStore(next) };
 }
 
+export interface AvatarStore {
+  saved: SavedAvatar | null;
+  /** True ketika storage tidak tersedia atau write gagal — state tidak pernah optimis. */
+  storageAvailable: boolean;
+  apply: (seed: string, options: SavedAvatarOptions) => boolean;
+  reset: () => boolean;
+}
+
 /**
- * Hook: baca avatar tersimpan untuk identity, dan beri aksi apply/reset.
+ * Hook: baca avatar tersimpan untuk identity dan beri aksi apply/reset.
  * Sinkron antar-tab via storage event. Gagal penyimpanan dikembalikan sebagai false;
  * state tidak pernah menganggap tersimpan secara optimis.
  */
-export function useAvatarStore(identity: string): AvatarStoreState & AvatarStoreActions {
+export function useAvatarStore(identity: string): AvatarStore {
   const [store, setStore] = useState<Record<string, SavedAvatar>>({});
-  const [draft, setDraft] = useState<{ seed: string; options: SavedAvatar["options"] } | null>(null);
   const [storageAvailable, setStorageAvailable] = useState(true);
 
   // Hydrate sekali; jangan timpa data yang sudah ada saat re-render ulang.
@@ -98,7 +87,7 @@ export function useAvatarStore(identity: string): AvatarStoreState & AvatarStore
     setStorageAvailable(true);
   }, []);
 
-  // Sinkron antar-tab: perbarui peta yang dipakai identity ini.
+  // Sinkron antar-tab.
   useEffect(() => {
     if (typeof window === "undefined") return;
     function onStorage(e: StorageEvent) {
@@ -112,17 +101,10 @@ export function useAvatarStore(identity: string): AvatarStoreState & AvatarStore
 
   const saved = store[identity] ?? null;
 
-  function apply(
-    seed: string,
-    options: Omit<SavedAvatar["options"], "palette" | "background"> & {
-      palette?: string;
-      background?: string;
-    },
-  ): boolean {
+  function apply(seed: string, options: SavedAvatarOptions): boolean {
     const { next, ok } = applyToStore(store, identity, seed, options);
     if (ok) {
       setStore(next);
-      setDraft(null);
     } else {
       setStorageAvailable(false);
     }
@@ -133,46 +115,33 @@ export function useAvatarStore(identity: string): AvatarStoreState & AvatarStore
     const { next, ok } = resetInStore(store, identity);
     if (ok) {
       setStore(next);
-      setDraft(null);
     } else {
       setStorageAvailable(false);
     }
     return ok;
   }
 
-  return { saved, storageAvailable, draft, apply, reset };
-}
-
-export function defaultAvatarOptions(): SavedAvatar["options"] {
-  return {
-    palette: DEFAULT_AVATAR_OPTIONS.palette as "street",
-    background: DEFAULT_AVATAR_OPTIONS.background as "ink",
-    radius: DEFAULT_AVATAR_OPTIONS.radius as number,
-    halftone: DEFAULT_AVATAR_OPTIONS.halftone as boolean,
-    crown: DEFAULT_AVATAR_OPTIONS.crown as boolean,
-    moon: DEFAULT_AVATAR_OPTIONS.moon as boolean,
-    tape: DEFAULT_AVATAR_OPTIONS.tape as boolean,
-  };
+  return { saved, storageAvailable, apply, reset };
 }
 
 export function savedSeed(saved: SavedAvatar | null): string {
   return saved ? saved.seed : normalizeSeed("");
 }
 
-export function savedOptions(saved: SavedAvatar | null): SavedAvatar["options"] {
-  return saved ? saved.options : defaultAvatarOptions();
+export function savedOptions(saved: SavedAvatar | null): SavedAvatarOptions {
+  return saved ? saved.options : DEFAULT_AVATAR_OPTIONS;
 }
-
-export const MW_AVATAR_STORE_VERSION = AVATAR_STORAGE_VERSION;
-export { normalizeSeed, DEFAULT_AVATAR_OPTIONS };
 
 /**
  * Hook ringan untuk topbar: hanya seed + options yang sedang tersimpan.
  */
 export function useSavedAvatar(identity: string): {
   seed: string;
-  options: SavedAvatar["options"];
+  options: SavedAvatarOptions;
 } {
   const { saved } = useAvatarStore(identity);
   return { seed: savedSeed(saved), options: savedOptions(saved) };
 }
+
+export const MW_AVATAR_STORE_VERSION = AVATAR_STORAGE_VERSION;
+export { normalizeSeed, DEFAULT_AVATAR_OPTIONS, type SavedAvatar, type SavedAvatarOptions };

@@ -1,9 +1,22 @@
-import type { ArtKey, Era, EraId } from "@moonwitness/types";
 import type { CSSProperties } from "react";
 import { ZineImage } from "../primitives/zine-image";
 
-/** Peta era → artwork pita. Milik presentation, bukan data timeline. */
-const eraArt: Record<EraId, ArtKey> = {
+export interface EraItem {
+  id: string;
+  name: string;
+  years: string;
+  tagline: string;
+  color: string;
+  art?: string;
+}
+
+export interface EraBandProps<T extends EraItem = EraItem> {
+  eras: T[];
+  active: string | "all";
+  onSelect: (era: string | "all") => void;
+}
+
+const DEFAULT_ERA_ART: Record<string, string> = {
   origins: "city-shadow",
   neon: "hero-witness",
   fracture: "signal-tunnel",
@@ -11,14 +24,8 @@ const eraArt: Record<EraId, ArtKey> = {
   expansions: "crew-rooftop",
 };
 
-export interface EraBandProps {
-  eras: Era[];
-  active: EraId | "all";
-  onSelect: (era: EraId | "all") => void;
-}
-
 /** Pita era terkendali: state penyaring tetap milik app. */
-export function EraBand({ eras, active, onSelect }: EraBandProps) {
+export function EraBand<T extends EraItem>({ eras, active, onSelect }: EraBandProps<T>) {
   return (
     <div className="zine-card-rough overflow-hidden">
       <div className="grid grid-cols-2 sm:grid-cols-5">
@@ -31,7 +38,7 @@ export function EraBand({ eras, active, onSelect }: EraBandProps) {
             style={active === e.id ? ({ "--tw-ring-color": e.color } as CSSProperties) : undefined}
           >
             <ZineImage
-              art={eraArt[e.id]}
+              art={e.art ?? DEFAULT_ERA_ART[e.id] ?? "city-shadow"}
               alt=""
               sizes="20vw"
               position="center"

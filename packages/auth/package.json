@@ -1,0 +1,32 @@
+{
+  "name": "@moonwitness/auth",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "exports": {
+    ".": "./src/index.ts",
+    "./jwt": "./src/jwt/index.ts",
+    "./password": "./src/password/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf .turbo node_modules coverage"
+  },
+  "dependencies": {
+    "@moonwitness/types": "workspace:*",
+    "jose": "^5.9.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@moonwitness/eslint-config": "workspace:*",
+    "@moonwitness/typescript-config": "workspace:*",
+    "@types/node": "^24.10.0",
+    "eslint": "^9.39.5",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.2",
+    "vitest": "^3.2.7"
+  }
+}

@@ -2,7 +2,12 @@ import type p5 from "p5";
 import type { P5Context } from "../use-p5";
 import { hexToRgb } from "../palette";
 
-type Brush = typeof import("p5.brush");
+type Brush = {
+  instance: (p: p5) => void;
+  scaleBrushes: (scale: number) => void;
+  set: (type: string, color: string, weight: number) => void;
+  line: (x1: number, y1: number, x2: number, y2: number) => void;
+};
 
 /**
  * Komposisi natural-media SEKALI render (bukan per-frame): halo spray + sweep

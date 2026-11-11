@@ -2,7 +2,8 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { roleLabel } from "@/lib/auth";
+import { useSavedAvatar } from "@/lib/avatar-store";
+import { useCurrentIdentity, notifySessionChange } from "@/lib/session";
 import { Crown } from "@moonwitness/ui/icons";
 import { activeByPath, navItems } from "./nav-items";
 import { Sidebar } from "./sidebar";
@@ -16,32 +17,27 @@ export function EmpireShell({
   children,
 }: {
   breadcrumb: string;
-  search: { value: string; onChange: (v: string) => void; placeholder: string };
+  search?: { value: string; onChange: (v: string) => void; placeholder: string };
   children: ReactNode;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const active = activeByPath(pathname);
+  const [internalSearch, setInternalSearch] = useState("");
+  const searchConfig = search ?? {
+    value: internalSearch,
+    onChange: setInternalSearch,
+    placeholder: "Search empire...",
+  };
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
-  const [identity, setIdentity] = useState("Creator // Empire");
-  const [role, setRole] = useState("Empire crew");
   const popRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("mw-session") ?? sessionStorage.getItem("mw-session");
-      if (raw) {
-        const session = JSON.parse(raw) as { identity?: string; role?: string };
-        if (session.identity) setIdentity(session.identity);
-        if (session.role) setRole(roleLabel(session.role));
-      }
-    } catch {
-      // no session yet
-    }
-  }, []);
+  const session = useCurrentIdentity();
+  const identity = session?.identity ?? "Creator // Empire";
+  const role = session?.role ?? "Empire crew";
+  const { seed: avatarSeed } = useSavedAvatar(identity);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -94,6 +90,7 @@ export function EmpireShell({
     } catch {
       // ignore
     }
+    notifySessionChange();
     router.push("/");
   }
 
@@ -125,7 +122,7 @@ export function EmpireShell({
       <div className="flex min-w-0 flex-1 flex-col lg:pl-60">
         <Topbar
           breadcrumb={breadcrumb}
-          search={search}
+          search={searchConfig}
           onOpenSidebar={() => setSidebarOpen(true)}
           containerRef={popRef}
           notifications={
@@ -147,11 +144,14 @@ export function EmpireShell({
               identity={identity}
               role={role}
               onExit={exitShadow}
+              avatarSeed={avatarSeed}
             />
           }
         />
 
-        <main id="main" className="min-w-0 flex-1">{children}</main>
+        <main id="main" className="min-w-0 flex-1">
+          {children}
+        </main>
 
         <footer className="flex flex-wrap items-center justify-between gap-2 border-t-2 border-[var(--line)] px-4 py-3 text-[10px] tracking-wider text-zinc-600">
           <span>MOONWITNESS XV /// DIFFERENT PEOPLE. SAME SKY. MANY STORIES.</span>

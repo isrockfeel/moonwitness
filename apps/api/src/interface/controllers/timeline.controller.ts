@@ -15,48 +15,37 @@ import type { ActorContext } from "@moonwitness/orm";
  * never used to grant privileges.
  */
 export class TimelineController {
-  constructor(private readonly timelineUseCase: ITimelineUseCase) {}
+  constructor(private readonly _timelineUseCase: ITimelineUseCase) {}
 
-  private actor(): ActorContext {
-    return SYSTEM_ACTOR;
+  private getActor(request: FastifyRequest): ActorContext {
+    // Use actor from request (set by authMiddleware), fallback to SYSTEM_ACTOR
+    return (request as any).actor ?? SYSTEM_ACTOR;
   }
 
   async listEvents(
     request: FastifyRequest<{ Querystring: ListTimelineEventsRequest }>,
     reply: FastifyReply,
   ) {
-    const result = await this.timelineUseCase.listEvents(
-      request.query,
-      this.actor(),
-    );
+    const result = await this._timelineUseCase.listEvents(request.query, this.getActor(request));
     return this.handleResult(result, reply);
   }
 
-  async getEvent(
-    request: FastifyRequest<{ Params: { id: string } }>,
-    reply: FastifyReply,
-  ) {
-    const result = await this.timelineUseCase.getEvent(
-      request.params.id,
-      this.actor(),
-    );
+  async getEvent(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const result = await this._timelineUseCase.getEvent(request.params.id, this.getActor(request));
     return this.handleResult(result, reply);
   }
 
   async getStats(reply: FastifyReply) {
-    const result = await this.timelineUseCase.getStats(this.actor());
+    const result = await this._timelineUseCase.getStats(this.getActor(reply.request));
     return this.handleResult(result, reply);
   }
 
   async getEras(reply: FastifyReply) {
-    const result = await this.timelineUseCase.getEras(this.actor());
+    const result = await this._timelineUseCase.getEras(this.getActor(reply.request));
     return this.handleResult(result, reply);
   }
 
-  private handleResult<T>(
-    result: Result<T, Error>,
-    reply: FastifyReply,
-  ): FastifyReply {
+  private handleResult<T>(result: Result<T, Error>, reply: FastifyReply): FastifyReply {
     if (result.ok) {
       return reply.code(200).send(result.value);
     }

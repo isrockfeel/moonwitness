@@ -5,3 +5,5 @@ coverage
 .turbo
 pnpm-lock.yaml
 ARTS
+CHANGELOG.md
+.qoder-collab-runtime

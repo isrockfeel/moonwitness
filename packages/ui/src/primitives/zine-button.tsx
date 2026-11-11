@@ -14,6 +14,11 @@ export interface ZineButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>
   tone?: ZineTone;
 }
 
-export function ZineButton({ tone = "pink", className, type = "button", ...props }: ZineButtonProps) {
+export function ZineButton({
+  tone = "pink",
+  className,
+  type = "button",
+  ...props
+}: ZineButtonProps) {
   return <button type={type} className={cn("btn-zine", TONE_CLASS[tone], className)} {...props} />;
 }
