@@ -48,8 +48,9 @@ describe("timeline contracts", () => {
   });
 
   it("types stats aggregates as non-negative integers", () => {
-    expect(TimelineStatsSchema.parse({ total: 5, byEra: { origins: 1 }, byKind: { PROJECT: 1 } }))
-      .toBeTruthy();
+    expect(
+      TimelineStatsSchema.parse({ total: 5, byEra: { origins: 1 }, byKind: { PROJECT: 1 } }),
+    ).toBeTruthy();
     expect(() =>
       TimelineStatsSchema.parse({ total: 5, byEra: { origins: -1 }, byKind: {} }),
     ).toThrow();
