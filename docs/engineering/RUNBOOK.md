@@ -30,12 +30,24 @@ Every response sets `x-content-type-options: nosniff`, `x-frame-options: DENY`, 
 
 ## Backup and restore (SQLite/libSQL)
 
-1. Stop writes (drain traffic via `/readyz`, then scale to zero) or use the SQLite backup API while running.
-2. Copy the database file plus any `-wal`/`-shm` sidecars to durable storage.
-3. To restore: place the file at `DATABASE_URL`, ensure sidecars are consistent, start the process, and confirm `GET /readyz` returns `200`.
-4. Verify data with a representative read (for example `GET /api/v1/timeline/events?limit=1`).
+Use the tested helpers from `@moonwitness/orm`:
 
-Exercise backup and restore against a disposable database before relying on them; an untested backup is not a backup.
+```ts
+import { backupDatabase, restoreDatabase } from "@moonwitness/orm";
+
+// Consistent online snapshot (SQLite VACUUM INTO — safe while serving reads).
+await backupDatabase("/backups/app-2026-11-11.db");
+
+// Restore into a closed target database, then start the process.
+await restoreDatabase("/backups/app-2026-11-11.db", "/var/lib/moonwitness/app.db");
+```
+
+1. Snapshot with `backupDatabase` (or copy the file plus `-wal`/`-shm` sidecars after stopping writes).
+2. Move the backup to durable, off-host storage.
+3. To restore: close the database, `restoreDatabase(...)`, start the process, confirm `GET /readyz` returns `200`.
+4. Verify data with a representative read (e.g. `GET /api/v1/timeline/events?limit=1`).
+
+Backup/restore is covered by `packages/orm/src/__tests__/orm.backup.test.ts` against a disposable temp database. Still exercise it against your real staging data before relying on it.
 
 ## Migration recovery
 

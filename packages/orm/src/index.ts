@@ -15,3 +15,4 @@ export { LibSqlDriver } from "./drivers/sqlite.driver.js";
 export type { LibSqlExecutor } from "./drivers/sqlite.driver.js";
 export { applyMigrations, listAppliedMigrations } from "./migrations.js";
 export type { Migration } from "./migrations.js";
+export { backupDatabase, restoreDatabase } from "./backup.js";
