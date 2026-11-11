@@ -19,6 +19,7 @@
     "@libsql/client": "^0.15.15",
     "@moonwitness/core": "workspace:*",
     "@moonwitness/errors": "workspace:*",
+    "@moonwitness/addon-base": "workspace:*",
     "@moonwitness/orm": "workspace:*",
     "@moonwitness/schema": "workspace:*",
     "@moonwitness/types": "workspace:*",

@@ -31,6 +31,18 @@ afterAll(async () => {
   }
 });
 
+describe("addon registry wiring", () => {
+  it("serves __base health and metadata endpoints loaded through the registry", async () => {
+    const health = await app.inject({ method: "GET", url: "/health" });
+    expect(health.statusCode).toBe(200);
+    expect(health.json()).toMatchObject({ status: "ok" });
+
+    const models = await app.inject({ method: "GET", url: "/_meta/models" });
+    expect(models.statusCode).toBe(200);
+    expect(Array.isArray(models.json().models)).toBe(true);
+  });
+});
+
 describe("timeline API", () => {
   it("returns an empty list on a fresh database", async () => {
     await app.close();

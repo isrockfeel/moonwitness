@@ -193,6 +193,9 @@ importers:
       '@libsql/client':
         specifier: ^0.15.15
         version: 0.15.15
+      '@moonwitness/addon-base':
+        specifier: workspace:*
+        version: link:../../packages/addons/__base
       '@moonwitness/core':
         specifier: workspace:*
         version: link:../../packages/core
