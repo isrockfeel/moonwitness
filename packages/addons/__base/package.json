@@ -1,12 +1,28 @@
 {
   "name": "@moonwitness/addon-base",
   "version": "0.1.0",
-  "main": "./src/index.ts",
+  "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./registry": "./src/registry.ts",
+    "./metadata": "./src/metadata.ts"
+  },
   "scripts": {
-    "build": "tsc"
+    "build": "echo \"addon-base: no build output\"",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo \"addon-base: no lint configured\"",
+    "test": "vitest run",
+    "clean": "rm -rf .turbo dist node_modules"
   },
   "dependencies": {
-    "@moonwitness/orm": "workspace:*"
+    "@moonwitness/orm": "workspace:*",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@moonwitness/typescript-config": "workspace:*",
+    "fastify": "^5.1.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
   }
 }

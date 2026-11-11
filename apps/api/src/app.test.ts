@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { FastifyInstance } from "fastify";
 import { buildApp } from "./app";
-import { seedTimeline } from "./infrastructure/persistence/seed-data";
+import { seedTimeline } from "@moonwitness/addon-timeline";
 
 let app: FastifyInstance;
 let dbDir: string;
@@ -29,6 +29,66 @@ afterAll(async () => {
       () => {},
     );
   }
+});
+
+describe("operational endpoints", () => {
+  it("reports liveness at /healthz", async () => {
+    const response = await app.inject({ method: "GET", url: "/api/v1/healthz" });
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ status: "ok" });
+  });
+
+  it("reports readiness with database connectivity at /readyz", async () => {
+    const response = await app.inject({ method: "GET", url: "/api/v1/readyz" });
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ status: "ready", database: "ok" });
+  });
+
+  it("sets safe security headers", async () => {
+    const response = await app.inject({ method: "GET", url: "/api/v1/healthz" });
+    expect(response.headers["x-content-type-options"]).toBe("nosniff");
+    expect(response.headers["x-frame-options"]).toBe("DENY");
+  });
+
+  it("advertises rate-limit headers on responses", async () => {
+    const response = await app.inject({ method: "GET", url: "/api/v1/healthz" });
+    expect(response.headers["x-ratelimit-limit"]).toBeDefined();
+    expect(response.headers["x-ratelimit-remaining"]).toBeDefined();
+  });
+
+  it("echoes a caller-supplied request correlation id", async () => {
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/v1/healthz",
+      headers: { "x-request-id": "corr-123" },
+    });
+    expect(response.headers["x-request-id"]).toBe("corr-123");
+  });
+
+  it("generates a request correlation id when none is supplied", async () => {
+    const response = await app.inject({ method: "GET", url: "/api/v1/healthz" });
+    expect(typeof response.headers["x-request-id"]).toBe("string");
+    expect(response.headers["x-request-id"]).not.toBe("");
+  });
+});
+
+describe("addon registry wiring", () => {
+  it("serves __base health and metadata endpoints loaded through the registry", async () => {
+    const health = await app.inject({ method: "GET", url: "/health" });
+    expect(health.statusCode).toBe(200);
+    expect(health.json()).toMatchObject({ status: "ok" });
+
+    const models = await app.inject({ method: "GET", url: "/_meta/models" });
+    expect(models.statusCode).toBe(200);
+    expect(models.json().models).toContain("timeline.event");
+
+    const one = await app.inject({ method: "GET", url: "/_meta/models/timeline.event" });
+    expect(one.statusCode).toBe(200);
+    expect(one.json().fields.map((f: { name: string }) => f.name)).toContain("title");
+
+    const missing = await app.inject({ method: "GET", url: "/_meta/models/does-not-exist" });
+    expect(missing.statusCode).toBe(404);
+  });
 });
 
 describe("timeline API", () => {

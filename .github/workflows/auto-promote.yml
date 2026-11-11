@@ -1,0 +1,86 @@
+name: Auto-promote dev to main
+
+# Nyalakan promosi otomatis HANYA setelah CI sukses di branch dev.
+# PR dev -> main dibuka/diperbarui, lalu auto-merge (squash) diaktifkan
+# sehingga merge terjadi ketika required checks di main hijau.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [dev]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: Reason for promotion (recorded in the PR body)
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+concurrency:
+  group: auto-promote-dev-to-main
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    name: Open or refresh promotion pull request
+    # workflow_run: hanya lanjut bila CI benar-benar sukses.
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'dev')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: dev
+
+      - name: Setup Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create or reuse promotion pull request
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REASON: ${{ inputs.reason }}
+          CI_RUN_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          existing=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            echo "pr_number=$existing" >> "$GITHUB_OUTPUT"
+            echo "Reusing existing promotion PR #$existing"
+          else
+            body="Automated promotion of \`dev\` to \`main\`.
+
+          Reason: ${REASON:-CI passed on dev}
+
+          CI run: ${CI_RUN_URL:-manual dispatch}
+
+          Required checks on \`main\` must pass before this merges (auto-merge is enabled)."
+            gh pr create --base main --head dev --title "chore(release): promote dev to main" --body "$body"
+            number=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number')
+            echo "pr_number=$number" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Enable auto-merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          number="${{ steps.pr.outputs.pr_number }}"
+          if [ -z "$number" ]; then
+            echo "::error::No promotion PR number resolved."
+            exit 1
+          fi
+          gh pr merge --auto --squash "$number"
+
+      - name: Report
+        run: |
+          echo "Promotion PR #${{ steps.pr.outputs.pr_number }} ready with auto-merge."
+          echo "It merges automatically once the required checks on 'main' pass."

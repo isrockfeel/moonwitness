@@ -48,3 +48,27 @@ yarn-error.log*
 
 # verification artifacts (screenshot pembanding antar fase)
 .verify/
+
+# internals / agent scratch
+.plan/
+.qoder-collab-runtime/
+.verify/
+
+# stray build artefacts
+*.bak
+*.bak2
+
+# generated TypeScript emit inside src (should never be committed)
+packages/*/src/**/*.js
+packages/*/src/**/*.js.map
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.d.ts.map
+!packages/*/src/**/*.config.js
+
+# test/report artefacts
+playwright-report/
+test-results/
+services/*/target/
+
+# Rust build output
+services/*/target/

@@ -1,27 +1,30 @@
 # Branching model
 
-MoonWitness uses three long-lived branches plus short-lived work branches. The rules below are
+MoonWitness uses **two long-lived branches** plus short-lived work branches. The rules below are
 enforced by GitHub rulesets **and** by the local gate, so a mistake fails twice: once on your
 machine, once on the remote.
 
 ## Topology
 
-| Branch                       | Purpose                   | Who writes                  | Force push | Delete  |
-| ---------------------------- | ------------------------- | --------------------------- | ---------- | ------- |
-| `dev`                        | AI/daily integration      | automation + maintainers    | blocked    | blocked |
-| `main`                       | Released, deployable code | owner only, via reviewed PR | blocked    | blocked |
-| `master`                     | Frozen legacy history     | nobody (read-only)          | blocked    | blocked |
-| `feat/*`, `fix/*`, `chore/*` | Short-lived work          | author                      | allowed    | allowed |
+| Branch                                 | Purpose                          | Who writes               | Force push | Delete  |
+| -------------------------------------- | -------------------------------- | ------------------------ | ---------- | ------- |
+| `dev`                                  | Integration (repository default) | automation + maintainers | blocked    | blocked |
+| `main`                                 | Released, deployable code        | promotion PR only        | blocked    | blocked |
+| `feat/*`, `fix/*`, `chore/*`, `docs/*` | Short-lived work                 | author                   | allowed    | allowed |
 
 `dev` is the repository default branch. Clones start there.
 
-## The three rules that matter
+> **Legacy:** `master` was frozen and later removed. All its history is preserved in `dev`, in
+> `main`, and in the tag `backup/20261112/master` (kept permanently as an archive).
 
-1. **Integration happens on `dev`.** Feature work branches from `dev` and merges back into `dev`
-   through a pull request.
-2. **`main` only moves by promotion.** A promotion PR is `dev` → `main`, opened and merged by the
-   repository owner. Automation prepares it; automation never merges it.
-3. **`master` is frozen.** It exists to preserve history. No commits, no tags, no releases.
+## The rules that matter
+
+1. **All development lands on `dev`.** Work branches from `dev` and merges back into `dev`
+   through a pull request. `dev` requires CI green before merge.
+2. **Nobody pushes to `main` directly.** `main` only moves by a promotion PR from `dev`.
+3. **Promotion is automatic.** As soon as CI on `dev` succeeds, `auto-promote.yml` opens (or
+   refreshes) the `dev` → `main` PR with auto-merge enabled. It merges itself once the required
+   checks on `main` pass.
 
 ## Day-to-day flow
 
@@ -33,27 +36,42 @@ git switch -c feat/timeline-filters
 pnpm gate:quick          # fast loop
 git commit -m "feat(timeline): add era filter"
 pnpm gate:push           # full verification
-git push origin HEAD:refs/heads/dev   # or push the feature branch and open a PR
+git push -u origin feat/timeline-filters
+gh pr create --base dev  # CI must be green before merge
 ```
 
-## Promotion flow (owner only)
+## Promotion flow
+
+Automatic:
+
+```
+push to dev -> CI green -> auto-promote.yml -> PR dev -> main (auto-merge) -> release-please -> tag
+```
+
+Manual fallback (only needed if the org disallows Actions from creating PRs):
 
 ```sh
-# 1. Automation prepares the PR
-gh pr create --base main --head dev \
-  --title "chore(release): promote dev to main" \
-  --body "Gate output: <paste>"
-
-# 2. Owner reviews and merges
-# 3. Release Please opens the release PR on main
-# 4. Owner merges the release PR -> tag vX.Y.Z is created
+gh pr create --base main --head dev --title "chore(release): promote dev to main"
+gh pr merge --auto --squash <number>
 ```
+
+Then `release-please.yml` runs on `main` and opens the release PR; merging it creates the tag and
+`deploy.yml` takes over.
+
+## Required checks
+
+`dev` and `main` both require:
+
+- `Verify (lint, typecheck, test, build)`
+- `Verify arsy control plane (Go)`
+- `Enforce branch and commit policy`
+- `Analyze (javascript-typescript)` (CodeQL)
 
 ## Local guard
 
-`pnpm gate:push` refuses to run when the current branch is `main` or `master`. The optional
-pre-push hook (`.githooks/pre-push`, installed with `pnpm hooks:install`) refuses to push to
-`refs/heads/main` or `refs/heads/master` from any branch.
+`pnpm gate:push` refuses to run when the current branch is `main`. The optional pre-push hook
+(`.githooks/pre-push`, installed with `pnpm hooks:install`) refuses to push to `refs/heads/main`
+from any branch.
 
 ## Naming work branches
 

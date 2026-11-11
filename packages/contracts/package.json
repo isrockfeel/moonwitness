@@ -17,6 +17,8 @@
   "scripts": {
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "clean": "rm -rf .turbo node_modules"
   },
   "devDependencies": {
@@ -26,6 +28,7 @@
     "eslint": "^9.39.5",
     "eslint-plugin-import": "^2.32.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.72.2"
+    "typescript-eslint": "^8.72.2",
+    "vitest": "^3.2.7"
   }
 }

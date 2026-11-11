@@ -184,6 +184,9 @@ importers:
       '@fastify/cors':
         specifier: ^10.0.1
         version: 10.1.0
+      '@fastify/rate-limit':
+        specifier: ^10.3.0
+        version: 10.3.0
       '@fastify/swagger':
         specifier: ^9.0.0
         version: 9.9.3(supports-color@7.2.0)
@@ -193,6 +196,12 @@ importers:
       '@libsql/client':
         specifier: ^0.15.15
         version: 0.15.15
+      '@moonwitness/addon-base':
+        specifier: workspace:*
+        version: link:../../packages/addons/__base
+      '@moonwitness/addon-timeline':
+        specifier: workspace:*
+        version: link:../../packages/addons/timeline
       '@moonwitness/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -316,6 +325,53 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  packages/addons/__base:
+    dependencies:
+      '@moonwitness/orm':
+        specifier: workspace:*
+        version: link:../../orm
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
+    devDependencies:
+      '@moonwitness/typescript-config':
+        specifier: workspace:*
+        version: link:../../typescript-config
+      fastify:
+        specifier: ^5.1.0
+        version: 5.12.8
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/node@24.19.2)(jiti@2.7.0)(lightningcss@1.33.0)(supports-color@7.2.0)(tsx@4.23.15)(yaml@2.9.1)
+
+  packages/addons/timeline:
+    dependencies:
+      '@moonwitness/orm':
+        specifier: workspace:*
+        version: link:../../orm
+      '@moonwitness/schema':
+        specifier: workspace:*
+        version: link:../../schema
+      '@moonwitness/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      '@moonwitness/typescript-config':
+        specifier: workspace:*
+        version: link:../../typescript-config
+      fastify:
+        specifier: ^5.1.0
+        version: 5.12.8
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/node@24.19.2)(jiti@2.7.0)(lightningcss@1.33.0)(supports-color@7.2.0)(tsx@4.23.15)(yaml@2.9.1)
+
   packages/assets:
     dependencies:
       '@moonwitness/types':
@@ -414,6 +470,9 @@ importers:
       typescript-eslint:
         specifier: ^8.72.2
         version: 8.72.2(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/node@24.19.2)(jiti@2.7.0)(lightningcss@1.33.0)(supports-color@7.2.0)(tsx@4.23.15)(yaml@2.9.1)
 
   packages/core:
     dependencies:
@@ -1018,6 +1077,9 @@ packages:
 
   '@fastify/proxy-addr@5.1.2':
     resolution: {integrity: sha512-uqB4QsgVoro0XDC+DIftIMGXHdBPn+lK6Ek3xXAIxPMCJfqxnbtyEoMCm2KPUVOuIosd7Cyw9HawEqMFM/UA+g==}
+
+  '@fastify/rate-limit@10.3.0':
+    resolution: {integrity: sha512-eIGkG9XKQs0nyynatApA3EVrojHOuq4l6fhB4eeCk4PIOeadvOJz9/4w3vGI44Go17uaXOWEcPkaD8kuKm7g6Q==}
 
   '@fastify/send@4.2.1':
     resolution: {integrity: sha512-zOB8L9z444PnGbd1Nd7gNXPz/7bnDR8Z4KNTNSwLVQuE3cTGsU9qUj1N4SjXKK0Tq4cauZYTwB+tqvlqosuKsw==}
@@ -3898,6 +3960,12 @@ snapshots:
     dependencies:
       '@fastify/forwarded': 3.1.2
       ipaddr.js: 2.5.0
+
+  '@fastify/rate-limit@10.3.0':
+    dependencies:
+      '@lukeed/ms': 2.0.2
+      fastify-plugin: 5.1.0
+      toad-cache: 3.7.4
 
   '@fastify/send@4.2.1':
     dependencies:

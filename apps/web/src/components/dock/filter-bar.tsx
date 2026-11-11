@@ -1,11 +1,11 @@
 "use client";
 
-import type { EraId } from "@moonwitness/types";
-import { eras } from "@/lib/data";
+import type { Era, EraId } from "@moonwitness/types";
 
 export type SortKey = "newest" | "oldest";
 
 interface FilterBarProps {
+  eras: Era[];
   era: EraId | "all";
   onEraChange: (era: EraId | "all") => void;
   sort: SortKey;
@@ -15,6 +15,7 @@ interface FilterBarProps {
 }
 
 export function FilterBar({
+  eras,
   era,
   onEraChange,
   sort,

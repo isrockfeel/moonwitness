@@ -1,14 +1,22 @@
 "use client";
 
-import type { QuickAction } from "@moonwitness/types";
 import { ModuleGlyph } from "./module-glyph";
 
-export interface QuickActionGridProps {
-  actions: QuickAction[];
-  onAction: (action: QuickAction) => void;
+export interface QuickActionItem {
+  id: string;
+  label: string;
+  icon: string;
 }
 
-export function QuickActionGrid({ actions, onAction }: QuickActionGridProps) {
+export interface QuickActionGridProps<T extends QuickActionItem = QuickActionItem> {
+  actions: T[];
+  onAction: (action: T) => void;
+}
+
+export function QuickActionGrid<T extends QuickActionItem>({
+  actions,
+  onAction,
+}: QuickActionGridProps<T>) {
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {actions.map((action) => (

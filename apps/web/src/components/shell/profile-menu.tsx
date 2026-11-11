@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { WitnessAvatar } from "@moonwitness/ui";
-import type { WitnessAvatarOptions } from "@moonwitness/avatars";
 
 interface ProfileMenuProps {
   open: boolean;
@@ -11,7 +10,6 @@ interface ProfileMenuProps {
   role: string;
   onExit: () => void;
   avatarSeed?: string;
-  avatarOptions?: Omit<WitnessAvatarOptions, "seed" | "size">;
 }
 
 export function ProfileMenu({
@@ -21,7 +19,6 @@ export function ProfileMenu({
   role,
   onExit,
   avatarSeed,
-  avatarOptions,
 }: ProfileMenuProps) {
   return (
     <>
@@ -36,7 +33,7 @@ export function ProfileMenu({
           size={32}
           alt=""
           className="rounded-full border-2 border-[var(--pink)]"
-          options={{ radius: 50, ...avatarOptions }}
+          options={{ radius: 50 }}
         />
         <span className="hidden text-left md:block">
           <span className="block max-w-[140px] truncate text-xs font-bold text-white">

@@ -7,6 +7,7 @@
 | `ci.yml`             | push → `dev`; PR → `dev`, `main`; manual | format, lint, typecheck, test, build                   |
 | `branch-policy.yml`  | PR → `dev`, `main`                       | target branch, promotion source, Conventional Commits  |
 | `codeql.yml`         | push/PR → `dev`, `main`; weekly          | static security analysis                               |
+| `auto-promote.yml`   | CI success on `dev`                      | open/refresh `dev`→`main` PR with auto-merge           |
 | `release-please.yml` | push → `main`; manual                    | version bump, CHANGELOG, release PR, tag               |
 | `deploy.yml`         | release published; manual                | tag-driven production deploy, health check, smoke test |
 
@@ -44,6 +45,11 @@ status checks would never appear and auto-merge would never fire. For a fully ha
 a PAT with `repo` scope as `AUTOMATION_TOKEN` and switch the workflows to use it. Until then, a
 human (or a local `gh` call with a PAT) must open the promotion PR; auto-merge still handles the
 merge once checks pass.
+
+Additionally, the organization must enable "Allow GitHub Actions to create and approve pull
+requests" (Settings > Actions > General > Workflow permissions) for Release Please to open its
+release PR on its own. Until that is enabled, Release Please creates the release branch and the
+version bump but cannot open the PR; open it manually with `gh pr create --base main --head release-please--branches--main`.
 
 ## Concurrency
 

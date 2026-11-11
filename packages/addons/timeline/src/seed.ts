@@ -1,6 +1,6 @@
 import { getDb } from "@moonwitness/orm";
 import type { TimelineEvent, Era } from "@moonwitness/types";
-import { timelineEventModel, timelineEraModel } from "./timeline-model";
+import { timelineEventModel, timelineEraModel } from "./model.js";
 
 export const eras: Era[] = [
   {
