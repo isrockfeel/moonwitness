@@ -165,6 +165,11 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /v1/vpn/peers/{name}/config", s.authorize(RoleAdmin, s.handleVPNPeerConfig))
 	mux.HandleFunc("DELETE /v1/vpn/peers/{name}", s.authorize(RoleAdmin, s.handleVPNDeletePeer))
 
+	mux.HandleFunc("GET /v1/portforwards", s.authorize(RoleReadonly, s.handleListPortForwards))
+	mux.HandleFunc("POST /v1/portforwards", s.authorize(RoleAdmin, s.handleCreatePortForward))
+	// Key aturan memuat "/" dan ":", jadi dikirim lewat query, bukan path.
+	mux.HandleFunc("DELETE /v1/portforwards", s.authorize(RoleAdmin, s.handleDeletePortForward))
+
 	return s.recover(mux)
 }
 

@@ -56,6 +56,8 @@ func main() {
 		err = cmdLogs(os.Args[2:])
 	case "vpn":
 		err = cmdVPN(os.Args[2:])
+	case "forward":
+		err = cmdForward(os.Args[2:])
 	case "init":
 		err = cmdInit(os.Args[2:])
 	case "version", "--version", "-v":

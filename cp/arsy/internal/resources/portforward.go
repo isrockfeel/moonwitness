@@ -2,7 +2,6 @@ package resources
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"strconv"
@@ -24,11 +23,48 @@ const pfMarker = "arsy:pf:"
 
 func (p *PortForward) Kind() string { return "portforward" }
 
-// ObsKey adalah identitas aturan: proto/port/ke.
+// ObsKey adalah identitas aturan: proto/port (opsional @sumber) -> tujuan.
 func (p *PortForward) ObsKey(r Resource) string { return pfKey(r) }
 
+// pfKey merangkum identitas aturan. `from` ikut masuk kunci supaya dua aturan
+// dengan port sama tetapi sumber berbeda tidak saling menimpa.
 func pfKey(r Resource) string {
-	return fmt.Sprintf("%s/%s->%s", orDefault(r.Proto, "tcp"), r.Port, r.To)
+	proto := orDefault(r.Proto, "tcp")
+	if from := strings.TrimSpace(r.From); from != "" && from != "any" {
+		return fmt.Sprintf("%s/%s@%s->%s", proto, r.Port, from, r.To)
+	}
+	return fmt.Sprintf("%s/%s->%s", proto, r.Port, r.To)
+}
+
+// PortForwardKey menghitung identitas aturan tanpa perlu instance provider.
+func PortForwardKey(r Resource) string { return pfKey(r) }
+
+// Rule adalah hasil parse kunci aturan, dipakai API dan UI.
+type Rule struct {
+	Proto string `json:"proto"`
+	Port  string `json:"port"`
+	From  string `json:"from,omitempty"`
+	To    string `json:"to"`
+}
+
+// ParseKey memecah kunci aturan kembali menjadi komponennya.
+func ParseKey(key string) (Rule, error) {
+	left, to, ok := strings.Cut(key, "->")
+	if !ok || left == "" || to == "" {
+		return Rule{}, fmt.Errorf("%w: kunci %q tidak valid", ErrBadResource, key)
+	}
+
+	var from string
+	if at := strings.Index(left, "@"); at >= 0 {
+		from = left[at+1:]
+		left = left[:at]
+	}
+
+	proto, port, ok := strings.Cut(left, "/")
+	if !ok || proto == "" || port == "" {
+		return Rule{}, fmt.Errorf("%w: kunci %q tidak valid", ErrBadResource, key)
+	}
+	return Rule{Proto: proto, Port: port, From: from, To: to}, nil
 }
 
 func (p *PortForward) Validate(r Resource) error {
@@ -77,7 +113,7 @@ add chain ip %s %s { type filter hook forward priority 0 ; policy accept ; } 2>/
 	return err
 }
 
-// ufwActive melaporkan apakah ufw terpasang dan sedang aktif.
+// ufwActive melaporkan apakah ufw terpasang dan aktif.
 func (p *PortForward) ufwActive(ctx context.Context) bool {
 	if !p.Runner.LookPath("ufw") {
 		return false
@@ -89,8 +125,8 @@ func (p *PortForward) ufwActive(ctx context.Context) bool {
 	return strings.Contains(strings.ToLower(res.Stdout), "status: active")
 }
 
-// allowThroughFirewall membuka port publik di ufw bila ufw aktif.
-// Tanpa ini, DNAT berhasil tetapi paket tetap di-drop oleh policy ufw.
+// allowThroughFirewall membuka port publik dan rute forward di ufw.
+// Tanpa ini DNAT berhasil tetapi paket tetap di-drop policy ufw.
 func (p *PortForward) allowThroughFirewall(ctx context.Context, r Resource) error {
 	if !p.ufwActive(ctx) {
 		return nil
@@ -230,7 +266,8 @@ func (p *PortForward) Apply(ctx context.Context, r Resource) error {
 	return nil
 }
 
-// Remove menghapus aturan berdasarkan key (dipakai saat resource hilang).
+// Remove menghapus aturan berdasarkan key. Idempoten: aturan yang sudah tidak
+// ada di kernel bukan error, karena state dan kernel bisa berbeda sementara.
 func (p *PortForward) Remove(ctx context.Context, key string) error {
 	rules, err := p.list(ctx)
 	if err != nil {
@@ -246,5 +283,5 @@ func (p *PortForward) Remove(ctx context.Context, key string) error {
 		})
 		return err
 	}
-	return errors.New("aturan port forward tidak ditemukan")
+	return nil
 }

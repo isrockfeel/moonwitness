@@ -5,6 +5,7 @@ import { Tape, ZineBadge, ZineCard, ZineCardRough, ZineInput } from "@moonwitnes
 import { Crown } from "@moonwitness/ui/icons";
 import { EmpireShell } from "@/components/shell";
 import { ControlGate } from "@/components/control/gate";
+import { PortForwardPanel } from "./portforward";
 import {
   useCreatePeer,
   useDeletePeer,
@@ -448,6 +449,8 @@ function NetworkDashboard() {
             {config && (
               <ConfigPanel name={config.name} config={config.text} onClose={() => setConfig(null)} />
             )}
+
+            <PortForwardPanel />
 
             <ZineCardRough className="p-5">
               <h2 className="font-brush text-lg text-white">

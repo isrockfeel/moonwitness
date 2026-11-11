@@ -208,6 +208,28 @@ export async function controlRoutes(fastify: FastifyInstance) {
     });
   });
 
+  // ---- Port forwarding (dinasih agar tidak ada kesalahan rute /control/:path di bawah)
+  fastify.get("/control/portforwards", async (request, reply) => {
+    if (!(await gate(request, reply))) return reply;
+    return forward(request, reply, "portforwards");
+  });
+
+  fastify.post("/control/portforwards", async (request, reply) => {
+    if (!ARSY_PROXY_ADMIN) {
+      return reply.code(403).send({ error: "aksi tulis lewat web dimatikan" });
+    }
+    if (!(await gate(request, reply))) return reply;
+    return forward(request, reply, "portforwards");
+  });
+
+  fastify.delete("/control/portforwards", async (request, reply) => {
+    if (!ARSY_PROXY_ADMIN) {
+      return reply.code(403).send({ error: "aksi tulis lewat web dimatikan" });
+    }
+    if (!(await gate(request, reply))) return reply;
+    return forward(request, reply, "portforwards");
+  });
+
   fastify.get<{ Params: { path: string } }>("/control/:path", async (request, reply) => {
     const { path } = request.params;
     if (!READ_PATHS.has(path)) {
