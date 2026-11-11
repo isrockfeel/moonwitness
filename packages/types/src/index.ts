@@ -4,7 +4,13 @@ export type ArtKey =
   | "city-shadow"
   | "crew-rooftop"
   | "signal-tunnel"
-  | "shadow-command";
+  | "shadow-command"
+  | "night-shift"
+  | "signal-sky"
+  | "fog-voices"
+  | "mirror-archive"
+  | "crew-wall"
+  | "crowd-moon";
 
 export type EraId = "origins" | "neon" | "fracture" | "rebuilding" | "expansions";
 

@@ -37,7 +37,19 @@ describe("outputNames", () => {
 describe("ARTWORK manifest", () => {
   it("punya entri untuk setiap kunci artwork", () => {
     expect(KEYS.sort()).toEqual(
-      ["city-shadow", "crew-rooftop", "hero-witness", "shadow-command", "signal-tunnel"].sort(),
+      [
+        "city-shadow",
+        "crew-rooftop",
+        "crew-wall",
+        "crowd-moon",
+        "fog-voices",
+        "hero-witness",
+        "mirror-archive",
+        "night-shift",
+        "shadow-command",
+        "signal-sky",
+        "signal-tunnel",
+      ].sort(),
     );
   });
 

@@ -9,6 +9,12 @@ export const ART_SOURCES: Record<ArtKey, string> = {
   "crew-rooftop": "apps/web/public/art/crew-rooftop.png",
   "signal-tunnel": "apps/web/public/art/signal-tunnel.png",
   "shadow-command": "apps/web/public/art/shadow-command.png",
+  "night-shift": "apps/web/public/art/night-shift.png",
+  "signal-sky": "apps/web/public/art/signal-sky.png",
+  "fog-voices": "apps/web/public/art/fog-voices.png",
+  "mirror-archive": "apps/web/public/art/mirror-archive.png",
+  "crew-wall": "apps/web/public/art/crew-wall.png",
+  "crowd-moon": "apps/web/public/art/crowd-moon.png",
 };
 
 export const ART_OUT_DIR = "apps/web/public/art";

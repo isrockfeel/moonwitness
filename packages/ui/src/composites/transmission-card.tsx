@@ -1,12 +1,14 @@
 "use client";
 
-import type { TimelineEvent } from "@moonwitness/types";
+import type { ArtKey, TimelineEvent } from "@moonwitness/types";
 import { useEffect, useState } from "react";
 import { PauseIcon, PlayIcon } from "../icons";
 import { ZineImage } from "../primitives/zine-image";
 
 export interface TransmissionCardProps {
   event: TimelineEvent;
+  /** Kartu promosi bisa memakai artwork lain daripada image event-nya. */
+  art?: ArtKey;
   durationSeconds?: number;
   /** Teks stiker; angka "001" adalah copy tampilan, bukan turunan `event.id`. */
   label?: string;
@@ -18,6 +20,7 @@ export interface TransmissionCardProps {
 /** Kartu transmisi berdurasi: timer dan state putar/jeda murni internal (§3.2). */
 export function TransmissionCard({
   event,
+  art,
   durationSeconds = 204,
   label = "TRANSMISSION 001",
   title,
@@ -47,7 +50,7 @@ export function TransmissionCard({
     <article className="zine-card-rough group relative flex flex-col overflow-hidden">
       <div className="relative h-44 overflow-hidden">
         <ZineImage
-          art={event.image}
+          art={art ?? event.image}
           sizes="(max-width: 768px) 100vw, 33vw"
           className="duo-img transition-transform duration-500 group-hover:scale-105"
         />

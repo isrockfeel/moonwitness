@@ -84,8 +84,8 @@ export const timelineEvents: TimelineEvent[] = [
     tags: ["Story", "City", "Energy"],
     sources: 8,
     notes: 5,
-    image: "hero-witness",
-    imagePosition: "20% 30%",
+    image: "night-shift",
+    imagePosition: "30% 60%",
     related: ["moonwitness-born", "skyline-broadcast"],
   },
   {
@@ -100,8 +100,8 @@ export const timelineEvents: TimelineEvent[] = [
     tags: ["Signal", "Unverified", "Sky"],
     sources: 15,
     notes: 7,
-    image: "crew-rooftop",
-    imagePosition: "50% 20%",
+    image: "signal-sky",
+    imagePosition: "50% 30%",
     related: ["the-batteries", "the-fracture"],
   },
   {
@@ -132,8 +132,8 @@ export const timelineEvents: TimelineEvent[] = [
     tags: ["People", "Creator", "Field Notes"],
     sources: 6,
     notes: 4,
-    image: "hero-witness",
-    imagePosition: "35% 20%",
+    image: "crew-wall",
+    imagePosition: "50% 40%",
     related: ["the-fracture", "allahhi-promise"],
   },
   {
@@ -148,8 +148,8 @@ export const timelineEvents: TimelineEvent[] = [
     tags: ["Research", "Community", "Mapping"],
     sources: 18,
     notes: 9,
-    image: "city-shadow",
-    imagePosition: "80% 60%",
+    image: "mirror-archive",
+    imagePosition: "50% 50%",
     related: ["zill-joins", "pendeta-online"],
   },
   {
@@ -164,8 +164,8 @@ export const timelineEvents: TimelineEvent[] = [
     tags: ["Story", "Faith", "Night Shift"],
     sources: 9,
     notes: 6,
-    image: "crew-rooftop",
-    imagePosition: "30% 55%",
+    image: "night-shift",
+    imagePosition: "25% 55%",
     related: ["allahhi-promise", "cities-never-sleep"],
   },
   {
@@ -180,8 +180,8 @@ export const timelineEvents: TimelineEvent[] = [
     tags: ["Signal", "Relay", "Global"],
     sources: 24,
     notes: 12,
-    image: "city-shadow",
-    imagePosition: "55% 30%",
+    image: "signal-sky",
+    imagePosition: "60% 40%",
     related: ["skyline-broadcast", "pendeta-online"],
   },
   {
@@ -196,8 +196,8 @@ export const timelineEvents: TimelineEvent[] = [
     tags: ["Story", "Audio", "Isolation"],
     sources: 7,
     notes: 8,
-    image: "signal-tunnel",
-    imagePosition: "50% 60%",
+    image: "fog-voices",
+    imagePosition: "65% 45%",
     related: ["the-fracture", "the-other-side"],
   },
   {
@@ -212,8 +212,8 @@ export const timelineEvents: TimelineEvent[] = [
     tags: ["World", "Archive", "Memory"],
     sources: 14,
     notes: 5,
-    image: "hero-witness",
-    imagePosition: "60% 45%",
+    image: "mirror-archive",
+    imagePosition: "50% 45%",
     related: ["voices-in-the-fog", "brighter-question"],
   },
   {
@@ -228,8 +228,8 @@ export const timelineEvents: TimelineEvent[] = [
     tags: ["Research", "Impact", "Data"],
     sources: 31,
     notes: 14,
-    image: "crew-rooftop",
-    imagePosition: "50% 35%",
+    image: "crowd-moon",
+    imagePosition: "50% 60%",
     related: ["the-other-side", "shadow-grows"],
   },
   {
@@ -244,8 +244,8 @@ export const timelineEvents: TimelineEvent[] = [
     tags: ["Signal", "Crew", "Milestone"],
     sources: 11,
     notes: 7,
-    image: "city-shadow",
-    imagePosition: "75% 55%",
+    image: "shadow-command",
+    imagePosition: "50% 40%",
     related: ["brighter-question", "new-worlds"],
   },
   {
@@ -260,8 +260,8 @@ export const timelineEvents: TimelineEvent[] = [
     tags: ["Project", "Expansion", "Future"],
     sources: 5,
     notes: 2,
-    image: "crew-rooftop",
-    imagePosition: "60% 25%",
+    image: "crowd-moon",
+    imagePosition: "50% 35%",
     related: ["shadow-grows"],
   },
 ];
@@ -353,8 +353,8 @@ export const projects: Project[] = [
     status: "Active",
     progress: 72,
     color: "#2ea8ff",
-    image: "hero-witness",
-    imagePosition: "25% 25%",
+    image: "night-shift",
+    imagePosition: "30% 50%",
   },
   {
     id: "pendeta",
@@ -371,8 +371,8 @@ export const projects: Project[] = [
     status: "Research",
     progress: 34,
     color: "#ffd21f",
-    image: "city-shadow",
-    imagePosition: "80% 55%",
+    image: "mirror-archive",
+    imagePosition: "50% 50%",
   },
   {
     id: "zill",
@@ -380,8 +380,8 @@ export const projects: Project[] = [
     status: "Planning",
     progress: 18,
     color: "#a855f7",
-    image: "hero-witness",
-    imagePosition: "40% 15%",
+    image: "crew-wall",
+    imagePosition: "50% 35%",
   },
 ];
 
@@ -579,8 +579,8 @@ export const pipeline: PipelineColumn[] = [
     count: 8,
     more: 5,
     items: [
-      { id: "pl-1", title: "Batteries Ep.05 outline", type: "PROJECT", thumb: "hero-witness" },
-      { id: "pl-2", title: "Signal: MENA climate", type: "SIGNAL", thumb: "signal-tunnel" },
+      { id: "pl-1", title: "Batteries Ep.05 outline", type: "PROJECT", thumb: "night-shift" },
+      { id: "pl-2", title: "Signal: MENA climate", type: "SIGNAL", thumb: "signal-sky" },
       { id: "pl-3", title: "Pendeta Online draft", type: "STORY", thumb: "crew-rooftop" },
     ],
   },
@@ -590,8 +590,8 @@ export const pipeline: PipelineColumn[] = [
     more: 1,
     items: [
       { id: "pl-4", title: "Neon Cities ep.12", type: "WORLD", thumb: "city-shadow" },
-      { id: "pl-5", title: "Poster set v3", type: "SIGNAL", thumb: "hero-witness" },
-      { id: "pl-6", title: "Allahi Promise notes", type: "RESEARCH", thumb: "signal-tunnel" },
+      { id: "pl-5", title: "Poster set v3", type: "SIGNAL", thumb: "crew-wall" },
+      { id: "pl-6", title: "Allahi Promise notes", type: "RESEARCH", thumb: "mirror-archive" },
     ],
   },
   {
@@ -599,10 +599,10 @@ export const pipeline: PipelineColumn[] = [
     count: 6,
     more: 2,
     items: [
-      { id: "pl-7", title: "Zill world bible", type: "WORLD", thumb: "crew-rooftop" },
-      { id: "pl-8", title: "Crew portraits b3", type: "PEOPLE", thumb: "city-shadow" },
-      { id: "pl-9", title: "Fracture ep.03", type: "PROJECT", thumb: "hero-witness" },
-      { id: "pl-10", title: "Expansions teaser", type: "STORY", thumb: "signal-tunnel" },
+      { id: "pl-7", title: "Zill world bible", type: "WORLD", thumb: "crew-wall" },
+      { id: "pl-8", title: "Crew portraits b3", type: "PEOPLE", thumb: "hero-witness" },
+      { id: "pl-9", title: "Fracture ep.03", type: "PROJECT", thumb: "signal-tunnel" },
+      { id: "pl-10", title: "Expansions teaser", type: "STORY", thumb: "crowd-moon" },
     ],
   },
   {
@@ -612,7 +612,7 @@ export const pipeline: PipelineColumn[] = [
     items: [
       { id: "pl-11", title: "Origins ep.01", type: "PROJECT", thumb: "hero-witness" },
       { id: "pl-12", title: "Neon Cities ep.01", type: "WORLD", thumb: "city-shadow" },
-      { id: "pl-13", title: "Rebuilding ep.01", type: "PEOPLE", thumb: "crew-rooftop" },
+      { id: "pl-13", title: "Rebuilding ep.01", type: "PEOPLE", thumb: "crowd-moon" },
       { id: "pl-14", title: "Signal log 001", type: "SIGNAL", thumb: "signal-tunnel" },
     ],
   },
@@ -621,8 +621,8 @@ export const pipeline: PipelineColumn[] = [
 export const collections: Collection[] = [
   { id: "col-1", name: "NEON CITIES", episodes: 12, cover: "city-shadow" },
   { id: "col-2", name: "THE FRACTURE", episodes: 8, cover: "signal-tunnel" },
-  { id: "col-3", name: "CREW PORTRAITS", episodes: 18, cover: "crew-rooftop" },
-  { id: "col-4", name: "EXPANSIONS", episodes: 10, cover: "hero-witness" },
+  { id: "col-3", name: "CREW PORTRAITS", episodes: 18, cover: "crew-wall" },
+  { id: "col-4", name: "EXPANSIONS", episodes: 10, cover: "crowd-moon" },
 ];
 
 export const mapCities: MapCity[] = [

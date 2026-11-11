@@ -60,6 +60,42 @@ export const ARTWORK = {
     "50% 35%",
     "06-shadow-command-center.png",
   ),
+  "night-shift": entry(
+    "night-shift",
+    "Pekerja shift malam merawat generator di bawah bulan dan kota neon",
+    "40% center",
+    "05-style-ska-poster.png",
+  ),
+  "signal-sky": entry(
+    "signal-sky",
+    "Pita gelombang sinyal cahaya melintasi langit di atas atap kota neon",
+    "50% 35%",
+    "05-style-ska-poster.png",
+  ),
+  "fog-voices": entry(
+    "fog-voices",
+    "Sosok bertudung mengangkat perekam kaset bercahaya di atas desa berkabut",
+    "60% center",
+    "05-style-ska-poster.png",
+  ),
+  "mirror-archive": entry(
+    "mirror-archive",
+    "Ruang arsip kaset dan polaroid dengan cermin yang memantulkan kota neon",
+    "center",
+    "05-style-ska-poster.png",
+  ),
+  "crew-wall": entry(
+    "crew-wall",
+    "Kolase polaroid potret kru muda ditempel selotip di dinding grafiti",
+    "center",
+    "05-style-ska-poster.png",
+  ),
+  "crowd-moon": entry(
+    "crowd-moon",
+    "Kerumunan mengangkat tangan dan bendera mahkota di bawah bulan raksasa",
+    "50% 30%",
+    "05-style-ska-poster.png",
+  ),
 } satisfies Record<ArtKey, ArtEntry>;
 
 export { ART_SOURCES, ART_WIDTHS, outputNames } from "./optimize";

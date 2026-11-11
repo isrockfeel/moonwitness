@@ -7,7 +7,7 @@ import { artSrc } from "@/lib/art";
 import { ArrowRight, Crown } from "@moonwitness/ui/icons";
 import { TransmissionCard } from "@moonwitness/ui";
 
-/** Kartu promosi meminjam artwork signal-tunnel dari event ini; copy-nya sendiri. */
+/** Kartu promosi meminjam copy event ini; artwork tetap terowongan merah sesuai acuan landing. */
 const transmissionEvent = timelineEvents.find((e) => e.id === "voices-in-the-fog");
 
 export function Signals() {
@@ -23,6 +23,7 @@ export function Signals() {
         {transmissionEvent ? (
           <TransmissionCard
             event={transmissionEvent}
+            art="signal-tunnel"
             title="A SIGNAL FROM BELOW"
             excerpt="Strange sounds. A deeper current. What are we really hearing?"
           />

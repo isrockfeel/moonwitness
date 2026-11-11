@@ -12,10 +12,10 @@ export function About() {
     >
       <Grain />
       <Image
-        src={artSrc("crew-rooftop")}
+        src={artSrc("crowd-moon")}
         alt=""
         fill
-        className="object-cover object-center opacity-40"
+        className="object-cover object-[50%_35%] opacity-60"
         sizes="100vw"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-[var(--ink)] via-[rgba(11,11,16,0.6)] to-[rgba(11,11,16,0.8)]" />

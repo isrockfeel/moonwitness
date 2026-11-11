@@ -30,7 +30,7 @@ export function Crew() {
             </p>
           </div>
           <div className="relative hidden h-28 w-56 overflow-hidden rounded-md border-2 border-[var(--line)] md:block">
-            <Image src={artSrc("crew-rooftop")} alt="" fill className="object-cover" sizes="224px" />
+            <Image src={artSrc("crew-wall")} alt="" fill className="object-cover" sizes="224px" />
           </div>
         </div>
         <CrewConstellation
