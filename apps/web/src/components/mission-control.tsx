@@ -181,7 +181,7 @@ export function MissionControl() {
       <div className="relative overflow-hidden border-b-2 border-[var(--line)]">
         <Grain />
         <Image
-          src="/art/city-shadow.png"
+          src={artSrc("city-shadow")}
           alt=""
           fill
           priority

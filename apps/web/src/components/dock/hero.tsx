@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { timelineEvents } from "@/lib/data";
+import { artSrc } from "@/lib/art";
 import { Grain } from "@moonwitness/ui";
 import { Splatter } from "@moonwitness/ui/icons";
 
@@ -10,7 +11,7 @@ export function DockHero({ visibleCount }: { visibleCount: number }) {
     <div className="relative overflow-hidden border-b-2 border-[var(--line)]">
       <Grain />
       <Image
-        src="/art/crew-rooftop.png"
+        src={artSrc("crew-rooftop")}
         alt=""
         fill
         priority

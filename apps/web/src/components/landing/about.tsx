@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Crown } from "@moonwitness/ui/icons";
 import { Grain } from "@moonwitness/ui";
+import { artSrc } from "@/lib/art";
 
 export function About() {
   return (
@@ -11,7 +12,7 @@ export function About() {
     >
       <Grain />
       <Image
-        src="/art/crew-rooftop.png"
+        src={artSrc("crew-rooftop")}
         alt=""
         fill
         className="object-cover object-center opacity-40"

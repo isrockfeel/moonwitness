@@ -4,13 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Bolt, Crown, Smiley, Splatter, Star4 } from "@moonwitness/ui/icons";
 import { Grain, Tape } from "@moonwitness/ui";
+import { artSrc } from "@/lib/art";
 
 export function Hero() {
   return (
     <section id="home" className="relative flex min-h-[92vh] items-center overflow-hidden pt-16">
       <Grain />
       <Image
-        src="/art/hero-witness.png"
+        src={artSrc("hero-witness")}
         alt="A witness in a magenta jacket looking up at the moon over the neon city"
         fill
         priority

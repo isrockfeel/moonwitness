@@ -3519,7 +3519,7 @@ Kondisi yang sudah benar dan **tidak perlu diubah**: tepat satu `priority` per h
 - Consumes: `artSrc(key: ArtKey): string` dari `apps/web/src/lib/art.ts` (Task 3), `ARTWORK` dari `@moonwitness/assets`.
 - Produces: tidak ada ekspor baru. Setelah task ini, `grep -rn '"/art/' apps/web/src` menghasilkan **0 baris**.
 
-- [ ] **Step 1: Tuning optimizer Next**
+- [x] **Step 1: Tuning optimizer Next** — blok `images` ditambahkan di `next.config.ts` (formats avif/webp, deviceSizes 480/960/1440/1920, imageSizes 240/480, minimumCacheTTL 31_536_000); `transpilePackages`/`reactStrictMode`/`poweredByHeader` dipertahankan.
 
 `apps/web/next.config.ts` — tambah blok `images` sehingga lebar yang dihasilkan optimizer sama dengan `ART_WIDTHS` di manifest (480/960/1440/1920), bukan default Next yang melompat ke 2048/3840:
 
@@ -3546,7 +3546,7 @@ export default nextConfig;
 
 Pertahankan field lain yang sudah ada di file itu (baca dulu, jangan menimpa). `deviceSizes` yang lebih sempit berarti browser di layar 2560px mendapat 1920w — itu sengaja: sumber aslinya memang artwork 1920px, memperbesarnya tidak menambah detail.
 
-- [ ] **Step 2: Ganti semua path literal**
+- [x] **Step 2: Ganti semua path literal** — 8 situs diganti ke `artSrc(key)` (+ import di tiap file): shadow/page.tsx, dock/hero.tsx, landing/{hero,crew,about}.tsx, landing/signals.tsx (2 situs), mission-control.tsx (sudah punya import). Pita era `dock/index.tsx` sudah dikecualikan (line 1851: pindah ke `EraBand` sebagai `ArtKey`). Grep `"/art/` di apps/web/src = **0 baris**.
 
 Hari ini ada **14** situs yang menulis path mentah (`grep -rn '"/art/' apps/web/src` di atas kode asli). Satu di antaranya hilang sebelum task ini: `landing.tsx:36` ada di dalam `TransmissionCard`, yang dipindah ke `packages/ui` oleh Task 8 dan di sana memakai manifest lewat `ZineImage` (R6), bukan path literal. Sisanya **13**, dan setelah fase 2 mereka tinggal di file-file ini:
 
@@ -3575,7 +3575,7 @@ Expected setelah selesai: **0 baris**. Tambah `import { artSrc } from "@/lib/art
 
 Jangan mengubah `alt`, `sizes`, `priority`, atau `style` di situs-situs itu — task ini hanya menyeragamkan sumber path.
 
-- [ ] **Step 3: Pastikan pipeline optimasi sudah dijalankan**
+- [x] **Step 3: Pastikan pipeline optimasi sudah dijalankan** — `ls apps/web/public/art/*.avif | wc -l` = **16** (4 artwork × 4 lebar). `shadow-command` menyusul Task 19.
 
 ```bash
 ls apps/web/public/art/*.avif | wc -l
@@ -3583,7 +3583,7 @@ ls apps/web/public/art/*.avif | wc -l
 
 Expected: 16 file (4 artwork × 4 lebar). `shadow-command` menyusul di Task 19. Kalau 0, jalankan `pnpm --filter @moonwitness/assets optimize`.
 
-- [ ] **Step 4: Ukur byte yang benar-benar dikirim**
+- [x] **Step 4: Ukur byte yang benar-benar dikirim** — build + `next start -p 4317`, ukur via `performance.getEntriesByType('resource')`. 1440×900: terbesar `hero-witness` w=1440 = **93 KB** (<400 KB ✓); top-3 = 93/19/11 KB. 390×844: varian `hero-witness` w=480 = **14 KB** (srcset memilih 480w ✓; `<link>` preload priority Next tetap menarik w=1440 — perilaku default `priority`, di luar scope task ini yang melarang mengubah `priority`/`sizes`). Server dimatikan, port 4317 closed.
 
 ```bash
 pnpm --filter @moonwitness/web build && pnpm --filter @moonwitness/web start -p 4317 &
@@ -3604,7 +3604,7 @@ Ulangi pada 390x844: gambar hero harus turun drastis (srcset memilih 480w).
 
 Matikan server.
 
-- [ ] **Step 5: Pipeline + bukti visual + commit**
+- [x] **Step 5: Pipeline + bukti visual + commit** — `turbo run typecheck build --filter=@moonwitness/web` hijau (lint gagal karena cacat `packages/eslint-config/base.js` milik tim lain, bukan kode task ini). Screenshot `.verify/phase3-task17/` (12) vs `.verify/phase3-task16/`: **hΔ0 di semua 12** (tidak ada pergeseran layout). Kontrol A/B (t17 vs t17-b, build sama) memisahkan noise: delta landing/dock yang tersisa = animasi (marquee/float-y/rise-in) + re-encode AVIF↔WebP (shadow maxd=70, mc maxd=235 = pergeseran nada halus seluruh gambar, bukan gambar hilang). Pemeriksaan visual langsung: hero-witness, city-shadow, crew-rooftop, signal-tunnel semuanya tajam & utuh di 1440/768/390 — tidak ada yang lebih kabur → `deviceSizes` cukup. Perbedaan yang diniatkan (byte/codec) terkonfirmasi, tampilan netral.
 
 ```bash
 pnpm turbo run lint typecheck build

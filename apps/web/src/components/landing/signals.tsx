@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { timelineEvents } from "@/lib/data";
+import { artSrc } from "@/lib/art";
 import { ArrowRight, Crown } from "@moonwitness/ui/icons";
 import { TransmissionCard } from "@moonwitness/ui";
 
@@ -30,7 +31,7 @@ export function Signals() {
         <article className="zine-card-rough group relative flex flex-col overflow-hidden">
           <div className="relative h-44 overflow-hidden">
             <Image
-              src="/art/crew-rooftop.png"
+              src={artSrc("crew-rooftop")}
               alt="Three friends on a rooftop under the same moon"
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -56,7 +57,7 @@ export function Signals() {
         <article className="zine-card-rough group relative flex flex-col overflow-hidden">
           <div className="relative h-44 overflow-hidden">
             <Image
-              src="/art/city-shadow.png"
+              src={artSrc("city-shadow")}
               alt="A hooded witness overlooking the city at night"
               fill
               className="object-cover object-[70%_center] transition-transform duration-500 group-hover:scale-105"

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { ArrowRight, Crown, EyeIcon, Smiley, Splatter, Star4 } from "@moonwitness/ui/icons";
 import { Grain, Tape, ZineInput } from "@moonwitness/ui";
 import { authenticate } from "@/lib/auth";
+import { artSrc } from "@/lib/art";
 
 export default function ShadowPage() {
   const router = useRouter();
@@ -56,7 +57,7 @@ export default function ShadowPage() {
     <div className="relative min-h-screen overflow-hidden">
       <Grain />
       <Image
-        src="/art/city-shadow.png"
+        src={artSrc("city-shadow")}
         alt=""
         fill
         priority

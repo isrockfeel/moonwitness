@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { witnesses } from "@/lib/data";
+import { artSrc } from "@/lib/art";
 import { ArrowRight } from "@moonwitness/ui/icons";
 import { CrewConstellation, Halftone } from "@moonwitness/ui";
 
@@ -34,7 +35,7 @@ export function Crew() {
             </p>
           </div>
           <div className="relative hidden h-28 w-56 overflow-hidden rounded-md border-2 border-[var(--line)] md:block">
-            <Image src="/art/crew-rooftop.png" alt="" fill className="object-cover" sizes="224px" />
+            <Image src={artSrc("crew-rooftop")} alt="" fill className="object-cover" sizes="224px" />
           </div>
         </div>
         <CrewConstellation
