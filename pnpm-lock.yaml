@@ -321,12 +321,32 @@ importers:
       '@moonwitness/orm':
         specifier: workspace:*
         version: link:../../orm
+    devDependencies:
+      '@moonwitness/typescript-config':
+        specifier: workspace:*
+        version: link:../../typescript-config
+      fastify:
+        specifier: ^5.1.0
+        version: 5.12.8
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
   packages/addons/timeline:
     dependencies:
       '@moonwitness/orm':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../orm
+    devDependencies:
+      '@moonwitness/typescript-config':
+        specifier: workspace:*
+        version: link:../../typescript-config
+      fastify:
+        specifier: ^5.1.0
+        version: 5.12.8
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
   packages/assets:
     dependencies:

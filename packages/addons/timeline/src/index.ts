@@ -1,11 +1,7 @@
 import type { FastifyInstance } from "fastify";
-import { TimelineEvent } from "./model";
-import { registerBaseAddon } from "../__base/src/index";
+import { getDb } from "@moonwitness/orm";
 
 export async function registerTimelineAddon(fastify: FastifyInstance): Promise<void> {
-  // Register base endpoints first
-  await registerBaseAddon(fastify);
-
   // Timeline routes
   fastify.get(
     "/events",
@@ -209,20 +205,20 @@ export async function registerTimelineAddon(fastify: FastifyInstance): Promise<v
         `SELECT COUNT(*) as c FROM timeline_events WHERE status != 'deleted'`,
       );
       const total = Number(totalRow?.c ?? 0);
-      const byEraRows = await db.all(
+      const byEraRows = await db.all<{ era: string; c: number }>(
         `SELECT era, COUNT(*) as c FROM timeline_events WHERE status != 'deleted' GROUP BY era`,
       );
-      const byEra = byEraRows.reduce(
-        (acc, r) => ({ ...acc, [r.era]: Number(r.c) }),
-        {} as Record<string, number>,
-      );
-      const byKindRows = await db.all(
+      const byEra = byEraRows.reduce<Record<string, number>>((acc, r) => {
+        acc[String(r.era)] = Number(r.c);
+        return acc;
+      }, {});
+      const byKindRows = await db.all<{ kind: string; c: number }>(
         `SELECT kind, COUNT(*) as c FROM timeline_events WHERE status != 'deleted' GROUP BY kind`,
       );
-      const byKind = byKindRows.reduce(
-        (acc, r) => ({ ...acc, [r.kind]: Number(r.c) }),
-        {} as Record<string, number>,
-      );
+      const byKind = byKindRows.reduce<Record<string, number>>((acc, r) => {
+        acc[String(r.kind)] = Number(r.c);
+        return acc;
+      }, {});
       return { total, byEra, byKind };
     },
   );
