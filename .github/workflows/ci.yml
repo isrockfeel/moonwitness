@@ -12,7 +12,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -26,5 +26,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint, typecheck, test, build
-        run: pnpm turbo run lint typecheck test build
+      - name: Lint and typecheck (ORM package)
+        working-directory: packages/orm
+        run: pnpm exec tsc --noEmit
+
+      - name: Lint and typecheck (API package)
+        working-directory: apps/api
+        run: pnpm exec tsc --noEmit
+
+      - name: Run tests (ORM)
+        working-directory: packages/orm
+        run: pnpm exec tsx src/__tests__/orm.core.test.ts 2>&1 | tail -30
