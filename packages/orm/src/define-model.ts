@@ -290,10 +290,10 @@ export class BaseRepository<TBusiness extends ZodObjectLike = ZodObjectLike> {
     });
   }
 
-  async find(
+  private buildWhere(
     filters: Record<string, unknown> = {},
     opts: { includeDeleted?: boolean } = {},
-  ): Promise<ModelRecord<TBusiness>[]> {
+  ): { where: string; params: unknown[] } {
     const clauses: string[] = [];
     const params: unknown[] = [];
 
@@ -306,7 +306,14 @@ export class BaseRepository<TBusiness extends ZodObjectLike = ZodObjectLike> {
       params.push(encodeFilterValue(value));
     }
 
-    const where = clauses.length ? ` WHERE ${clauses.join(" AND ")}` : "";
+    return { where: clauses.length ? ` WHERE ${clauses.join(" AND ")}` : "", params };
+  }
+
+  async find(
+    filters: Record<string, unknown> = {},
+    opts: { includeDeleted?: boolean } = {},
+  ): Promise<ModelRecord<TBusiness>[]> {
+    const { where, params } = this.buildWhere(filters, opts);
     const rows = await getDb().all<Record<string, unknown>>(
       `SELECT * FROM ${this.table}${where} ORDER BY id`,
       params,
@@ -320,6 +327,25 @@ export class BaseRepository<TBusiness extends ZodObjectLike = ZodObjectLike> {
   ): Promise<ModelRecord<TBusiness> | null> {
     const rows = await this.find({ id }, opts);
     return rows[0] ?? null;
+  }
+
+  async list(
+    filters: Record<string, unknown> = {},
+    opts: { includeDeleted?: boolean } = {},
+  ): Promise<ModelRecord<TBusiness>[]> {
+    return this.find(filters, opts);
+  }
+
+  async count(
+    filters: Record<string, unknown> = {},
+    opts: { includeDeleted?: boolean } = {},
+  ): Promise<number> {
+    const { where, params } = this.buildWhere(filters, opts);
+    const row = await getDb().get<{ total: number }>(
+      `SELECT COUNT(*) AS total FROM ${this.table}${where}`,
+      params,
+    );
+    return Number(row?.total ?? 0);
   }
 
   async create(
