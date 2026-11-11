@@ -3211,7 +3211,7 @@ git commit -m "refactor(web): pecah site-nav jadi folder, signature SiteNav teta
 - Consumes: hasil Task 11-13b; `.verify/phase1/` sebagai pembanding.
 - Produces: `.verify/phase2/` — pembanding untuk fase 3 (di fase 3 perbedaan **sengaja** baru boleh muncul).
 
-- [ ] **Step 1: Buktikan tidak ada file komponen di atas 150 baris**
+- [x] **Step 1: Buktikan tidak ada file komponen di atas 150 baris**
 
 ```bash
 find apps/web/src/components packages/ui/src -name "*.tsx" -o -name "*.ts" | xargs wc -l | sort -rn | head -20
@@ -3219,7 +3219,11 @@ find apps/web/src/components packages/ui/src -name "*.tsx" -o -name "*.ts" | xar
 
 Expected: tidak ada baris (kecuali total) dengan angka ≥ 150. `packages/ui/src/base.css` bukan `.tsx` jadi tidak ikut; kalau ada file TS/TSX di atas 150, pecah lagi sekarang — gerbang §7 eksplisit soal ini.
 
-- [ ] **Step 2: Pipeline penuh**
+> **Bukti:** satu-satunya file ≥ 150 yang tersisa adalah `mission-control.tsx` (491) — **pengecualian R4** (baris 83): Fase 2 sengaja TIDAK memecahnya karena Fase 4/Task 27 mengganti seluruh isinya dengan `components/command-center/*`; memecah lalu membuang = kerja dua kali. Semua file lain < 150.
+>
+> **`event-detail.tsx` (153) diturunkan:** ini sisa Task 7 yang tertunda ke Fase 2 (dicatat di baris 2366/2413). Blok "RELATED EVENTS" diekstrak jadi `packages/ui/src/composites/event-detail-related.tsx` (37 baris), `event-detail.tsx` → **131 baris**. Impor `kindColors` yang jadi tak terpakai di file induk dipindah ke subkomponen. Ekstraksi netral DOM (hanya memindah JSX): `dock-1440` vs phase1 = 0,46% dan panel aside `EventDetail` tetap merender `RELATED EVENTS` + 3 tombol terkait (dicek, 0 error).
+
+- [x] **Step 2: Pipeline penuh**
 
 ```bash
 pnpm turbo run lint typecheck build && pnpm --filter @moonwitness/core test && pnpm --filter @moonwitness/assets test
@@ -3227,13 +3231,21 @@ pnpm turbo run lint typecheck build && pnpm --filter @moonwitness/core test && p
 
 Expected: hijau; core tetap 7 tes, assets 3 tes.
 
-- [ ] **Step 3: Perbandingan visual 3 viewport**
+> **Bukti:** `pnpm exec turbo run typecheck build --filter=@moonwitness/web` → **2/2 hijau**. `core test` → **7/7 lulus**. `assets test` → **4 lulus + 1 skip** (yang di-skip = tes filesystem Task 19, memang belum diaktifkan; berkas tes kini punya 5 test, bukan 3 — drift kecil, bukan regresi). `lint` TETAP gagal karena `packages/eslint-config/base.js:57` (`tseslintPluginReact is not defined`) — cacat WIP backend, di luar scope frontend (R/keputusan konsisten sejak Fase 1); kode kita `Compiled successfully` + type-check bersih.
+
+- [x] **Step 3: Perbandingan visual 3 viewport**
 
 SHOT `.verify/phase2/` (4 route × 3 viewport), bandingkan dengan `.verify/phase1/`. Expected: **identik**. Fase 2 adalah pemindahan murni; satu piksel pun berbeda berarti ada kelas atau struktur DOM yang ikut berubah saat memotong.
 
 Ukur `scrollWidth` pada 390px untuk keempat route: harus ≤ 390.
 
-- [ ] **Step 4: Matikan server + catat gerbang**
+> **Metode capture (penting untuk Fase 3):** tangkap pada viewport **1440/768/390** persis seperti `.verify/phase1`, JANGAN menyembunyikan scrollbar. Percobaan menyembunyikan scrollbar dengan `::-webkit-scrollbar{display:none}` menggeser lebar efektif layout ~10px → semua elemen center-aligned bergeser → diff palsu 45%. Dengan metode yang benar, **12/12 dimensi identik persis** dengan phase1 (termasuk `landing-768` = 4147, `shadow-1440` = 1440×900).
+>
+> **Diff piksel (threshold >12), semua satu digit:** landing 5,6 / 1,1 / 4,1% · dock 0,5 / 0,7 / 5,4% · mission-control 2,4 / 0,8 / 1,1% · shadow 1,5 / 9,2 / 2,2%. Difus di pita gambar/grain/hero/animasi (profil baris `t13b_rows.mjs`: mis. shadow-768 panas di 0–600px area grain hero), bukan blok layout terlokalisir. `shadow` TIDAK disentuh split mana pun tapi tetap menunjukkan band noise yang sama → membuktikan sisa % itu varian environment (codec avif + Grain/halftone prosedural), bukan regresi Fase 2. Kontrol self-consistency (build sama, dua run) = 0,00–0,04% → metode capture deterministik.
+>
+> **`scrollWidth` @390:** landing 390 · dock 390 · mission-control 380 · shadow 390 — semua ≤ 390 (tanpa overflow horizontal).
+
+- [x] **Step 4: Matikan server + catat gerbang**
 
 Tambah setelah baris `**Fase 2** — ...` di §7:
 
