@@ -80,9 +80,6 @@ function makeApi() {
         "padding-line-between-statements": [
           "error",
           { blankLine: "always", prev: "*", next: "import" },
-        ],
-        "padding-line-between-statements": [
-          "error",
           { blankLine: "any", prev: ["const", "let", "var"], next: "const" },
         ],
       },
