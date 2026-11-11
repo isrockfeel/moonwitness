@@ -10,8 +10,8 @@
   --red: #ff3b3b;
   --green: #3ddc84;
   --line: #2a2a38;
-  --font-brush: "Permanent Marker", cursive;
-  --font-hand: "Caveat", cursive;
-  --font-mono: "Space Mono", ui-monospace, monospace;
+  /* Font variables (--font-brush/hand/mono) are supplied by next/font/local in
+     apps/web (Saksi proprietary family). They are intentionally NOT defined here
+     so this :root block cannot override the loader's hashed family names. */
   color-scheme: dark;
 }

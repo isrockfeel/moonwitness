@@ -13,6 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "optimize": "node scripts/optimize.mjs",
+    "fonts": "node fonts/build.mjs && node fonts/build-specimen.mjs",
     "clean": "rm -rf .turbo node_modules coverage"
   },
   "dependencies": {

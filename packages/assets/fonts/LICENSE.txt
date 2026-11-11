@@ -1,0 +1,25 @@
+SAKSI TYPE FAMILY — PROPRIETARY FONT LICENSE
+Copyright (c) 2026 MoonWitness. All rights reserved.
+
+The Saksi type family (Saksi Marker, Saksi Hand, Saksi Mono), including its
+glyph outlines, generator source, and compiled font files, is original work
+created for and owned by MoonWitness.
+
+1. GRANT. MoonWitness grants itself and its authorized collaborators a
+   non-exclusive, non-transferable right to use these fonts in MoonWitness
+   products, services, and marketing materials.
+
+2. RESTRICTIONS. Without prior written permission from MoonWitness you may
+   not: redistribute, sublicense, sell, or share the font files or generator
+   source; modify, reverse engineer, or create derivative fonts; or embed the
+   fonts in products not owned or operated by MoonWitness.
+
+3. OWNERSHIP. All rights, title, and interest in the fonts remain with
+   MoonWitness. The fonts are NOT licensed under any open-source license
+   (including the SIL Open Font License).
+
+4. NO WARRANTY. The fonts are provided "as is", without warranty of any kind.
+
+Third-party components used to COMPILE the fonts (opentype.js, polygon-clipping,
+wawoff2) are separate open-source libraries and do not grant any rights to the
+Saksi outlines themselves.

@@ -1,11 +1,33 @@
 import type { Metadata } from "next";
-import { Permanent_Marker, Caveat, Space_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { SkipLink } from "@moonwitness/ui";
 import "./globals.css";
 
-const brush = Permanent_Marker({ subsets: ["latin"], weight: "400", variable: "--font-brush" });
-const hand = Caveat({ subsets: ["latin"], variable: "--font-hand" });
-const mono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-mono" });
+// Saksi — proprietary MoonWitness type family (see packages/assets/fonts).
+const brush = localFont({
+  src: [
+    { path: "../../public/fonts/saksi-marker-400.woff2", weight: "400", style: "normal" },
+    { path: "../../public/fonts/saksi-marker-700.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-brush",
+  display: "swap",
+});
+const hand = localFont({
+  src: [
+    { path: "../../public/fonts/saksi-hand-400.woff2", weight: "400", style: "normal" },
+    { path: "../../public/fonts/saksi-hand-700.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-hand",
+  display: "swap",
+});
+const mono = localFont({
+  src: [
+    { path: "../../public/fonts/saksi-mono-400.woff2", weight: "400", style: "normal" },
+    { path: "../../public/fonts/saksi-mono-700.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
