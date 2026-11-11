@@ -147,7 +147,6 @@ function commitRange() {
 }
 
 function stepToolchain(gate) {
-  const before = gate.results.length;
   const major = Number(process.version.slice(1).split(".")[0]);
   gate.add(
     major >= 20 ? STATE.PASS : STATE.FAIL,
@@ -180,8 +179,6 @@ function stepToolchain(gate) {
     "workspace",
     "pnpm-workspace.yaml",
   );
-
-  return gate.results.slice(before).every((r) => r.state === STATE.PASS || r.state === STATE.NA);
 }
 
 function stepCommand(gate, step, cmd, args, options = {}) {
@@ -274,22 +271,65 @@ function stepWorktree(gate, allowDirty) {
 }
 
 function stepAudit(gate) {
-  const result = run("pnpm", ["audit", "--prod", "--audit-level=high"]);
-  const text = [result.stdout, result.stderr].filter(Boolean).join("\n");
-  if (result.code === 0 || /No known vulnerabilities|found 0 vulnerabilities/i.test(text)) {
-    gate.add(STATE.PASS, "dependency-audit", "no high/critical advisories");
-    return;
-  }
-  if (/ERR_PNPM|ENOTFOUND|ECONNREFUSED|EAI_AGAIN|network/i.test(text)) {
+  const result = run("pnpm", ["audit", "--prod", "--json"]);
+  const raw = result.stdout || result.stderr;
+  let report;
+  try {
+    report = JSON.parse(raw);
+  } catch {
     gate.add(
       STATE.BLOCKED,
       "dependency-audit",
-      "registry unreachable, audit not performed",
-      tail(text, 10),
+      "audit output was not JSON (registry unreachable?)",
+      tail(raw, 10),
     );
     return;
   }
-  gate.add(STATE.FAIL, "dependency-audit", "high/critical advisories found", tail(text, 30));
+
+  const blocking = Object.values(report.advisories ?? {}).filter(
+    (advisory) => advisory.severity === "high" || advisory.severity === "critical",
+  );
+
+  if (blocking.length === 0) {
+    gate.add(STATE.PASS, "dependency-audit", "no high/critical advisories");
+    return;
+  }
+
+  const accepted = readAuditExceptions();
+  const unaccepted = blocking.filter((advisory) => !accepted.has(advisory.github_advisory_id));
+  const acceptedCount = blocking.length - unaccepted.length;
+  const detail =
+    acceptedCount > 0
+      ? `${blocking.length} high/critical, ${acceptedCount} accepted in .github/audit-exceptions.json`
+      : `${blocking.length} high/critical advisor${blocking.length === 1 ? "y" : "ies"}`;
+
+  if (unaccepted.length === 0) {
+    gate.add(STATE.PASS, "dependency-audit", detail);
+    return;
+  }
+
+  const lines = unaccepted.map(
+    (advisory) =>
+      `${advisory.github_advisory_id} ${advisory.module_name} (${advisory.severity}): ${advisory.title} -> patched ${advisory.patched_versions}`,
+  );
+  gate.add(STATE.FAIL, "dependency-audit", detail, lines.join("\n"));
+}
+
+function readAuditExceptions() {
+  const path = join(ROOT, ".github", "audit-exceptions.json");
+  if (!existsSync(path)) return new Set();
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const entries = JSON.parse(readFileSync(path, "utf-8"));
+    // An expired exception is no exception: it must fail the gate again.
+    return new Set(
+      entries
+        .filter((entry) => !entry.expires || entry.expires >= today)
+        .map((entry) => entry.advisory),
+    );
+  } catch {
+    return new Set();
+  }
 }
 
 function stepCommitMessages(gate) {
@@ -308,14 +348,14 @@ function stepCommitMessages(gate) {
 }
 
 function quickSteps(gate) {
-  if (!stepToolchain(gate)) return;
+  stepToolchain(gate);
   stepCommand(gate, "format", "pnpm", ["format:check"]);
   stepCommand(gate, "lint", "pnpm", ["lint", "--filter=@moonwitness/*"]);
   stepCommand(gate, "typecheck", "pnpm", ["typecheck", "--filter=@moonwitness/*"]);
 }
 
 function localSteps(gate) {
-  if (!stepToolchain(gate)) return;
+  stepToolchain(gate);
   stepCommand(gate, "install", "pnpm", ["install", "--frozen-lockfile"]);
   stepCommand(gate, "format", "pnpm", ["format:check"]);
   stepCommand(gate, "lint", "pnpm", ["lint"]);

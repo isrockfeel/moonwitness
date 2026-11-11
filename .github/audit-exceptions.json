@@ -1,0 +1,10 @@
+[
+  {
+    "advisory": "GHSA-mrhx-c7xc-m3w5",
+    "package": "zod",
+    "severity": "high",
+    "reason": "The fix only exists in zod 4.6.6+. The workspace pins zod 3.25 for its v3 API (ZodObject shape/extend, .nullish) used across schema, orm, contracts and api. Migrating to zod 4 is a breaking change and is tracked as its own task; until then this advisory is acknowledged rather than silently ignored.",
+    "reviewed": "2026-11-11",
+    "expires": "2027-02-11"
+  }
+]
