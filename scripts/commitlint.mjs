@@ -8,7 +8,8 @@
  */
 
 import { spawnSync } from "node:child_process";
-import { resolve } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
@@ -65,6 +66,20 @@ function readArg(flag) {
   return index === -1 ? null : process.argv[index + 1];
 }
 
+/**
+ * Commits that predate the policy are listed by full SHA. The list only ever shrinks:
+ * a new non-conventional commit must be fixed, not appended here.
+ */
+function readBaseline() {
+  const path = join(ROOT, "commitlint-baseline.json");
+  if (!existsSync(path)) return new Set();
+  try {
+    return new Set(JSON.parse(readFileSync(path, "utf-8")));
+  } catch {
+    return new Set();
+  }
+}
+
 const range = readArg("--range");
 const single = readArg("--message");
 
@@ -80,18 +95,21 @@ if (single) {
 }
 
 if (range) {
-  const commits = git(["log", "--format=%H%x00%B%x00END", range])
-    .split("END\0")
-    .map((entry) => entry.trim())
-    .filter(Boolean);
+  const shas = git(["log", "--format=%H", range]).split(/\r?\n/).filter(Boolean);
 
-  if (commits.length === 0) {
+  if (shas.length === 0) {
     console.log(`commitlint: no commits in ${range}`);
   }
 
-  for (const entry of commits) {
-    const [sha, ...body] = entry.split("\0");
-    const message = body.join("\0").trim();
+  const baseline = readBaseline();
+  for (const sha of shas) {
+    if (baseline.has(sha)) {
+      console.log(
+        `commitlint: ${sha.slice(0, 7)} exempt (pre-policy commit, see commitlint-baseline.json)`,
+      );
+      continue;
+    }
+    const message = git(["show", "-s", "--format=%B", sha]);
     for (const problem of validate(message)) {
       failures.push(`${sha.slice(0, 7)} ${problem}`);
     }
