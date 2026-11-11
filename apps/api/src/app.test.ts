@@ -31,6 +31,26 @@ afterAll(async () => {
   }
 });
 
+describe("operational endpoints", () => {
+  it("reports liveness at /healthz", async () => {
+    const response = await app.inject({ method: "GET", url: "/api/v1/healthz" });
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ status: "ok" });
+  });
+
+  it("reports readiness with database connectivity at /readyz", async () => {
+    const response = await app.inject({ method: "GET", url: "/api/v1/readyz" });
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ status: "ready", database: "ok" });
+  });
+
+  it("sets safe security headers", async () => {
+    const response = await app.inject({ method: "GET", url: "/api/v1/healthz" });
+    expect(response.headers["x-content-type-options"]).toBe("nosniff");
+    expect(response.headers["x-frame-options"]).toBe("DENY");
+  });
+});
+
 describe("addon registry wiring", () => {
   it("serves __base health and metadata endpoints loaded through the registry", async () => {
     const health = await app.inject({ method: "GET", url: "/health" });
