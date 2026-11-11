@@ -69,3 +69,6 @@ packages/*/src/**/*.d.ts.map
 playwright-report/
 test-results/
 services/*/target/
+
+# Rust build output
+services/*/target/
