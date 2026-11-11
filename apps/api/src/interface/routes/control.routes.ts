@@ -1,9 +1,15 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { createRateLimiter } from "../../infrastructure/rate-limit";
 
 const ARSY_URL = process.env.ARSY_URL ?? "http://127.0.0.1:8787";
 const ARSY_TOKEN_READONLY = process.env.ARSY_TOKEN_READONLY ?? "";
 const ARSY_TOKEN_ADMIN = process.env.ARSY_TOKEN_ADMIN ?? "";
 const ARSY_PROXY_ADMIN = process.env.ARSY_PROXY_ADMIN === "1";
+
+// Endpoint auth/setup meneruskan kredensial ke control plane, jadi dibatasi
+// per-IP untuk mempersempit brute force (login) dan penyalahgunaan setup.
+const AUTH_RATE_MAX = Number(process.env.ARSY_AUTH_RATE_MAX ?? "30");
+const AUTH_RATE_WINDOW_MS = Number(process.env.ARSY_AUTH_RATE_WINDOW_MS ?? "60000");
 
 // Hanya endpoint arsy yang dikenal yang boleh diproxy. Ini mencegah web
 // menjadi open proxy ke apa pun yang kebetulan listen di ARSY_URL.
@@ -146,7 +152,24 @@ async function forward(request: FastifyRequest, reply: FastifyReply, subPath: st
 }
 
 export async function controlRoutes(fastify: FastifyInstance) {
+  const authLimiter = createRateLimiter({ max: AUTH_RATE_MAX, windowMs: AUTH_RATE_WINDOW_MS });
+
+  function limitAuth(request: FastifyRequest, reply: FastifyReply): boolean {
+    const result = authLimiter.check(clientIp(request));
+    reply.header("x-ratelimit-limit", AUTH_RATE_MAX);
+    reply.header("x-ratelimit-remaining", result.remaining);
+    if (!result.allowed) {
+      reply
+        .code(429)
+        .header("retry-after", Math.ceil(result.retryAfterMs / 1000))
+        .send({ error: "terlalu banyak percobaan; coba lagi nanti" });
+      return false;
+    }
+    return true;
+  }
+
   fastify.get<{ Params: { path: string } }>("/control/setup/:path", async (request, reply) => {
+    if (!limitAuth(request, reply)) return reply;
     const { path } = request.params;
     if (!SETUP_PATHS.has(path)) {
       return reply.code(404).send({ error: `path setup tidak dikenal: ${path}` });
@@ -155,6 +178,7 @@ export async function controlRoutes(fastify: FastifyInstance) {
   });
 
   fastify.post<{ Params: { path: string } }>("/control/setup/:path", async (request, reply) => {
+    if (!limitAuth(request, reply)) return reply;
     const { path } = request.params;
     if (!SETUP_PATHS.has(path)) {
       return reply.code(404).send({ error: `path setup tidak dikenal: ${path}` });
@@ -163,6 +187,7 @@ export async function controlRoutes(fastify: FastifyInstance) {
   });
 
   fastify.get<{ Params: { path: string } }>("/control/auth/:path", async (request, reply) => {
+    if (!limitAuth(request, reply)) return reply;
     const { path } = request.params;
     if (!AUTH_PATHS.has(path)) {
       return reply.code(404).send({ error: `path auth tidak dikenal: ${path}` });
@@ -171,6 +196,7 @@ export async function controlRoutes(fastify: FastifyInstance) {
   });
 
   fastify.post<{ Params: { path: string } }>("/control/auth/:path", async (request, reply) => {
+    if (!limitAuth(request, reply)) return reply;
     const { path } = request.params;
     if (!AUTH_PATHS.has(path)) {
       return reply.code(404).send({ error: `path auth tidak dikenal: ${path}` });
