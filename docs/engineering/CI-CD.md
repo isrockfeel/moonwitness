@@ -7,6 +7,7 @@
 | `ci.yml`             | push → `dev`; PR → `dev`, `main`; manual | format, lint, typecheck, test, build                   |
 | `branch-policy.yml`  | PR → `dev`, `main`                       | target branch, promotion source, Conventional Commits  |
 | `codeql.yml`         | push/PR → `dev`, `main`; weekly          | static security analysis                               |
+| `auto-promote.yml`   | CI success on `dev`                      | open/refresh `dev`→`main` PR with auto-merge           |
 | `release-please.yml` | push → `main`; manual                    | version bump, CHANGELOG, release PR, tag               |
 | `deploy.yml`         | release published; manual                | tag-driven production deploy, health check, smoke test |
 
