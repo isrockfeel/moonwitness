@@ -1,30 +1,31 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { roleLabel } from "@/lib/auth";
 import { Crown } from "@moonwitness/ui/icons";
-import { navItems } from "./nav-items";
+import { activeByPath, navItems } from "./nav-items";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 import { Notifications } from "./notifications";
 import { ProfileMenu } from "./profile-menu";
 
 export function EmpireShell({
-  active,
   breadcrumb,
   search,
   children,
 }: {
-  active: string;
   breadcrumb: string;
   search: { value: string; onChange: (v: string) => void; placeholder: string };
   children: ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const active = activeByPath(pathname);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
   const [identity, setIdentity] = useState("Creator // Empire");
   const [role, setRole] = useState("Empire crew");
   const popRef = useRef<HTMLDivElement>(null);
@@ -53,6 +54,39 @@ export function EmpireShell({
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
+  // Item "section" hanya aktif di halaman pemilik anchor-nya. sectionAnchors dibungkus
+  // useMemo berbasis pathname supaya identitas objek tidak berubah tiap render (kalau
+  // tidak, observer akan disconnect/reconnect tanpa henti).
+  const sectionAnchors = useMemo(
+    () =>
+      navItems
+        .filter((i) => i.target.kind === "section" && i.target.href === pathname)
+        .map((i) => ({ id: i.id, anchor: (i.target as { anchor: string }).anchor })),
+    [pathname],
+  );
+
+  useEffect(() => {
+    if (sectionAnchors.length === 0) {
+      setActiveSection(null);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const hit = sectionAnchors.find((i) => i.anchor === entry.target.id);
+          if (hit) setActiveSection(hit.id);
+        }
+      },
+      { rootMargin: "-40% 0px -55% 0px" },
+    );
+    for (const item of sectionAnchors) {
+      const el = document.getElementById(item.anchor);
+      if (el) observer.observe(el);
+    }
+    return () => observer.disconnect();
+  }, [sectionAnchors]);
+
   function exitShadow() {
     try {
       localStorage.removeItem("mw-session");
@@ -66,14 +100,24 @@ export function EmpireShell({
   return (
     <div className="flex min-h-screen">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 border-r-2 border-[var(--line)] bg-[var(--panel)] lg:block">
-        <Sidebar items={navItems} active={active} onNavigate={() => setSidebarOpen(false)} />
+        <Sidebar
+          items={navItems}
+          active={active}
+          activeSection={activeSection}
+          onNavigate={() => setSidebarOpen(false)}
+        />
       </aside>
 
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/70" onClick={() => setSidebarOpen(false)} />
           <aside className="absolute inset-y-0 left-0 w-64 border-r-2 border-[var(--line)] bg-[var(--panel)]">
-            <Sidebar items={navItems} active={active} onNavigate={() => setSidebarOpen(false)} />
+            <Sidebar
+              items={navItems}
+              active={active}
+              activeSection={activeSection}
+              onNavigate={() => setSidebarOpen(false)}
+            />
           </aside>
         </div>
       )}

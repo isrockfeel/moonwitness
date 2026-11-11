@@ -169,7 +169,6 @@ export function MissionControl() {
 
   return (
     <EmpireShell
-      active="mission-control"
       breadcrumb="Mission Control"
       search={{
         value: query,

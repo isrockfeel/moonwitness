@@ -59,7 +59,6 @@ export function Dock() {
 
   return (
     <EmpireShell
-      active="dock"
       breadcrumb="Dock / Lighthouse"
       search={{ value: query, onChange: setQuery, placeholder: "Search timeline events…" }}
     >

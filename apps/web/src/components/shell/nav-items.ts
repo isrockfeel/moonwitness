@@ -1,63 +1,98 @@
+export type NavTarget =
+  /** Pindah route biasa. */
+  | { kind: "route"; href: string }
+  /** Scroll ke anchor. href = halaman pemilik anchor; Next menangani hash lintas halaman. */
+  | { kind: "section"; href: string; anchor: string }
+  /** Buka drawer modul. href = halaman pemilik drawer + query ?module=<id>. */
+  | { kind: "module"; href: string; moduleId: string };
+
 export interface NavItem {
   id: string;
   label: string;
-  href: string;
-  icon: string;
+  icon: string; // path stroke SVG
+  target: NavTarget;
+}
+
+export function navHref(item: NavItem): string {
+  switch (item.target.kind) {
+    case "route":
+      return item.target.href;
+    case "section":
+      return `${item.target.href}#${item.target.anchor}`;
+    case "module":
+      return `${item.target.href}?module=${item.target.moduleId}`;
+  }
+}
+
+const ACTIVE_BY_PATH: Record<string, string> = {
+  "/dock": "archive",
+  "/mission-control": "dashboard",
+  "/shadow": "settings",
+};
+
+export function activeByPath(pathname: string): string {
+  return ACTIVE_BY_PATH[pathname] ?? "";
 }
 
 export const navItems: NavItem[] = [
   {
     id: "dashboard",
     label: "Dashboard",
-    href: "/",
     icon: "M4 11 L12 4 L20 11 M6 10 L6 20 L18 20 L18 10",
+    target: { kind: "section", href: "/mission-control", anchor: "cc-top" },
   },
   {
-    id: "mission-control",
-    label: "Mission Control",
-    href: "/mission-control",
-    icon: "M12 3 A9 9 0 1 0 12 21 A9 9 0 1 0 12 3 M12 8 A4 4 0 1 0 12 16 A4 4 0 1 0 12 8",
-  },
-  {
-    id: "dock",
-    label: "Project Universe",
-    href: "/dock",
-    icon: "M4 8 L12 4 L20 8 L20 16 L12 20 L4 16 Z M4 8 L12 12 L20 8 M12 12 L12 20",
-  },
-  {
-    id: "story-forge",
-    label: "Story Forge",
-    href: "/mission-control?module=story-forge",
+    id: "story-studio",
+    label: "Story Studio",
     icon: "M4 20 L6 14 L16 4 L20 8 L10 18 Z M14 6 L18 10",
+    target: { kind: "module", href: "/mission-control", moduleId: "story-forge" },
   },
   {
-    id: "poster-lab",
-    label: "Poster Lab",
-    href: "/mission-control?module=poster-lab",
+    id: "episodes",
+    label: "Episodes",
+    icon: "M4 5 L20 5 L20 19 L4 19 Z M8 9 L16 9 M8 13 L13 13",
+    target: { kind: "section", href: "/mission-control", anchor: "cc-workspace" },
+  },
+  {
+    id: "poster-forge",
+    label: "Poster Forge",
     icon: "M4 5 L20 5 L20 19 L4 19 Z M4 15 L9 10 L14 15 L17 12 L20 15 M9 8.5 A0.5 0.5 0 1 0 9 8.5",
+    target: { kind: "module", href: "/mission-control", moduleId: "poster-lab" },
   },
   {
-    id: "research-lab",
-    label: "Research Lab",
-    href: "/mission-control?module=research-lab",
+    id: "collections",
+    label: "Collections",
+    icon: "M4 7 L12 3 L20 7 L12 11 Z M4 12 L12 16 L20 12 M4 17 L12 21 L20 17",
+    target: { kind: "section", href: "/mission-control", anchor: "cc-collections" },
+  },
+  {
+    id: "research",
+    label: "Research",
     icon: "M10 3 L14 3 M11 3 L11 9 L5 19 Q4 21 7 21 L17 21 Q20 21 19 19 L13 9 L13 3 M8 15 L16 15",
+    target: { kind: "section", href: "/mission-control", anchor: "cc-studios" },
   },
   {
-    id: "world-monitor",
-    label: "World Monitor",
-    href: "/mission-control?module=world-monitor",
-    icon: "M12 3 A9 9 0 1 0 12 21 A9 9 0 1 0 12 3 M3 12 L21 12 M12 3 Q17 8 17 12 Q17 16 12 21 Q7 16 7 12 Q7 8 12 3",
+    id: "crew",
+    label: "Crew",
+    icon: "M9 11 A3.5 3.5 0 1 0 9 4 A3.5 3.5 0 1 0 9 11 M2 20 Q2 15 9 15 Q16 15 16 20 M17 11 A3 3 0 1 0 17 5 M18 20 Q18 16 22 16",
+    target: { kind: "section", href: "/mission-control", anchor: "cc-crew" },
   },
   {
-    id: "publishing-hub",
-    label: "Publishing Hub",
-    href: "/mission-control?module=publishing-hub",
-    icon: "M3 11 L21 3 L13 21 L10 14 Z M10 14 L21 3",
+    id: "mission-log",
+    label: "Mission Log",
+    icon: "M5 4 L19 4 L19 20 L5 20 Z M8 8 L16 8 M8 12 L16 12 M8 16 L13 16",
+    target: { kind: "section", href: "/mission-control", anchor: "cc-log" },
+  },
+  {
+    id: "archive",
+    label: "Archive",
+    icon: "M4 8 L12 4 L20 8 L20 16 L12 20 L4 16 Z M4 8 L12 12 L20 8 M12 12 L12 20",
+    target: { kind: "route", href: "/dock" },
   },
   {
     id: "settings",
     label: "Settings",
-    href: "/shadow",
     icon: "M12 8 A4 4 0 1 0 12 16 A4 4 0 1 0 12 8 M12 2 L12 5 M12 19 L12 22 M2 12 L5 12 M19 12 L22 12 M5 5 L7 7 M17 17 L19 19 M19 5 L17 7 M7 17 L5 19",
+    target: { kind: "route", href: "/shadow" },
   },
 ];
