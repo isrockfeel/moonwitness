@@ -8,6 +8,7 @@
     "./base": "./base.js",
     "./node": "./node.js",
     "./next": "./next.js",
+    "./react-internal": "./react-internal.js",
     "./api": "./api.js"
   },
   "dependencies": {

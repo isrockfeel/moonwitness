@@ -1,7 +1,6 @@
 import type {
   Collection,
   Era,
-  EventKind,
   FeedItem,
   MapCity,
   MissionAlert,

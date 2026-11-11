@@ -287,7 +287,6 @@ function jacketLayer(t: Traits): string {
 
 function halftoneLayer(t: Traits): string {
   if (!t.halftone) return "";
-  const dot = t.background === "paper" ? t.palette.ink : t.palette.accent;
   return `<rect width="128" height="128" fill="url(#wHalftone)" opacity="${t.background === "paper" ? 0.14 : 0.22}"/>`;
 }
 

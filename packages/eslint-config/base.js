@@ -50,36 +50,6 @@ export const node = [
 ];
 
 /** @type {import("eslint").Linter.Config[]} */
-export const next = [
-  ...base,
-  {
-    files: ["**/*.{ts,tsx,js,jsx}"],
-    ...tseslintPluginReact.configs.recommended,
-    languageOptions: {
-      ...base[2].languageOptions,
-      parserOptions: {
-        ecmaVersion: 2022,
-        sourceType: "module",
-      },
-      globals: {
-        ...globals.node,
-        ...globals.browser,
-      },
-    },
-    rules: {
-      ...base[2].rules,
-      ...tseslintPluginReact.configs.recommended.rules,
-      "react/react-in-jsx-scope": "off",
-      "react/jsx-no-target-blank": "error",
-      "react/jsx-no-useless-fragment": "error",
-      "react/jsx-no-bind": "warn",
-      "react-hooks/exhaustive-deps": "warn",
-      "react-hooks/rules-of-hooks": "error",
-    },
-  },
-];
-
-/** @type {import("eslint").Linter.Config[]} */
 export const api = [
   ...node,
   {
