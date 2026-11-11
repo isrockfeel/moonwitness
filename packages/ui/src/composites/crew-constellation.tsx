@@ -11,10 +11,12 @@ export interface CrewConstellationProps {
   stats: { label: string; target: number }[];
   /** Slot R2: app yang menyuplai tombol tautan, jadi semantics link tetap milik app. */
   cta?: ReactNode;
+  /** Slot latar dekoratif (mis. atmosfer p5 dari app); ui tetap bebas p5. */
+  backdrop?: ReactNode;
 }
 
 /** Peta saksi: pilihan titik tetap state internal, datanya milik app. */
-export function CrewConstellation({ witnesses, stats, cta }: CrewConstellationProps) {
+export function CrewConstellation({ witnesses, stats, cta, backdrop }: CrewConstellationProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = witnesses.find((w) => w.id === selectedId) ?? witnesses[0];
   if (!selected) return null;
@@ -23,6 +25,7 @@ export function CrewConstellation({ witnesses, stats, cta }: CrewConstellationPr
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="zine-card-rough relative overflow-hidden p-4">
         <div className="halftone relative h-72 overflow-hidden rounded-md bg-[#0d0d16] sm:h-80">
+          {backdrop}
           <svg viewBox="0 0 100 70" className="absolute inset-0 h-full w-full" aria-hidden>
             {witnesses.map((a, i) =>
               witnesses

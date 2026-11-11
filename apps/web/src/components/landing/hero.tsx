@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Bolt, Crown, Smiley, Splatter, Star4 } from "@moonwitness/ui/icons";
 import { Grain, Tape } from "@moonwitness/ui";
 import { artSrc } from "@/lib/art";
+import { AtmosphereField } from "@/components/atmosphere";
 
 export function Hero() {
   return (
@@ -19,6 +20,8 @@ export function Hero() {
         sizes="100vw"
       />
       <div className="absolute inset-0 bg-gradient-to-r from-[rgba(11,11,16,0.85)] via-[rgba(11,11,16,0.35)] to-transparent" />
+      <AtmosphereField variant="hero" interactive className="inset-0 z-[1] mix-blend-screen opacity-80" />
+      <AtmosphereField variant="brush" seed={7} className="inset-0 z-[2] mix-blend-screen opacity-55" />
       <Splatter className="absolute -left-10 top-24 h-56 w-56 text-[var(--pink)] opacity-70" />
       <Star4 className="absolute right-[12%] top-28 h-8 w-8 text-[var(--pink)]" />
       <Bolt className="absolute bottom-24 left-[42%] hidden h-12 w-9 text-[var(--yellow)] md:block" />

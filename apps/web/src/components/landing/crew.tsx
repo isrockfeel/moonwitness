@@ -6,6 +6,7 @@ import { crewStats, witnesses } from "@/lib/data";
 import { artSrc } from "@/lib/art";
 import { ArrowRight } from "@moonwitness/ui/icons";
 import { CrewConstellation, Halftone } from "@moonwitness/ui";
+import { AtmosphereField } from "@/components/atmosphere";
 
 export function Crew() {
   return (
@@ -35,6 +36,7 @@ export function Crew() {
         <CrewConstellation
           witnesses={witnesses}
           stats={crewStats}
+          backdrop={<AtmosphereField variant="crew" className="inset-0 mix-blend-screen opacity-70" />}
           cta={
             <Link href="/shadow" className="btn-zine btn-blue px-5 py-3 text-base">
               EXPLORE THE CREW <ArrowRight className="h-4 w-4" />
