@@ -83,7 +83,7 @@ export async function registerTimelineAddon(fastify: FastifyInstance): Promise<v
         offset?: number;
       };
       const db = await import("@moonwitness/orm").then((m) => m.getDb());
-      const rows = db.all(`SELECT * FROM timeline_events WHERE status != 'deleted'`);
+      const rows = await db.all(`SELECT * FROM timeline_events WHERE status != 'deleted'`);
       const data = rows.map((r) => ({
         id: r.id,
         kind: r.kind,
@@ -159,7 +159,7 @@ export async function registerTimelineAddon(fastify: FastifyInstance): Promise<v
     async (request, reply) => {
       const { id } = request.params as { id: string };
       const db = await import("@moonwitness/orm").then((m) => m.getDb());
-      const row = db.get(`SELECT * FROM timeline_events WHERE id = ?`, [id]);
+      const row = await db.get(`SELECT * FROM timeline_events WHERE id = ?`, [id]);
       if (!row) {
         return reply.code(404).send({ error: "TimelineEvent not found" });
       }
@@ -205,17 +205,24 @@ export async function registerTimelineAddon(fastify: FastifyInstance): Promise<v
     },
     async (_request, reply) => {
       const db = await import("@moonwitness/orm").then((m) => m.getDb());
-      const total = db.get(`SELECT COUNT(*) as c FROM timeline_events WHERE status != 'deleted'`).c;
-      const byEra = db
-        .all(
-          `SELECT era, COUNT(*) as c FROM timeline_events WHERE status != 'deleted' GROUP BY era`,
-        )
-        .reduce((acc, r) => ({ ...acc, [r.era]: r.c }), {} as Record<string, number>);
-      const byKind = db
-        .all(
-          `SELECT kind, COUNT(*) as c FROM timeline_events WHERE status != 'deleted' GROUP BY kind`,
-        )
-        .reduce((acc, r) => ({ ...acc, [r.kind]: r.c }), {} as Record<string, number>);
+      const totalRow = await db.get(
+        `SELECT COUNT(*) as c FROM timeline_events WHERE status != 'deleted'`,
+      );
+      const total = Number(totalRow?.c ?? 0);
+      const byEraRows = await db.all(
+        `SELECT era, COUNT(*) as c FROM timeline_events WHERE status != 'deleted' GROUP BY era`,
+      );
+      const byEra = byEraRows.reduce(
+        (acc, r) => ({ ...acc, [r.era]: Number(r.c) }),
+        {} as Record<string, number>,
+      );
+      const byKindRows = await db.all(
+        `SELECT kind, COUNT(*) as c FROM timeline_events WHERE status != 'deleted' GROUP BY kind`,
+      );
+      const byKind = byKindRows.reduce(
+        (acc, r) => ({ ...acc, [r.kind]: Number(r.c) }),
+        {} as Record<string, number>,
+      );
       return { total, byEra, byKind };
     },
   );
@@ -252,7 +259,7 @@ export async function registerTimelineAddon(fastify: FastifyInstance): Promise<v
     },
     async (_request, reply) => {
       const db = await import("@moonwitness/orm").then((m) => m.getDb());
-      const rows = db.all(`SELECT * FROM eras`);
+      const rows = await db.all(`SELECT * FROM eras`);
       return { data: rows };
     },
   );

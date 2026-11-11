@@ -11,7 +11,7 @@ export async function registerBaseAddon(fastify: FastifyInstance): Promise<void>
 
   // Agent-native metadata endpoints
   fastify.get("/_meta/models", async () => {
-    const rows = getDb().all<{ name: string }>(
+    const rows = await getDb().all<{ name: string }>(
       "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
     );
     return { models: rows.map((r) => r.name) };
@@ -19,7 +19,7 @@ export async function registerBaseAddon(fastify: FastifyInstance): Promise<void>
 
   fastify.get("/_meta/models/:name", async (request, reply) => {
     const { name } = request.params as { name: string };
-    const columns = getDb().all<Record<string, unknown>>(
+    const columns = await getDb().all<Record<string, unknown>>(
       'SELECT name, type, "notnull", dflt_value FROM pragma_table_info(?)',
       [name],
     );
@@ -30,7 +30,7 @@ export async function registerBaseAddon(fastify: FastifyInstance): Promise<void>
   });
 
   fastify.get("/_meta/llms.txt", async (_request, reply) => {
-    const rows = getDb().all<{ name: string }>(
+    const rows = await getDb().all<{ name: string }>(
       "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
     );
     const body = [
