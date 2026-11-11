@@ -78,5 +78,14 @@ func DefaultProviders(runner host.Runner, info host.Info) []Provider {
 		})
 	}
 
+	if runner.LookPath("nft") {
+		providers = append(providers, &PortForward{Runner: runner})
+	} else {
+		providers = append(providers, &Unsupported{
+			ResourceKind: "portforward",
+			Reason:       "nftables tidak tersedia",
+		})
+	}
+
 	return providers
 }

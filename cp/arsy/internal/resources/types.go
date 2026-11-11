@@ -19,8 +19,8 @@ var (
 type Resource struct {
 	Kind string `json:"kind"`
 
-	Name string `json:"name,omitempty"`
-	Path string `json:"path,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Path  string `json:"path,omitempty"`
 	State string `json:"state,omitempty"`
 
 	Enabled *bool `json:"enabled,omitempty"`
@@ -44,6 +44,8 @@ type Resource struct {
 	Port   string `json:"port,omitempty"`
 	Proto  string `json:"proto,omitempty"`
 	From   string `json:"from,omitempty"`
+	// To adalah tujuan DNAT untuk kind portforward, mis. "10.66.0.2:80".
+	To string `json:"to,omitempty"`
 }
 
 // ID adalah identitas stabil sebuah resource.
@@ -53,6 +55,8 @@ func (r Resource) ID() string {
 		return r.Kind + ":" + r.Path
 	case "firewall":
 		return fmt.Sprintf("firewall:%s/%s/%s/%s", r.Action, r.Port, r.Proto, r.From)
+	case "portforward":
+		return fmt.Sprintf("portforward:%s/%s->%s", r.Proto, r.Port, r.To)
 	default:
 		return r.Kind + ":" + r.Name
 	}
@@ -64,6 +68,8 @@ func (r Resource) Target() string {
 		return r.Path
 	case "firewall":
 		return fmt.Sprintf("%s %s/%s from %s", r.Action, r.Port, r.Proto, r.From)
+	case "portforward":
+		return fmt.Sprintf("%s/%s → %s", orDefault(r.Proto, "tcp"), r.Port, r.To)
 	default:
 		return r.Name
 	}
@@ -126,7 +132,7 @@ type Provider interface {
 }
 
 // Order adalah urutan apply yang aman.
-var Order = []string{"user", "dir", "file", "cron", "firewall", "docker", "systemd"}
+var Order = []string{"user", "dir", "file", "cron", "firewall", "portforward", "docker", "systemd"}
 
 func OrderIndex(kind string) int {
 	for i, k := range Order {

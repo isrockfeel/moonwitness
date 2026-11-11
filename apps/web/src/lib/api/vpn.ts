@@ -15,6 +15,8 @@ export interface VPNPeer {
   keepalive: number;
   created_at: string;
   handshake?: string;
+  rx_bytes: number;
+  tx_bytes: number;
 }
 
 export interface VPNStatus {

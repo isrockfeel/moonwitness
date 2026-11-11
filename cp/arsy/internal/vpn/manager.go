@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/isrockfeel/moonwitness/cp/arsy/internal/host"
@@ -250,6 +251,42 @@ func (m Manager) Down(ctx context.Context) error {
 	}
 	_, err := m.Store.UpdateServer(func(s *Server) { s.Enabled = false })
 	return err
+}
+
+// Restore menerapkan ulang konfigurasi yang tersimpan bila tunnel pernah
+// diaktifkan. Dipanggil saat serve start supaya tunnel hidup lagi setelah reboot.
+func (m Manager) Restore(ctx context.Context) (bool, error) {
+	srv, _ := m.Store.Snapshot()
+	if !srv.Enabled || srv.PrivateKey == "" {
+		return false, nil
+	}
+	if _, err := m.EnsureServer(ctx); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// Transfers mengembalikan byte terkirim/terima per public key.
+func (m Manager) Transfers(ctx context.Context) (map[string][2]uint64, error) {
+	srv, _ := m.Store.Snapshot()
+	res, err := m.Runner.Run(ctx, host.Command{Name: "wg", Args: []string{"show", srv.Interface, "transfer"}})
+	if err != nil {
+		return map[string][2]uint64{}, nil
+	}
+	out := map[string][2]uint64{}
+	for _, line := range strings.Split(res.Stdout, "\n") {
+		fields := strings.Fields(line)
+		if len(fields) != 3 {
+			continue
+		}
+		rx, errRx := strconv.ParseUint(fields[1], 10, 64)
+		tx, errTx := strconv.ParseUint(fields[2], 10, 64)
+		if errRx != nil || errTx != nil {
+			continue
+		}
+		out[fields[0]] = [2]uint64{rx, tx}
+	}
+	return out, nil
 }
 
 // Handshakes mengembalikan waktu handshake terakhir per public key.

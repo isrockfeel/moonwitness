@@ -92,6 +92,10 @@ func validateBasic(r resources.Resource) error {
 		if r.Port == "" || r.Action == "" {
 			return errors.New("firewall butuh port dan action")
 		}
+	case "portforward":
+		if r.Port == "" || r.To == "" {
+			return errors.New("portforward butuh port dan to")
+		}
 	default:
 		return fmt.Errorf("%w: %q", resources.ErrUnknownKind, r.Kind)
 	}
@@ -162,11 +166,11 @@ func (e *Engine) observeAll(ctx context.Context) (map[string]map[string]resource
 // Hash adalah sha256 dari isi plan yang deterministik.
 func Hash(p Plan) string {
 	type hashedEntry struct {
-		ID      string              `json:"id"`
-		Kind    string              `json:"kind"`
-		Action  resources.Action    `json:"action"`
-		Target  string              `json:"target"`
-		Fields  []resources.FieldDiff `json:"fields,omitempty"`
+		ID     string                `json:"id"`
+		Kind   string                `json:"kind"`
+		Action resources.Action      `json:"action"`
+		Target string                `json:"target"`
+		Fields []resources.FieldDiff `json:"fields,omitempty"`
 	}
 	payload := make([]hashedEntry, 0, len(p.Entries))
 	for _, e := range p.Entries {

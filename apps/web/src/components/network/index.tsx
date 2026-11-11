@@ -15,6 +15,14 @@ import {
   type VPNPeer,
 } from "@/lib/api/vpn";
 
+function formatTraffic(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) return "—";
+  const units = ["B", "KiB", "MiB", "GiB", "TiB"];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const value = bytes / 1024 ** i;
+  return `${value >= 100 ? value.toFixed(0) : value.toFixed(1)} ${units[i]}`;
+}
+
 function handshakeLabel(epoch?: string): { text: string; live: boolean } {
   if (!epoch) return { text: "belum pernah", live: false };
   const seconds = Number(epoch);
@@ -112,6 +120,9 @@ function PeerRow({
         >
           {hs.text.toUpperCase()}
         </span>
+      </td>
+      <td className="px-3 py-2 font-mono text-[10px] text-zinc-500">
+        ↓{formatTraffic(peer.rx_bytes)} ↑{formatTraffic(peer.tx_bytes)}
       </td>
       <td className="px-3 py-2 text-right">
         <button
@@ -403,6 +414,7 @@ function NetworkDashboard() {
                             <th className="px-3 py-2 font-normal">NAMA</th>
                             <th className="px-3 py-2 font-normal">ALAMAT</th>
                             <th className="px-3 py-2 font-normal">HANDSHAKE</th>
+                            <th className="px-3 py-2 font-normal">TRAFIK</th>
                             <th className="px-3 py-2 font-normal" />
                           </tr>
                         </thead>

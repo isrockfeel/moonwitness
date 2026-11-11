@@ -191,6 +191,20 @@ func cmdServe(args []string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	// Pulihkan tunnel yang sudah diaktifkan sebelum reboot.
+	if a.vpn != nil {
+		vpnMgr := &vpn.Manager{Runner: a.runner, Store: a.vpn}
+		restoreCtx, cancelRestore := context.WithTimeout(ctx, 30*time.Second)
+		restored, restoreErr := vpnMgr.Restore(restoreCtx)
+		cancelRestore()
+		switch {
+		case restoreErr != nil:
+			fmt.Fprintf(os.Stderr, "arsy: vpn restore gagal: %v\n", restoreErr)
+		case restored:
+			fmt.Println("vpn: tunnel dipulihkan dari state tersimpan")
+		}
+	}
+
 	errCh := make(chan error, 1)
 	go func() {
 		fmt.Printf("arsy %s listening on http://%s (os=%s)\n", version, cfg.Listen, a.info.OS)

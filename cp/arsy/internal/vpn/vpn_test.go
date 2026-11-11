@@ -359,3 +359,77 @@ func TestEnsureServerAddsRouteForSitePeer(t *testing.T) {
 		t.Fatalf("peer site harus menerima LAN di allowed-ips, calls:\n%s", joined)
 	}
 }
+
+func TestRestoreSkipsWhenNeverEnabled(t *testing.T) {
+	s := newStore(t)
+	fake := &host.FakeRunner{}
+	mgr := Manager{Runner: fake, Store: s}
+
+	restored, err := mgr.Restore(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if restored {
+		t.Fatal("tunnel yang belum pernah aktif tidak boleh dipulihkan")
+	}
+	if len(fake.Calls) != 0 {
+		t.Fatalf("tidak boleh ada perintah dijalankan, calls: %v", fake.Calls)
+	}
+}
+
+func TestRestoreReappliesEnabledTunnel(t *testing.T) {
+	s := newStore(t)
+	_ = s.AddPeer(Peer{Name: "pc", PublicKey: "PEERPUB", Address: "10.66.0.2/32", Mode: ModeSplit, Enabled: true})
+	if _, err := s.UpdateServer(func(srv *Server) {
+		srv.PrivateKey = "PRIV"
+		srv.PublicKey = "PUB"
+		srv.Enabled = true
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	fake := &host.FakeRunner{}
+	fake.FailOn = "ip link show"
+	mgr := Manager{Runner: fake, Store: s}
+
+	restored, err := mgr.Restore(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !restored {
+		t.Fatal("tunnel aktif harus dipulihkan")
+	}
+
+	joined := ""
+	for _, call := range fake.Calls {
+		joined += strings.Join(call, " ") + "\n"
+	}
+	if !strings.Contains(joined, "ip address replace 10.66.0.1/24 dev wg0") {
+		t.Fatalf("restore harus memasang alamat interface, calls:\n%s", joined)
+	}
+	if !strings.Contains(joined, "peer PEERPUB") {
+		t.Fatalf("restore harus memasang ulang peer, calls:\n%s", joined)
+	}
+}
+
+func TestTransfersParsesBytes(t *testing.T) {
+	s := newStore(t)
+	fake := &host.FakeRunner{Results: map[string]host.Result{
+		"wg show wg0 transfer": {Stdout: "PEERA\t1024\t2048\nPEERB\t0\t0\nrusak\n"},
+	}}
+	mgr := Manager{Runner: fake, Store: s}
+
+	tr, err := mgr.Transfers(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := tr["PEERA"]; got[0] != 1024 || got[1] != 2048 {
+		t.Fatalf("PEERA harus rx=1024 tx=2048, dapat %v", got)
+	}
+	if _, ok := tr["PEERB"]; !ok {
+		t.Fatal("peer tanpa trafik tetap harus tercatat")
+	}
+	if len(tr) != 2 {
+		t.Fatalf("baris rusak harus dilewati, dapat %d entri", len(tr))
+	}
+}

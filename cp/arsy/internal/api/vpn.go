@@ -22,6 +22,9 @@ type vpnPeerView struct {
 	CreatedAt  time.Time `json:"created_at"`
 	// Handshake adalah waktu handshake terakhir (kosong = belum pernah konek).
 	Handshake string `json:"handshake,omitempty"`
+	// RxBytes/TxBytes adalah total byte sejak interface hidup.
+	RxBytes uint64 `json:"rx_bytes"`
+	TxBytes uint64 `json:"tx_bytes"`
 }
 
 type vpnStatus struct {
@@ -64,16 +67,19 @@ func (s *Server) handleVPNStatus(w http.ResponseWriter, r *http.Request) {
 	srv, peers := s.vpn.Snapshot()
 
 	handshakes := map[string]string{}
+	transfers := map[string][2]uint64{}
 	if mgr := s.vpnManager(); mgr != nil && srv.Enabled {
-		hs, err := mgr.Handshakes(r.Context())
-		if err == nil {
+		if hs, err := mgr.Handshakes(r.Context()); err == nil {
 			handshakes = hs
+		}
+		if tr, err := mgr.Transfers(r.Context()); err == nil {
+			transfers = tr
 		}
 	}
 
 	views := make([]vpnPeerView, 0, len(peers))
 	for _, p := range peers {
-		views = append(views, vpnPeerView{
+		view := vpnPeerView{
 			ID:         p.ID,
 			Name:       p.Name,
 			PublicKey:  p.PublicKey,
@@ -84,7 +90,11 @@ func (s *Server) handleVPNStatus(w http.ResponseWriter, r *http.Request) {
 			Keepalive:  p.Keepalive,
 			CreatedAt:  p.CreatedAt,
 			Handshake:  handshakes[p.PublicKey],
-		})
+		}
+		if tr, ok := transfers[p.PublicKey]; ok {
+			view.RxBytes, view.TxBytes = tr[0], tr[1]
+		}
+		views = append(views, view)
 	}
 
 	available := true
