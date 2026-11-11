@@ -4247,7 +4247,7 @@ function QuickActionGrid(props: { actions: QuickAction[]; onAction: (action: Qui
 function WorkspaceList(props: { items: WorkspaceItem[]; onOpenItem: (id: string) => void }): JSX.Element
 ```
 
-- [ ] **Step 1: Tambah dua glyph**
+- [x] **Step 1: Tambah dua glyph**
 
 `QuickAction.icon` punya union `"plus" | "image" | "pen" | "stack"`; `image` dan `pen` sudah ada di `MODULE_GLYPHS`, dua lainnya belum:
 
@@ -4258,7 +4258,7 @@ function WorkspaceList(props: { items: WorkspaceItem[]; onOpenItem: (id: string)
 
 Tambahkan ke objek `MODULE_GLYPHS` di `packages/ui/src/composites/module-glyphs.ts`.
 
-- [ ] **Step 2: `status-badge.tsx`**
+- [x] **Step 2: `status-badge.tsx`**
 
 Warna per status mengikuti palet token (§3.2), bukan warna baru:
 
@@ -4293,7 +4293,7 @@ export function StatusBadge({ status }: { status: ItemStatus }) {
 
 `dark: true` untuk latar terang (kuning, hijau) supaya teks tetap terbaca — rasio kontras minimal sama dengan pola `KindBadge` yang sudah ada.
 
-- [ ] **Step 3: `stat-block.tsx`**
+- [x] **Step 3: `stat-block.tsx`**
 
 ```tsx
 import type { StatTone, UniverseStat } from "@moonwitness/types";
@@ -4321,7 +4321,7 @@ export function StatBlock({ stat }: { stat: UniverseStat }) {
 }
 ```
 
-- [ ] **Step 4: `quick-action-grid.tsx`**
+- [x] **Step 4: `quick-action-grid.tsx`**
 
 Setiap tombol **harus** punya tujuan nyata (§6.3: "tidak ada tombol mati") — tujuannya adalah `onAction`, yang di app membuka drawer modul sesuai `action.moduleId`:
 
@@ -4357,7 +4357,7 @@ export function QuickActionGrid({ actions, onAction }: QuickActionGridProps) {
 
 `grid-cols-2` eksplisit di mobile — pelajaran dari sesi sebelumnya: track grid implisit berukuran `auto` dan menyebabkan overflow horizontal di 390px.
 
-- [ ] **Step 5: `workspace-list.tsx`**
+- [x] **Step 5: `workspace-list.tsx`**
 
 ```tsx
 "use client";
@@ -4399,7 +4399,7 @@ export function WorkspaceList({ items, onOpenItem }: WorkspaceListProps) {
 
 `min-w-0` pada span fleksibel wajib: tanpa itu judul panjang mendorong badge keluar dan membuat overflow di 390px.
 
-- [ ] **Step 6: Export + pipeline**
+- [x] **Step 6: Export + pipeline**
 
 Tambah ke `packages/ui/src/index.ts`:
 
@@ -4417,12 +4417,16 @@ grep -rn "next/" packages/ui/src
 
 Expected: hijau; grep 0 baris. Belum ada pemakai, jadi tidak ada bukti visual — itu muncul di Task 25.
 
-- [ ] **Step 7: Commit**
+> **Bukti (2026-11-11):** `grep from "next/"` di `packages/ui/src` = **0** (satu-satunya "next/link" adalah komentar di skip-link.tsx, bukan impor). `tsc --noEmit` ui **EXIT=0**, web **EXIT=0**, `next build` **EXIT=0**. `pnpm turbo` tetap tidak bisa jalan (manifest orm asing rusak UTF-8) → pakai tsc/next langsung.
+
+- [x] **Step 7: Commit**
 
 ```bash
 git add packages/ui/src
 git commit -m "feat(ui): komposit status dashboard (StatBlock, StatusBadge, QuickActionGrid, WorkspaceList)"
 ```
+
+> **Bukti:** commit `3ef4338` (6 file, +128): 4 komposit baru + module-glyphs.ts (plus/stack) + index.ts.
 
 ### Task 23: Komposit pipeline + koleksi (`KanbanColumn`, `CollectionsGrid`)
 
