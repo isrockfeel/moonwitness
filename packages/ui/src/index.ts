@@ -28,3 +28,4 @@ export { QuickActionGrid, type QuickActionGridProps } from "./composites/quick-a
 export { WorkspaceList, type WorkspaceListProps } from "./composites/workspace-list";
 export { KanbanColumn, STAGE_COLOR, type KanbanColumnProps } from "./composites/kanban-column";
 export { CollectionsGrid, type CollectionsGridProps } from "./composites/collections-grid";
+export { WorldMap, type WorldMapProps } from "./composites/world-map";
