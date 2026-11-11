@@ -1,13 +1,10 @@
 import { defineModel } from "@moonwitness/orm";
 import { TimelineEventSchema, EraSchema } from "@moonwitness/schema/timeline";
-import type { z } from "zod";
-
-type ModelShape<T extends z.ZodRawShape> = z.ZodObject<T, z.ZodTypeAny>;
 
 export const timelineEventModel = defineModel({
   name: "timeline.event",
   table: "timeline_events",
-  schema: TimelineEventSchema as unknown as ModelShape<z.infer<typeof TimelineEventSchema>>,
+  schema: TimelineEventSchema,
   softDelete: true,
   indexes: [{ fields: ["era"] }, { fields: ["kind"] }, { fields: ["date"] }],
 });
@@ -15,7 +12,7 @@ export const timelineEventModel = defineModel({
 export const timelineEraModel = defineModel({
   name: "timeline.era",
   table: "timeline_eras",
-  schema: EraSchema as unknown as ModelShape<z.infer<typeof EraSchema>>,
+  schema: EraSchema,
   softDelete: true,
 });
 

@@ -127,7 +127,7 @@ export class SqlTimelineRepository implements ITimelineRepository {
   async getEvent(id: string): Promise<TimelineEvent | null> {
     const row = await this.eventRepo.findOne(id);
     if (!row) return null;
-    return rowToEvent(row as Record<string, unknown>);
+    return rowToEvent(row as unknown as Record<string, unknown>);
   }
 
   async getStats(): Promise<TimelineStats> {
@@ -150,6 +150,6 @@ export class SqlTimelineRepository implements ITimelineRepository {
 
   async getEras(): Promise<Era[]> {
     const rows = await this.eraRepo.find({ status: "active" });
-    return rows.map((row) => rowToEra(row as Record<string, unknown>));
+    return rows.map((row) => rowToEra(row as unknown as Record<string, unknown>));
   }
 }

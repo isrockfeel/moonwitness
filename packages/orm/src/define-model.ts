@@ -2,11 +2,14 @@ import { z } from "zod";
 import { getDb } from "./driver.js";
 import type { LibSqlDriver, LibSqlExecutor } from "./drivers/sqlite.driver.js";
 import { ConflictError } from "./errors.js";
-import type { RecordSource, RecordStatus } from "./base-metadata.js";
+import type { BaseMetadata, RecordSource, RecordStatus } from "./base-metadata.js";
 import type { ActorContext } from "./actor-context.js";
 import { SYSTEM_ACTOR } from "./actor-context.js";
 
-type ZodObjectLike = z.ZodObject<z.ZodRawShape, z.ZodTypeAny>;
+type ZodObjectLike = z.AnyZodObject;
+
+/** A persisted row: business fields plus framework metadata columns. */
+export type ModelRecord<TBusiness extends ZodObjectLike> = z.infer<TBusiness> & BaseMetadata;
 
 export interface DefineModelOptions<TBusiness extends ZodObjectLike = ZodObjectLike> {
   name: string; // namespaced per addon (e.g. 'timeline.event')
@@ -238,7 +241,7 @@ function decodeValue(value: unknown, codec: Codec): unknown {
   }
 }
 
-export class BaseRepository<_TBusiness extends ZodObjectLike = ZodObjectLike> {
+export class BaseRepository<TBusiness extends ZodObjectLike = ZodObjectLike> {
   private readonly fields: Map<string, FieldSpec>;
 
   constructor(
@@ -290,7 +293,7 @@ export class BaseRepository<_TBusiness extends ZodObjectLike = ZodObjectLike> {
   async find(
     filters: Record<string, unknown> = {},
     opts: { includeDeleted?: boolean } = {},
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<ModelRecord<TBusiness>[]> {
     const clauses: string[] = [];
     const params: unknown[] = [];
 
@@ -308,13 +311,13 @@ export class BaseRepository<_TBusiness extends ZodObjectLike = ZodObjectLike> {
       `SELECT * FROM ${this.table}${where} ORDER BY id`,
       params,
     );
-    return rows.map((row) => this.decodeRow<Record<string, unknown>>(row));
+    return rows.map((row) => this.decodeRow<ModelRecord<TBusiness>>(row));
   }
 
   async findOne(
     id: string,
     opts: { includeDeleted?: boolean } = {},
-  ): Promise<Record<string, unknown> | null> {
+  ): Promise<ModelRecord<TBusiness> | null> {
     const rows = await this.find({ id }, opts);
     return rows[0] ?? null;
   }
@@ -322,7 +325,7 @@ export class BaseRepository<_TBusiness extends ZodObjectLike = ZodObjectLike> {
   async create(
     data: Record<string, unknown>,
     actor: ActorContext = SYSTEM_ACTOR,
-  ): Promise<Record<string, unknown>> {
+  ): Promise<ModelRecord<TBusiness>> {
     await ensureAuditTable();
     const now = new Date();
     const record = {
@@ -354,14 +357,14 @@ export class BaseRepository<_TBusiness extends ZodObjectLike = ZodObjectLike> {
       await this.writeAudit(tx, parsed, "CREATE", null, actor);
     });
 
-    return this.decodeRow(parsed);
+    return this.decodeRow<ModelRecord<TBusiness>>(parsed);
   }
 
   async update(
     id: string,
     data: Record<string, unknown>,
     actor: ActorContext = SYSTEM_ACTOR,
-  ): Promise<Record<string, unknown> | null> {
+  ): Promise<ModelRecord<TBusiness> | null> {
     await ensureAuditTable();
 
     return getDb().transaction(async (tx) => {
@@ -415,21 +418,21 @@ export class BaseRepository<_TBusiness extends ZodObjectLike = ZodObjectLike> {
       }
 
       await this.writeAudit(tx, parsed, "UPDATE", current, actor);
-      return this.decodeRow(parsed);
+      return this.decodeRow<ModelRecord<TBusiness>>(parsed);
     });
   }
 
   async archive(
     id: string,
     actor: ActorContext = SYSTEM_ACTOR,
-  ): Promise<Record<string, unknown> | null> {
+  ): Promise<ModelRecord<TBusiness> | null> {
     return this.setStatus(id, "archived", "ARCHIVE", actor);
   }
 
   async restore(
     id: string,
     actor: ActorContext = SYSTEM_ACTOR,
-  ): Promise<Record<string, unknown> | null> {
+  ): Promise<ModelRecord<TBusiness> | null> {
     return this.setStatus(id, "active", "RESTORE", actor);
   }
 
@@ -437,7 +440,7 @@ export class BaseRepository<_TBusiness extends ZodObjectLike = ZodObjectLike> {
   async delete(
     id: string,
     actor: ActorContext = SYSTEM_ACTOR,
-  ): Promise<Record<string, unknown> | null> {
+  ): Promise<ModelRecord<TBusiness> | null> {
     return this.setStatus(id, "deleted", "DELETE", actor, { setDeletedFields: true });
   }
 
@@ -455,7 +458,7 @@ export class BaseRepository<_TBusiness extends ZodObjectLike = ZodObjectLike> {
     action: AuditAction,
     actor: ActorContext,
     opts: { setDeletedFields?: boolean } = {},
-  ): Promise<Record<string, unknown> | null> {
+  ): Promise<ModelRecord<TBusiness> | null> {
     await ensureAuditTable();
 
     return getDb().transaction(async (tx) => {
@@ -496,7 +499,7 @@ export class BaseRepository<_TBusiness extends ZodObjectLike = ZodObjectLike> {
       }
 
       await this.writeAudit(tx, parsed, action, current, actor);
-      return this.decodeRow(parsed);
+      return this.decodeRow<ModelRecord<TBusiness>>(parsed);
     });
   }
 

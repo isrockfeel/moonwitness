@@ -46,12 +46,12 @@ export class TimelineUseCase implements ITimelineUseCase {
   constructor(private readonly repository: import("./timeline.repository").ITimelineRepository) {}
 
   async listEvents(
-    _request: ListTimelineEventsRequest,
+    request: ListTimelineEventsRequest,
     _actor: ActorContext = SYSTEM_ACTOR,
   ): Promise<Result<ListTimelineEventsResponse, Error>> {
     const [data, total] = await Promise.all([
-      this.repository.listEvents({}),
-      this.repository.countEvents({}),
+      this.repository.listEvents(request),
+      this.repository.countEvents(request),
     ]);
     return ok({ data, total });
   }

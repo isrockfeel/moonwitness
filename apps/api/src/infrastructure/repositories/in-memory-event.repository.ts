@@ -14,8 +14,7 @@ export interface IEventDataSource {
 }
 
 export class EventDataSource implements IEventDataSource {
-  // eslint-disable-next-line no-unused-vars
-  constructor(private readonly _repository: ITimelineRepository) {}
+  constructor(private readonly repository: ITimelineRepository) {}
 
   async listEvents(filters: TimelineFilters): Promise<TimelineEvent[]> {
     return this.repository.listEvents(filters);

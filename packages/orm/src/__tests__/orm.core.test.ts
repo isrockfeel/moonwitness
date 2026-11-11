@@ -119,7 +119,7 @@ describe("BaseRepository", () => {
   it("roundtrips null, JSON, boolean, number and date values", async () => {
     const created = await taskModel.repository.create(sample());
 
-    const loaded = await taskModel.repository.findOne(created.id);
+    const loaded = (await taskModel.repository.findOne(created.id))!;
     expect(loaded.title).toBe("write tests");
     expect(loaded.priority).toBe(2);
     expect(loaded.ratio).toBe(0.5);
@@ -164,14 +164,14 @@ describe("BaseRepository", () => {
 
   it("increments the version and protects framework columns on update", async () => {
     const created = await taskModel.repository.create(sample());
-    const updated = await taskModel.repository.update(created.id, {
+    const updated = (await taskModel.repository.update(created.id, {
       title: "ship it",
       version: 1,
       id: "hijacked",
       create_uid: "attacker",
       create_date: new Date("1999-01-01T00:00:00.000Z"),
       status: "deleted",
-    });
+    }))!;
 
     expect(updated.id).toBe(created.id);
     expect(updated.create_uid).toBeNull();
@@ -189,7 +189,7 @@ describe("BaseRepository", () => {
       taskModel.repository.update(created.id, { title: "stale", version: 1 }),
     ).rejects.toBeInstanceOf(ConflictError);
 
-    const reloaded = await taskModel.repository.findOne(created.id);
+    const reloaded = (await taskModel.repository.findOne(created.id))!;
     expect(reloaded.title).toBe("first");
     expect(reloaded.version).toBe(2);
   });
@@ -207,7 +207,7 @@ describe("BaseRepository", () => {
     expect(fulfilled).toHaveLength(1);
     expect(rejected).toHaveLength(1);
 
-    const reloaded = await taskModel.repository.findOne(created.id);
+    const reloaded = (await taskModel.repository.findOne(created.id))!;
     expect(reloaded.version).toBe(2);
     expect(["left", "right"]).toContain(reloaded.title);
   });
@@ -225,9 +225,10 @@ describe("BaseRepository", () => {
       taskModel.repository.update(created.id, { title: "should not persist", version: 1 }),
     ).rejects.toThrow(/audit unavailable/);
 
-    const reloaded = await taskModel.repository.findOne(created.id);
-    expect(reloaded.title).toBe("write tests");
-    expect(reloaded.version).toBe(1);
+    const reloaded = (await taskModel.repository.findOne(created.id))!;
+    expect(reloaded).not.toBeNull();
+    expect(reloaded?.title).toBe("write tests");
+    expect(reloaded?.version).toBe(1);
   });
 
   it("soft deletes, hides deleted rows by default, restores and records history", async () => {
@@ -248,8 +249,8 @@ describe("BaseRepository", () => {
     const created = await taskModel.repository.create(sample());
     const archived = await taskModel.repository.archive(created.id);
 
-    expect(archived.status).toBe("archived");
-    expect(archived.deleted_date).toBeNull();
+    expect(archived?.status).toBe("archived");
+    expect(archived?.deleted_date).toBeNull();
   });
 
   it("rejects unknown filter columns instead of interpolating them", async () => {
@@ -269,9 +270,10 @@ describe("BaseRepository", () => {
     closeDb();
     await initDb(dbPath);
 
-    const reloaded = await taskModel.repository.findOne(created.id);
-    expect(reloaded.title).toBe("write tests");
-    expect(reloaded.tags).toEqual(["a", "b"]);
+    const reloaded = (await taskModel.repository.findOne(created.id))!;
+    expect(reloaded).not.toBeNull();
+    expect(reloaded?.title).toBe("write tests");
+    expect(reloaded?.tags).toEqual(["a", "b"]);
   });
 });
 
