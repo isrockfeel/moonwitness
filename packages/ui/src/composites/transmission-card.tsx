@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PauseIcon, PlayIcon } from "../icons";
+import { CassetteTape, PauseIcon, PlayIcon } from "../icons";
 import { ZineImage } from "../primitives/zine-image";
+import { Staple, TactileTape } from "../primitives/tactile-hardware";
 
 export interface TransmissionCardProps {
   /** Artwork key for the image */
@@ -16,7 +17,7 @@ export interface TransmissionCardProps {
   label?: string;
 }
 
-/** Kartu transmisi berdurasi: timer dan state putar/jeda murni internal. */
+/** Kartu transmisi berdurasi: timer dan state putar/jeda murni internal dengan tactile riot aesthetics. */
 export function TransmissionCard({
   image,
   title,
@@ -45,33 +46,41 @@ export function TransmissionCard({
     `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   return (
-    <article className="zine-card-rough group relative flex flex-col overflow-hidden">
-      <div className="relative h-44 overflow-hidden">
+    <article className="zine-card-rough photocopy-grit group relative flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:rotate-[-0.5deg]">
+      {/* Tactile hardware: staple on top left & yellow duct tape on top right */}
+      <Staple className="top-2 left-3 -rotate-12" />
+      <TactileTape variant="yellow" label="LEAKED AUDIO" width={90} className="-top-1 -right-4 rotate-12 text-[9px]" />
+
+      <div className="relative h-48 overflow-hidden bg-black/60">
         {image && (
           <ZineImage
             art={image}
             sizes="(max-width: 768px) 100vw, 33vw"
-            className="duo-img transition-transform duration-500 group-hover:scale-105"
+            className="duo-img transition-transform duration-700 group-hover:scale-110"
           />
         )}
         <span className="duo-tint" />
-        <span className="sticker sticker-yellow absolute left-3 top-3 px-3 py-1 font-brush text-xs">
+
+        {/* Vintage Cassette watermark */}
+        <CassetteTape className="pointer-events-none absolute right-3 top-3 h-7 w-12 text-white/20" />
+
+        <span className="sticker sticker-pink absolute left-3 top-3 px-3 py-1 font-brush text-xs rotate-[-2deg] shadow-[2px_2px_0_rgba(0,0,0,0.8)]">
           {label}
         </span>
         <button
           onClick={() => setPlaying((v) => !v)}
           aria-label={playing ? "Pause transmission" : "Play transmission"}
-          className="absolute bottom-3 right-3 flex h-11 w-11 items-center justify-center rounded-full border-2 border-white/70 bg-black/60 text-white backdrop-blur transition hover:scale-110 hover:border-[var(--pink)] hover:text-[var(--pink)]"
+          className="absolute bottom-3 right-3 flex h-12 w-12 items-center justify-center rounded-full border-2 border-white/80 bg-black/80 text-[var(--yellow)] shadow-[0_0_12px_rgba(255,210,31,0.5)] backdrop-blur transition hover:scale-110 hover:border-[var(--pink)] hover:text-[var(--pink)]"
         >
           {playing ? <PauseIcon className="h-5 w-5" /> : <PlayIcon className="ml-0.5 h-5 w-5" />}
         </button>
       </div>
-      <div className="flex flex-1 flex-col p-5">
-        <h3 className="font-brush text-2xl leading-tight text-white">{title.toUpperCase()}</h3>
-        {excerpt && <p className="mt-2 flex-1 text-sm leading-relaxed text-zinc-400">{excerpt}</p>}
-        <div className="mt-4">
+      <div className="flex flex-1 flex-col p-5 bg-gradient-to-b from-[var(--panel)] to-[#0e0e15]">
+        <h3 className="cmyk-slip font-brush text-2xl leading-tight text-white tracking-wide">{title.toUpperCase()}</h3>
+        {excerpt && <p className="mt-2 flex-1 font-mono text-xs leading-relaxed text-zinc-300">{excerpt}</p>}
+        <div className="mt-4 border-t border-[var(--line)] pt-3">
           <div
-            className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--line)]"
+            className="h-2 w-full overflow-hidden bg-black/80 border border-zinc-700"
             role="progressbar"
             aria-valuenow={elapsed}
             aria-valuemin={0}
@@ -79,19 +88,19 @@ export function TransmissionCard({
             aria-label="Transmission progress"
           >
             <div
-              className="h-full bg-[var(--pink)] transition-[width] duration-300"
+              className="h-full bg-gradient-to-r from-[var(--pink)] to-[var(--yellow)] transition-[width] duration-300"
               style={{ width: `${(elapsed / durationSeconds) * 100}%` }}
             />
           </div>
-          <div className="mt-1.5 flex justify-between text-[11px] text-zinc-500">
-            <span className={playing ? "text-[var(--pink)]" : ""}>
+          <div className="mt-1.5 flex justify-between font-mono text-[10px] text-zinc-400">
+            <span className={playing ? "text-[var(--pink)] animate-pulse font-bold" : ""}>
               {playing
-                ? "● RECEIVING…"
+                ? "▶ BROADCASTING FREQUENCY…"
                 : elapsed >= durationSeconds
                   ? "TRANSMISSION ENDED"
-                  : "STANDBY"}
+                  : "STANDBY FOR SIGNAL"}
             </span>
-            <span>
+            <span className="font-bold">
               {fmt(elapsed)} / {fmt(durationSeconds)}
             </span>
           </div>
