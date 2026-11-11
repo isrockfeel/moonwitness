@@ -26,3 +26,5 @@ export { StatBlock } from "./composites/stat-block";
 export { StatusBadge } from "./composites/status-badge";
 export { QuickActionGrid, type QuickActionGridProps } from "./composites/quick-action-grid";
 export { WorkspaceList, type WorkspaceListProps } from "./composites/workspace-list";
+export { KanbanColumn, STAGE_COLOR, type KanbanColumnProps } from "./composites/kanban-column";
+export { CollectionsGrid, type CollectionsGridProps } from "./composites/collections-grid";
