@@ -8,7 +8,6 @@ import type { ITimelineUseCase } from "../../domain/usecases/timeline/timeline.u
 
 export interface BootstrapOptions {
   timelineUseCase: ITimelineUseCase;
-  prefix?: string;
 }
 
 export async function buildFastify(options: BootstrapOptions): Promise<FastifyInstance> {
@@ -56,16 +55,6 @@ export async function buildFastify(options: BootstrapOptions): Promise<FastifyIn
         deepLinking: false,
       },
     });
-  }
-
-  if (options.prefix) {
-    await fastify.register(
-      async (instance: FastifyInstance) => {
-        const { registerRoutes } = await import("../../interface/routes");
-        await registerRoutes(instance);
-      },
-      { prefix: options.prefix },
-    );
   }
 
   return fastify;

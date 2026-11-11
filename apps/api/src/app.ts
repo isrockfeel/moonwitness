@@ -22,11 +22,20 @@ export async function buildApp(options: BootstrapOptions = {}): Promise<FastifyI
   const { buildFastify } = await import("./infrastructure/adapters/fastify.adapter");
   const fastify = await buildFastify({
     timelineUseCase,
-    prefix: options.prefix ?? env.API_PREFIX,
   });
 
+  const prefix = options.prefix ?? env.API_PREFIX;
   const { registerRoutes } = await import("./interface/routes");
-  await registerRoutes(fastify);
+  if (prefix) {
+    await fastify.register(
+      async (instance: FastifyInstance) => {
+        await registerRoutes(instance);
+      },
+      { prefix },
+    );
+  } else {
+    await registerRoutes(fastify);
+  }
 
   fastify.addHook("onClose", async () => {
     closeDb();

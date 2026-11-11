@@ -204,4 +204,18 @@ describe("timeline API", () => {
     const body = response.json() as { data: unknown[]; total: number };
     expect(body.total).toBe(5);
   });
+
+  it("mounts routes strictly under prefix and returns 404 for unversioned root route", async () => {
+    const versionedResponse = await app.inject({
+      method: "GET",
+      url: "/api/v1/timeline/events",
+    });
+    expect(versionedResponse.statusCode).toBe(200);
+
+    const rootResponse = await app.inject({
+      method: "GET",
+      url: "/timeline/events",
+    });
+    expect(rootResponse.statusCode).toBe(404);
+  });
 });

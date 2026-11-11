@@ -1,7 +1,10 @@
 {
-  "extends": "@moonwitness/typescript-config/react-library",
+  "extends": "@moonwitness/typescript-config/base.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src"
-  }
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["node"]
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -1,6 +1,6 @@
 {
   "name": "moonwitness",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "packageManager": "pnpm@12.18.0",
   "engines": {
@@ -19,9 +19,11 @@
     "api:build": "pnpm --filter @moonwitness/api build",
     "api:start": "pnpm --filter @moonwitness/api start",
     "api:test": "pnpm --filter @moonwitness/api test",
-    "web:dev": "next dev",
-    "web:build": "next build",
-    "web:start": "next start",
+    "web:dev": "pnpm --filter @moonwitness/web dev",
+    "web:build": "pnpm --filter @moonwitness/web build",
+    "web:start": "pnpm --filter @moonwitness/web start",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "gate:quick": "node scripts/gatecheck.mjs quick",
     "gate:local": "node scripts/gatecheck.mjs local",
     "gate:push": "node scripts/gatecheck.mjs push",
@@ -32,6 +34,7 @@
     "hooks:install": "node scripts/install-hooks.mjs"
   },
   "devDependencies": {
+    "@playwright/test": "^1.51.1",
     "prettier": "^3.6.2",
     "turbo": "^2.5.8",
     "typescript": "^5.9.3"

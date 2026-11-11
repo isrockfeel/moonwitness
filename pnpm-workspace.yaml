@@ -1,7 +1,6 @@
 packages:
   - "apps/*"
   - "packages/*"
-  - "packages/addons/*"
 
 # Patch-level security floor for a transitive dependency of next.
 overrides:
