@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { EmpireShell } from "./empire-shell";
+import { EmpireShell } from "./shell";
 import { ArrowRight, Bolt, Crown, Splatter, Star4 } from "@moonwitness/ui/icons";
 import { Grain, Halftone, ModuleCard, ModuleGlyph } from "@moonwitness/ui";
 import { artSrc } from "@/lib/art";

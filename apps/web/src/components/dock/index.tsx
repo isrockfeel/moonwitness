@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type { EraId } from "@moonwitness/types";
-import { EmpireShell } from "../empire-shell";
+import { EmpireShell } from "../shell";
 import { Star4 } from "@moonwitness/ui/icons";
 import { EraBand } from "@moonwitness/ui";
 import { timelineEvents, eras } from "@/lib/data";
