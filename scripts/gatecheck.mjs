@@ -432,8 +432,9 @@ function gateRelease() {
   const changelog = existsSync(join(ROOT, "CHANGELOG.md"))
     ? readFileSync(join(ROOT, "CHANGELOG.md"), "utf-8")
     : "";
+  const escapedVersion = version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const hasEntry = version
-    ? new RegExp(`^##+ \\[?${version.replace(/\./g, "\\.")}\\]?`, "m").test(changelog)
+    ? new RegExp(`^##+ \\[?${escapedVersion}\\]?`, "m").test(changelog)
     : false;
   gate.add(
     hasEntry ? STATE.PASS : STATE.FAIL,
