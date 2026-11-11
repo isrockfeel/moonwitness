@@ -38,7 +38,12 @@ export function AtmosphereField({
     () => makeFactory(variant, { seed, interactive, density, cities }),
     [variant, seed, interactive, density, cities],
   );
-  useP5(ref, factory, { enabled: !reduced && !isMobile, continuous: variant !== "brush", interactive, seed });
+  useP5(ref, factory, {
+    enabled: !reduced && !isMobile,
+    continuous: variant !== "brush",
+    interactive,
+    seed,
+  });
 
   return (
     <div
