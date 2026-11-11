@@ -3730,11 +3730,11 @@ Owner sudah mengizinkan generate ulang artwork bila perlu (keputusan "Boleh gene
 - Consumes: `ArtKey` sudah memuat `"shadow-command"` (Task 1); `ART_SOURCES["shadow-command"]` sudah menunjuk `apps/web/public/art/shadow-command.png` (Task 3); `ARTWORK["shadow-command"]` sudah ada (Task 3).
 - Produces: byte artwork yang membuat tes filesystem Task 3 hijau dan hero Shadow Command Center bisa dirender.
 
-- [ ] **Step 1: Lihat referensinya dulu**
+- [x] **Step 1: Lihat referensinya dulu**
 
 Buka `packages/assets/references/06-shadow-command-center.png` dan catat: palet (magenta `#ff2d78`, biru elektrik `#2ea8ff`, kuning asam `#ffd21f` di atas hitam), tekstur halftone komik, dan suasana (kota neon malam, bulan besar). Hero yang dihasilkan harus cocok dipakai **di belakang teks judul brush**, jadi komposisinya harus menyisakan area gelap di sisi kiri.
 
-- [ ] **Step 2: Generate artwork**
+- [x] **Step 2: Generate artwork**
 
 Pakai `ImageGen` dengan prompt berikut (tanpa teks di dalam gambar — judul dirender HTML, bukan dibakar ke bitmap):
 
@@ -3751,7 +3751,7 @@ Constraints: no text, no lettering, no logos, no watermark, no readable signage;
 
 Ukuran: `1792x1024`.
 
-- [ ] **Step 3: Simpan ke dua tempat**
+- [x] **Step 3: Simpan ke dua tempat**
 
 ```bash
 cp <path-hasil-imagegen> apps/web/public/art/shadow-command.png
@@ -3761,7 +3761,7 @@ ls -l apps/web/public/art/shadow-command.png
 
 Expected: file ada, > 1 MB (sumber memang besar; yang disajikan browser adalah hasil Step 4).
 
-- [ ] **Step 4: Aktifkan tes yang di-skip**
+- [x] **Step 4: Aktifkan tes yang di-skip**
 
 Di `packages/assets/src/optimize.test.ts`, ubah:
 
@@ -3775,7 +3775,7 @@ menjadi:
   it("setiap kunci punya sumber PNG yang benar-benar ada di repo", async () => {
 ```
 
-- [ ] **Step 5: Jalankan tes (harus hijau) lalu pipeline optimasi**
+- [x] **Step 5: Jalankan tes (harus hijau) lalu pipeline optimasi**
 
 ```bash
 pnpm --filter @moonwitness/assets test
@@ -3793,16 +3793,20 @@ ls -l apps/web/public/art/shadow-command.png apps/web/public/art/shadow-command-
 
 Expected: `-1440.avif` < 400 KB. Kalau lebih, turunkan `QUALITY` di `scripts/optimize.mjs` ke 55 dan jalankan ulang (perubahan itu memengaruhi semua artwork, jadi ulangi perbandingan Task 3 Step 8).
 
-- [ ] **Step 6: Cek gambarnya benar, bukan sekadar ada**
+> **Bukti (2026-11-11):** `-1440.avif` = 246 KB (< 400 KB, QUALITY tetap 62); 8 file turunan shadow-command ada; log optimize `[ok] shadow-command: 8 file` (bukan `[skip]`). **Dua simpangan dari rencana, keduanya jujur:** (a) `pnpm --filter @moonwitness/assets test|optimize` mati di `ERR_PNPM_PACKAGE_MANIFEST_IO_ERROR` karena `packages/orm/package.json` milik tim lain rusak UTF-8 (bukan file kita, tidak disentuh) — di-sikapi dengan menjalankan `vitest run` dan `node scripts/optimize.mjs` langsung dari `packages/assets` (keduanya resolve root sendiri). (b) tes filesystem gagal untuk **semua** kunci, bukan cuma shadow-command: `existsSync(ART_SOURCES[key])` me-resolve path relatif terhadap `process.cwd()` (= `packages/assets`), padahal `ART_SOURCES` berisi path relatif root repo. Diperbaiki supaya gate benar-benar menyala: root diturunkan dari lokasi file (`resolve(dirname(fileURLToPath(import.meta.url)), "../../..")`, sama seperti `ROOT` di `optimize.mjs`). Sebelum fix tes mengembalikan `false` (merah), sesudahnya hijau → gate terbukti berfungsi, bukan lolos karena selalu benar. Total **5 tes hijau** (bukan 4 — angka 4 di atas ditulis sebelum `.skip` dibuka; ada 5 tes dalam file).
+
+- [x] **Step 6: Cek gambarnya benar, bukan sekadar ada**
 
 Buka `apps/web/public/art/shadow-command.png` sebagai gambar dan periksa: dua figur bertudung, bulan biru besar, tidak ada teks/huruf, sisi kiri cukup gelap untuk teks putih. Kalau ada teks yang ikut ter-generate, ulangi Step 2 dengan `Constraints` dipertegas (`absolutely no text or lettering anywhere`).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add apps/web/public/art packages/assets/references/raw/shadow-command.png packages/assets/src/optimize.test.ts
 git commit -m "feat(assets): artwork shadow-command + aktifkan tes keberadaan sumber"
 ```
+
+> **Bukti:** commit `64ca781`. Index berisi tepat 11 file milik task (shadow-command.png + 8 turunan avif/webp + references/raw/shadow-command.png + optimize.test.ts). WIP asing (`apps/web/src/env.ts`, `package.json`, `packages/eslint-config/*`, `pnpm-lock.yaml`, `turbo.json`) tetap tidak di-stage.
 
 ---
 
