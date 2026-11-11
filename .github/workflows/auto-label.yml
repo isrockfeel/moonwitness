@@ -16,6 +16,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      issues: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,9 +33,71 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+      issues: write
     steps:
-      - name: Auto Assign
-        uses: actions/assigner@v1
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          configuration-path: .github/assigner.yml
+          fetch-depth: 0
+
+      - name: Auto Assign
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const yaml = require('yaml');
+            
+            // Read assigner config
+            const config = yaml.load(fs.readFileSync('.github/assigner.yml', 'utf8'));
+            
+            // Get PR files
+            const files = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+            
+            // Collect all matching assignees
+            const assignees = new Set();
+            
+            // Add default assignees
+            if (config.default) {
+              config.default.forEach(a => assignees.add(a));
+            }
+            
+            // Check each file against patterns
+            for (const file of files.data) {
+              const filename = file.filename;
+              for (const [pattern, assigneesList] of Object.entries(config)) {
+                if (pattern === 'default') continue;
+                
+                // Convert glob pattern to regex
+                const regexPattern = pattern
+                  .replace(/\./g, '\\.')
+                  .replace(/\*\*/g, '.*')
+                  .replace(/\*/g, '[^/]*');
+                
+                try {
+                  const regex = new RegExp(`^${regexPattern}$`);
+                  if (regex.test(filename)) {
+                    assigneesList.forEach(a => assignees.add(a));
+                  }
+                } catch (e) {
+                  // Invalid regex, skip
+                }
+              }
+            }
+            
+            // Assign reviewers
+            if (assignees.size > 0) {
+              const assigneesList = Array.from(assignees);
+              await github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+                reviewers: assigneesList
+              });
+              console.log(`Assigned reviewers: ${assigneesList.join(', ')}`);
+            } else {
+              console.log('No matching assignees found');
+            }
