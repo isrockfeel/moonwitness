@@ -48,7 +48,7 @@ jobs:
       - name: Create or reuse promotion pull request
         id: pr
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASE_PAT || secrets.GITHUB_TOKEN }}
           REASON: ${{ inputs.reason }}
           CI_RUN_URL: ${{ github.event.workflow_run.html_url }}
         run: |
@@ -71,7 +71,7 @@ jobs:
 
       - name: Enable auto-merge
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASE_PAT || secrets.GITHUB_TOKEN }}
         run: |
           number="${{ steps.pr.outputs.pr_number }}"
           if [ -z "$number" ]; then
