@@ -14,14 +14,7 @@ import {
   Splatter,
   Star4,
 } from "@moonwitness/ui/icons";
-import {
-  DistressedSticker,
-  Grain,
-  RansomText,
-  Staple,
-  TactileTape,
-  Tape,
-} from "@moonwitness/ui";
+import { DistressedSticker, Grain, RansomText, Staple, TactileTape, Tape } from "@moonwitness/ui";
 import { artSrc } from "@/lib/art";
 import { AtmosphereField } from "@/components/atmosphere";
 
@@ -53,7 +46,10 @@ export function Hero() {
 
       {/* Grunge Riot Elements */}
       <Splatter className="absolute -left-12 top-20 h-64 w-64 text-[var(--pink)] opacity-80" />
-      <Star4 className="absolute right-[12%] top-28 h-10 w-10 text-[var(--pink)] animate-spin" style={{ animationDuration: "12s" }} />
+      <Star4
+        className="absolute right-[12%] top-28 h-10 w-10 text-[var(--pink)] animate-spin"
+        style={{ animationDuration: "12s" }}
+      />
       <Bolt className="absolute bottom-28 left-[40%] hidden h-14 w-10 text-[var(--yellow)] md:block" />
       <SafetyPin className="absolute top-28 left-[38%] h-10 w-10 text-white/50 -rotate-45" />
 
@@ -88,7 +84,12 @@ export function Hero() {
           {/* Distressed Dossier Card */}
           <div className="sticker relative mt-6 max-w-lg rotate-[-1deg] p-6 shadow-[8px_8px_0_rgba(0,0,0,0.85)]">
             <Staple className="-top-1 left-6 -rotate-6" />
-            <TactileTape variant="yellow" label="EYEWITNESS_ARCHIVE" width={140} className="-top-3 right-8 rotate-6 text-[10px]" />
+            <TactileTape
+              variant="yellow"
+              label="EYEWITNESS_ARCHIVE"
+              width={140}
+              className="-top-3 right-8 rotate-6 text-[10px]"
+            />
             <p className="font-hand text-xl font-black leading-snug sm:text-2xl text-black">
               A global story network for curious humans. Different people. Same moon. Bigger
               perspectives. Unfiltered transmissions from the shadow side.

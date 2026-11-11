@@ -16,7 +16,11 @@ function ArchiveStrip() {
 
   return (
     <div className="relative">
-      <div ref={ref} className="flex gap-5 overflow-x-auto pb-6 pt-2" style={{ scrollbarWidth: "thin" }}>
+      <div
+        ref={ref}
+        className="flex gap-5 overflow-x-auto pb-6 pt-2"
+        style={{ scrollbarWidth: "thin" }}
+      >
         {items.map((ev, index) => (
           <Link
             key={ev.id}
@@ -59,7 +63,10 @@ function ArchiveStrip() {
         ))}
       </div>
       <div className="mt-4 flex items-center justify-between border-t border-[var(--line)] pt-4">
-        <Link href="/dock" className="btn-zine btn-blue px-6 py-2.5 text-sm shadow-[3px_3px_0_#000]">
+        <Link
+          href="/dock"
+          className="btn-zine btn-blue px-6 py-2.5 text-sm shadow-[3px_3px_0_#000]"
+        >
           BROWSE FULL ARCHIVE <ArrowRight className="h-4 w-4" />
         </Link>
         <div className="flex gap-2">

@@ -2,12 +2,7 @@ import type { HTMLAttributes } from "react";
 import { cn } from "../cn";
 
 export type DistressedStickerVariant =
-  | "classified"
-  | "evidence"
-  | "barcode"
-  | "hazard"
-  | "bootleg"
-  | "foil";
+  "classified" | "evidence" | "barcode" | "hazard" | "bootleg" | "foil";
 
 export interface DistressedStickerProps extends HTMLAttributes<HTMLDivElement> {
   variant?: DistressedStickerVariant;
