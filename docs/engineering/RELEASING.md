@@ -52,14 +52,10 @@ and that the tag is still free.
 
 ## Deployment
 
-There is no production deployment target in this repository yet. Adding one requires:
+Production deploys are tag-driven: `.github/workflows/deploy.yml` runs on `release: published`,
+deploys the tagged commit, then requires a `200` from the health endpoint and a passing smoke test.
 
-1. A platform manifest (`vercel.json`, Dockerfile, or equivalent) committed to the repo.
-2. An owner-provided secret set (`VERCEL_TOKEN` + org/project IDs, or the chosen platform's
-   equivalent) in repository secrets.
-3. A `deploy.yml` that triggers on `release: published`, requires the owner's manual approval via a
-   GitHub Environment, deploys the tagged commit, then runs a health check against the real
-   hostname and fails the job if it does not answer `200`.
-
-Until all three exist, claiming a deploy pipeline would be claiming a green stage that does
-nothing.
+The workflow is implemented but **not yet operational**: this repository has no hosting target and
+no deployment credentials, so the job fails with an explicit list of what is missing rather than
+reporting a green deploy. Configuration, enabling steps, and the rollback runbook are in
+[DEPLOYMENT.md](DEPLOYMENT.md).

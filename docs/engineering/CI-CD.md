@@ -2,17 +2,17 @@
 
 ## Workflows
 
-| File                 | Trigger                                  | Purpose                                               |
-| -------------------- | ---------------------------------------- | ----------------------------------------------------- |
-| `ci.yml`             | push → `dev`; PR → `dev`, `main`; manual | format, lint, typecheck, test, build                  |
-| `branch-policy.yml`  | PR → `dev`, `main`                       | target branch, promotion source, Conventional Commits |
-| `codeql.yml`         | push/PR → `dev`, `main`; weekly          | static security analysis                              |
-| `release-please.yml` | push → `main`; manual                    | version bump, CHANGELOG, release PR, tag              |
+| File                 | Trigger                                  | Purpose                                                |
+| -------------------- | ---------------------------------------- | ------------------------------------------------------ |
+| `ci.yml`             | push → `dev`; PR → `dev`, `main`; manual | format, lint, typecheck, test, build                   |
+| `branch-policy.yml`  | PR → `dev`, `main`                       | target branch, promotion source, Conventional Commits  |
+| `codeql.yml`         | push/PR → `dev`, `main`; weekly          | static security analysis                               |
+| `release-please.yml` | push → `main`; manual                    | version bump, CHANGELOG, release PR, tag               |
+| `deploy.yml`         | release published; manual                | tag-driven production deploy, health check, smoke test |
 
-There is no deploy workflow. This repository has no production target configured (no
-`vercel.json`, Dockerfile, or platform manifest), so a deploy job would be a stage that reports
-success without deploying anything. See [RELEASING.md](RELEASING.md) for what is required before
-one can be added.
+`deploy.yml` is implemented but has never run: the repository has no hosting target or deployment
+credentials. It fails with an explicit list of the missing configuration instead of reporting a
+green deploy. See [DEPLOYMENT.md](DEPLOYMENT.md).
 
 There is exactly one CI workflow. Anything that used to be a separate lint/test workflow belongs
 inside `ci.yml`; duplicating gates is how they drift.
@@ -25,6 +25,7 @@ Every workflow starts from `permissions:` scoped to what it needs:
 - `branch-policy.yml` — `contents: read`
 - `codeql.yml` — `contents: read`, `security-events: write`
 - `release-please.yml` — `contents: write`, `pull-requests: write`, `issues: write`
+- `deploy.yml` — `contents: read`; the deploy job is bound to the `production` environment
 
 Actions are pinned to immutable commit SHAs with the resolved version in a trailing comment.
 Dependabot updates them weekly; review the diff before merging, because a pinned action cannot be

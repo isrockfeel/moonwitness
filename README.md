@@ -74,5 +74,6 @@ skip diam-diam. Lihat [docs/engineering/GATECHECK.md](docs/engineering/GATECHECK
 - [Gate lokal](docs/engineering/GATECHECK.md)
 - [CI/CD](docs/engineering/CI-CD.md)
 - [Releasing](docs/engineering/RELEASING.md)
+- [Deployment](docs/engineering/DEPLOYMENT.md)
 - [Security](docs/engineering/SECURITY.md)
 - [Contributing](CONTRIBUTING.md)

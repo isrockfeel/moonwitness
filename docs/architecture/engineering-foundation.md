@@ -17,7 +17,7 @@ and the parts that are deliberately not built yet.
 ├──────────────────────────────────────────────────────────────┤
 │ Release             Release Please → CHANGELOG → vX.Y.Z tag  │
 ├──────────────────────────────────────────────────────────────┤
-│ Deployment          not configured (see RELEASING.md)        │
+│ Deployment          tag-driven deploy.yml, not yet enabled   │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -51,5 +51,6 @@ only rebuilt when its inputs change.
 - [BRANCHING.md](../engineering/BRANCHING.md) — topology and promotion
 - [GATECHECK.md](../engineering/GATECHECK.md) — gate commands, states, guarantees
 - [CI-CD.md](../engineering/CI-CD.md) — workflows, permissions, required checks
-- [RELEASING.md](../engineering/RELEASING.md) — Release Please, versioning, deployment gap
+- [RELEASING.md](../engineering/RELEASING.md) — Release Please, versioning
+- [DEPLOYMENT.md](../engineering/DEPLOYMENT.md) — deploy contract, enabling steps, rollback
 - [SECURITY.md](../engineering/SECURITY.md) — controls, reporting, known gaps
