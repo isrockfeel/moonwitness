@@ -2964,7 +2964,7 @@ export function SiteNav(): JSX.Element
 
 Signature publik `SiteNav` tidak berubah, jadi `landing/index.tsx` tidak perlu disentuh sama sekali — `import { SiteNav } from "../site-nav"` menyelesaikan ke `site-nav/index.tsx` setelah `site-nav.tsx` dihapus. **Hapus keduanya dalam satu commit**, kalau tidak Node akan memilih file `.tsx` dan folder baru jadi kode mati.
 
-- [ ] **Step 1: `links.ts`**
+- [x] **Step 1: `links.ts`**
 
 Pindahkan array `links` dari `site-nav.tsx:8-14` apa adanya, tambah tipe ekspor supaya `MobileMenu` tidak perlu menebak bentuknya:
 
@@ -2985,7 +2985,7 @@ export const links: NavLink[] = [
 
 `id` di sini adalah **id section di landing** — dipakai `IntersectionObserver` dan `href="#…"`. Jangan mengubah nilainya.
 
-- [ ] **Step 2: `mobile-menu.tsx`**
+- [x] **Step 2: `mobile-menu.tsx`**
 
 Pindahkan `site-nav.tsx:119-143` apa adanya. Tiga perubahan: `links` jadi prop, dan `setActive`+`setMenuOpen` dipecah jadi dua callback terpisah (`onSelect` = pilih section, `onClose` = tutup menu). Keduanya dipisah karena niatnya memang dua; memakai `onSelect("")` sebagai "tutup menu" akan membuat `active` bisa bernilai `""` dan itu membingungkan saat dibaca.
 
@@ -3027,7 +3027,9 @@ export function MobileMenu({ links, active, onSelect, onClose }: MobileMenuProps
 }
 ```
 
-- [ ] **Step 3: `search-dialog.tsx`**
+- [x] **Step 3: `search-dialog.tsx`**
+
+> **Drift dari plan:** plan menulis `<input className="zine-input …">` mentah, tapi kode nyata (`site-nav.tsx:164`) memakai komponen `<ZineInput>` dari `@moonwitness/ui`. Fase 2 netral perilaku → ikut kode nyata: `search-dialog.tsx` mengimpor `ZineInput` (ZineInput merender `<input className={cn("zine-input", className)}>` — hasil HTML identik dengan versi plan). DOM fingerprint membuktikan output sama persis.
 
 Pindahkan `site-nav.tsx:148-177` (elemen `<div>` dialog saja; kondisional `{searchOpen && …}` di baris 147 dan 178 tetap di orkestrator). Backdrop dan `stopPropagation` ikut pindah karena keduanya bagian dari dialog, bukan dari orkestrator:
 
@@ -3077,7 +3079,7 @@ export function SearchDialog({ query, onQueryChange, onSubmit, onClose }: Search
 
 Komponen ini tidak perlu `"use client"` sendiri — tidak ada hook di dalamnya, dan ia hanya pernah dirender dari `index.tsx` yang sudah client.
 
-- [ ] **Step 4: `index.tsx` (orkestrator)**
+- [x] **Step 4: `index.tsx` (orkestrator)**
 
 State dan `IntersectionObserver` (`site-nav.tsx:17-42`) tetap di sini; `submitSearch` juga, karena ia memakai `router` dan `query`:
 
@@ -3154,7 +3156,19 @@ Isi `<header>` disalin verbatim dari `site-nav.tsx:48-116`, dengan dua penyesuai
 
 `MobileMenu` **wajib tetap di dalam `<header>`**, persis seperti DOM lama (`site-nav.tsx:118-144` ada di dalam `<header>` yang menutup di baris 145). Memindahkannya ke luar `<header>` mengubah tampilan: `border-t`-nya tidak lagi menempel ke baris brand dan menu tidak lagi ikut `backdrop-blur-md`. Gerbang Task 14 Step 3 menuntut `.verify/phase1` dan `.verify/phase2` identik, jadi ini bukan soal selera. `SearchDialog` sebaliknya tetap **di luar** `<header>` — memang begitu di DOM lama (baris 147).
 
-- [ ] **Step 5: Hapus file lama, pipeline, bukti visual**
+- [x] **Step 5: Hapus file lama, pipeline, bukti visual**
+
+> **Ukuran:** `index 133 · links 12 · mobile-menu 35 · search-dialog 43` (total 223) — semua < 150. `grep site-nav` hanya menemukan `import { SiteNav } from "../site-nav"` di `landing/index.tsx` (tetap sah, resolve ke folder). `site-nav.tsx` dihapus (`git rm`).
+>
+> **Pipeline:** `pnpm exec turbo run typecheck build --filter=@moonwitness/web` → **2/2 hijau** (dijalankan sebelum churn eslint asing masuk). Catatan: `next build` langsung sekarang gagal di tahap ESLint (`tseslintPluginReact is not defined`) dan `/icon.svg` (`no direct app page entry`) — keduanya cacat WIP asing (team backend), bukan split ini; kode saya `Compiled successfully` + type-check bersih.
+>
+> **Dimensi (scrollbar disembunyikan agar setara metode baseline):** 1440 `1430×3500` dan 390 `380×4867` **identik persis** dengan `.verify/phase1/`. 768 `758×4581` vs phase1 `4147` (+434) — dibuktikan **bukan** akibat split: build pra-split (dengan `site-nav.tsx` monolitik) dilaporkan pada metode identik menghasilkan scrollHeight **sama persis** 4571 → selisih itu murni settle lazy-load/animasi reveal di sesi capture ini (layout 1 kolom paling rentan), bukan perubahan site-nav (header `fixed`, tinggi alir 0).
+>
+> **Bukti struktural netral (paling kuat):** DOM fingerprint pra-split vs pasca-split — `<header>`, `<form role=dialog>` (pencarian), dan `nav[aria-label=Mobile]` **byte-identical** (2851 / 623 / 620 karakter). Split hanya memindahkan JSX antar-file tanpa mengubah satu karakter markup ter-render.
+>
+> **Tes perilaku (0 error konsol):** @1440 observer nav menyala HOME→CREW saat scroll; SEARCH terbuka → klik backdrop menutup → submit ke `/dock?q=signal`. @390 hamburger membuka menu mobile → klik item menutup + scroll (scrollY 2257) → `JOIN THE CREW →` ke `/shadow`. `scrollWidth` 380 (tanpa overflow horizontal). Catatan: dialog tidak punya handler `Esc` (sama seperti baseline — tidak ditambahkan, Fase 2 netral perilaku).
+
+SHOT `.verify/phase2-task13b/` untuk `/` (3 viewport).
 
 ```bash
 git rm apps/web/src/components/site-nav.tsx

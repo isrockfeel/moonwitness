@@ -4,15 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Crown, SearchIcon, GlobeIcon } from "@moonwitness/ui/icons";
-import { ZineInput } from "@moonwitness/ui";
-
-const links = [
-  { id: "home", label: "HOME" },
-  { id: "signals", label: "SIGNALS" },
-  { id: "archive", label: "ARCHIVE" },
-  { id: "crew", label: "CREW" },
-  { id: "about", label: "ABOUT" },
-];
+import { links } from "./links";
+import { MobileMenu } from "./mobile-menu";
+import { SearchDialog } from "./search-dialog";
 
 export function SiteNav() {
   const router = useRouter();
@@ -117,65 +111,22 @@ export function SiteNav() {
         </div>
 
         {menuOpen && (
-          <nav
-            className="border-t border-[var(--line)] bg-[var(--ink)] px-4 py-3 lg:hidden"
-            aria-label="Mobile"
-          >
-            {links.map((link) => (
-              <a
-                key={link.id}
-                href={`#${link.id}`}
-                onClick={() => {
-                  setActive(link.id);
-                  setMenuOpen(false);
-                }}
-                className={`block px-2 py-2.5 font-brush text-lg ${active === link.id ? "text-[var(--pink)]" : "text-zinc-200"}`}
-              >
-                {link.label}
-              </a>
-            ))}
-            <Link
-              href="/shadow"
-              onClick={() => setMenuOpen(false)}
-              className="btn-zine mt-2 px-5 py-2.5 text-base"
-            >
-              JOIN THE CREW →
-            </Link>
-          </nav>
+          <MobileMenu
+            links={links}
+            active={active}
+            onSelect={setActive}
+            onClose={() => setMenuOpen(false)}
+          />
         )}
       </header>
 
       {searchOpen && (
-        <div
-          className="fixed inset-0 z-[60] flex items-start justify-center bg-black/70 px-4 pt-28 backdrop-blur-sm"
-          onClick={() => setSearchOpen(false)}
-        >
-          <form
-            onSubmit={submitSearch}
-            className="zine-card-rough w-full max-w-xl p-5"
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-label="Search the archive"
-          >
-            <label htmlFor="nav-search" className="font-brush text-lg text-[var(--yellow)]">
-              SEARCH THE SIGNALS
-            </label>
-            <div className="mt-3 flex gap-2">
-              <ZineInput
-                id="nav-search"
-                autoFocus
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="stories, signals, people, places…"
-                className="rounded-md px-4 py-3 text-sm"
-              />
-              <button type="submit" className="btn-zine px-5 py-2 text-sm">
-                GO
-              </button>
-            </div>
-            <p className="mt-3 text-xs text-zinc-500">Searches the Dock timeline chronicle.</p>
-          </form>
-        </div>
+        <SearchDialog
+          query={query}
+          onQueryChange={setQuery}
+          onSubmit={submitSearch}
+          onClose={() => setSearchOpen(false)}
+        />
       )}
     </>
   );
