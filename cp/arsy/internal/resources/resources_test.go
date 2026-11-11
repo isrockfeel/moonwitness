@@ -278,3 +278,53 @@ func TestPortForwardObserveParsesHandles(t *testing.T) {
 		t.Fatalf("handle aturan tcp harus 7, dapat %v", got.Fields)
 	}
 }
+
+func TestPortForwardDeleteRemovesRule(t *testing.T) {
+	fake := &host.FakeRunner{Results: map[string]host.Result{
+		"nft -a list chain ip arsy prerouting": {
+			Stdout: `		tcp dport 8080 dnat to 10.66.0.2:80 comment "arsy:pf:tcp/8080->10.66.0.2:80" # handle 7
+`,
+		},
+	}}
+	p := &PortForward{Runner: fake}
+	r := Resource{Kind: "portforward", Port: "8080", Proto: "tcp", To: "10.66.0.2:80", State: "absent"}
+
+	change, err := p.Plan(r, Observation{Exists: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if change.Action != ActionDelete {
+		t.Fatalf("state absent harus delete, dapat %s", change.Action)
+	}
+
+	if err := p.Apply(context.Background(), r); err != nil {
+		t.Fatal(err)
+	}
+	joined := ""
+	for _, call := range fake.Calls {
+		joined += strings.Join(call, " ") + "\n"
+	}
+	if !strings.Contains(joined, "delete rule ip arsy prerouting handle 7") {
+		t.Fatalf("aturan harus dihapus, calls:\n%s", joined)
+	}
+	if strings.Contains(joined, "add rule") {
+		t.Fatalf("state absent tidak boleh menambah aturan, calls:\n%s", joined)
+	}
+}
+
+func TestPortForwardDeleteWhenMissingIsNoop(t *testing.T) {
+	fake := &host.FakeRunner{}
+	p := &PortForward{Runner: fake}
+	r := Resource{Kind: "portforward", Port: "8080", Proto: "tcp", To: "10.66.0.2:80", State: "absent"}
+
+	change, err := p.Plan(r, Observation{Exists: false})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if change.Action != ActionNone {
+		t.Fatalf("aturan yang sudah tidak ada harus no-op, dapat %s", change.Action)
+	}
+	if err := p.Apply(context.Background(), r); err != nil {
+		t.Fatalf("apply pada aturan yang tidak ada harus sukses, dapat %v", err)
+	}
+}

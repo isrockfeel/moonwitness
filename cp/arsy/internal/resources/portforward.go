@@ -128,6 +128,14 @@ func (p *PortForward) Observe(ctx context.Context) (map[string]Observation, erro
 
 func (p *PortForward) Plan(r Resource, obs Observation) (Change, error) {
 	c := Change{Kind: p.Kind(), ID: r.ID(), Target: r.Target()}
+	if r.State == "absent" {
+		if !obs.Exists {
+			c.Action = ActionNone
+			return c, nil
+		}
+		c.Action = ActionDelete
+		return c, nil
+	}
 	if obs.Exists {
 		c.Action = ActionNone
 		return c, nil
@@ -140,6 +148,12 @@ func (p *PortForward) Plan(r Resource, obs Observation) (Change, error) {
 func (p *PortForward) Apply(ctx context.Context, r Resource) error {
 	if !p.Runner.LookPath("nft") {
 		return host.ErrUnsupported
+	}
+	if r.State == "absent" {
+		if err := p.Remove(ctx, pfKey(r)); err != nil && !strings.Contains(err.Error(), "tidak ditemukan") {
+			return err
+		}
+		return nil
 	}
 	if err := p.ensureChain(ctx); err != nil {
 		return fmt.Errorf("siapkan chain: %w", err)
