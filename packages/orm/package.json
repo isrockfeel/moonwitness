@@ -16,6 +16,7 @@
   "dependencies": {
     "@libsql/client": "^0.15.15",
     "@moonwitness/types": "workspace:*",
+    "fastify": "^5.12.8",
     "zod": "^3.25.76"
   },
   "devDependencies": {

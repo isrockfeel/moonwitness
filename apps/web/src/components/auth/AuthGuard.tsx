@@ -70,3 +70,4 @@ export function AuthGuard({ children, fallbackUrl = "/shadow" }: AuthGuardProps)
 
   return <>{children}</>;
 }
+

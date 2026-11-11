@@ -16,6 +16,8 @@ next-env.d.ts
 # testing
 coverage/
 test-results/
+playwright-report/
+.playwright/
 
 # local database artifacts (libSQL/SQLite write these next to the app)
 *.db

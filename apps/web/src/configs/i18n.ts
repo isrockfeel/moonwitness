@@ -108,3 +108,4 @@ export const dictionaries: Record<Locale, TranslationDictionary> = {
     },
   },
 };
+

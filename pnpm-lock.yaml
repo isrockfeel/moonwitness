@@ -168,6 +168,10 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      fastify:
+        specifier: ^5.12.8
+        version: 5.12.8
     devDependencies:
       '@playwright/test':
         specifier: ^1.51.1
@@ -537,6 +541,9 @@ importers:
       '@moonwitness/types':
         specifier: workspace:*
         version: link:../types
+      fastify:
+        specifier: ^5.12.8
+        version: 5.12.8
       zod:
         specifier: ^3.25.76
         version: 3.25.76
