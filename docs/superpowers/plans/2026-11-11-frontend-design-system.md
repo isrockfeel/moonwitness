@@ -4623,7 +4623,7 @@ function WorldMap(props: {
 
 Komponen ini **terkendali** (selected dari luar) karena panel detail kota dirender app di samping peta — §3.2: "Komponen yang perlu tahu pilihan ke dunia luar menerima callback".
 
-- [ ] **Step 1: Tulis `world-map.tsx`**
+- [x] **Step 1: Tulis `world-map.tsx`**
 
 ```tsx
 "use client";
@@ -4699,7 +4699,7 @@ Node SVG **sengaja tidak** dibuat fokusabel: 8 lingkaran 2.6px tidak bisa diklik
 
 Kalau ingin dot-nya tetap bisa diklik mouse, tambahkan `onClick` pada `<circle>` dengan `style={{ cursor: "pointer" }}` **tanpa** `tabIndex` — jalur keyboard tetap lewat daftar tombol, jadi tidak ada target sentuh yang gagal.
 
-- [ ] **Step 2: Export + pipeline**
+- [x] **Step 2: Export + pipeline**
 
 Tambah ke `packages/ui/src/index.ts`:
 
@@ -4713,12 +4713,16 @@ pnpm turbo run lint typecheck build
 
 Expected: hijau.
 
-- [ ] **Step 3: Commit**
+> **Bukti (2026-11-11):** `tsc` ui EXIT=0, web EXIT=0, `next build` EXIT=0 (turbo tetap terblokir manifest orm asing → alat langsung).
+
+- [x] **Step 3: Commit**
 
 ```bash
 git add packages/ui/src
 git commit -m "feat(ui): WorldMap dengan node kota dan daftar tombol setara"
 ```
+
+> **Bukti:** commit `2414a35` (2 file, +73: world-map.tsx +72, index.ts +1).
 
 ### Task 25: Shadow Command Center bagian 1-5 + drawer modul
 
