@@ -8,7 +8,6 @@ import {
   Bolt,
   CassetteTape,
   Crown,
-  RazorBlade,
   SafetyPin,
   SkullCrossbonesFunky,
   Smiley,

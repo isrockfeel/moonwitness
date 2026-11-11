@@ -4,14 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { crewStats, witnesses } from "@/lib/data";
 import { artSrc } from "@/lib/art";
-import { ArrowRight, BarbedWire, SafetyPin, SkullCrossbonesFunky } from "@moonwitness/ui/icons";
-import {
-  CrewConstellation,
-  DistressedSticker,
-  Halftone,
-  Staple,
-  TactileTape,
-} from "@moonwitness/ui";
+import { ArrowRight, SkullCrossbonesFunky } from "@moonwitness/ui/icons";
+import { CrewConstellation, Halftone, Staple, TactileTape } from "@moonwitness/ui";
 import { AtmosphereField } from "@/components/atmosphere";
 
 export function Crew() {

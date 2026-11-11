@@ -2,7 +2,7 @@ import { ArrowRight, TornTicket } from "../icons";
 import { ZineBadge } from "../primitives/zine-badge";
 import { ZineImage } from "../primitives/zine-image";
 import { defaultKindColors } from "./kind-colors";
-import { Staple, TactileTape } from "../primitives/tactile-hardware";
+import { Staple } from "../primitives/tactile-hardware";
 
 export interface EventCardData {
   id: string;

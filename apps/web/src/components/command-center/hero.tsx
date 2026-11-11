@@ -1,12 +1,6 @@
 import Image from "next/image";
-import {
-  CassetteTape,
-  Crown,
-  SkullCrossbonesFunky,
-  Splatter,
-  SprayCan,
-} from "@moonwitness/ui/icons";
-import { DistressedSticker, RansomText, Staple, TactileTape } from "@moonwitness/ui";
+import { Crown, Splatter } from "@moonwitness/ui/icons";
+import { DistressedSticker, Staple, TactileTape } from "@moonwitness/ui";
 import { artSrc } from "@/lib/art";
 import { AtmosphereField } from "@/components/atmosphere";
 

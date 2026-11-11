@@ -4,8 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 import { artSrc } from "@/lib/art";
-import { ArrowRight, CassetteTape, Smiley, StaplerMark, TornTicket } from "@moonwitness/ui/icons";
-import { DistressedSticker, Staple, TactileTape, kindColors } from "@moonwitness/ui";
+import { ArrowRight, CassetteTape, Smiley } from "@moonwitness/ui/icons";
+import { DistressedSticker, Staple, kindColors } from "@moonwitness/ui";
 import { useTimelineEvents } from "@/lib/api/timeline";
 
 function ArchiveStrip() {

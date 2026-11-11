@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { artSrc } from "@/lib/art";
-import { ArrowRight, BarbedWire, Crown, SafetyPin, SprayCan } from "@moonwitness/ui/icons";
+import { ArrowRight, Crown, SafetyPin, SprayCan } from "@moonwitness/ui/icons";
 import { DistressedSticker, Staple, TactileTape, TransmissionCard } from "@moonwitness/ui";
 import { useTimelineEvent } from "@/lib/api/timeline";
 
