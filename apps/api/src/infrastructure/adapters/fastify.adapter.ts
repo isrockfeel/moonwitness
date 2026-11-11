@@ -6,10 +6,9 @@ import FastifySwagger from "@fastify/swagger";
 import FastifySwaggerUi from "@fastify/swagger-ui";
 import { env, parseCorsOrigins } from "../../shared/env";
 import { createRateLimiter } from "../rate-limit";
-import type { ITimelineUseCase } from "../../domain/usecases/timeline/timeline.usecase";
+import { registerHealthRoutes } from "../../interface/routes/health.routes";
 
 export interface BootstrapOptions {
-  timelineUseCase: ITimelineUseCase;
   prefix?: string;
 }
 
@@ -82,8 +81,6 @@ export async function buildFastify(options: BootstrapOptions): Promise<FastifyIn
     return reply.code(status).send({ error: error.message });
   });
 
-  fastify.decorate("timelineUseCase", options.timelineUseCase);
-
   if (env.NODE_ENV !== "production") {
     await fastify.register(FastifySwagger, {
       openapi: {
@@ -114,8 +111,7 @@ export async function buildFastify(options: BootstrapOptions): Promise<FastifyIn
   if (options.prefix) {
     await fastify.register(
       async (instance: FastifyInstance) => {
-        const { registerRoutes } = await import("../../interface/routes");
-        await registerRoutes(instance);
+        await registerHealthRoutes(instance);
       },
       { prefix: options.prefix },
     );

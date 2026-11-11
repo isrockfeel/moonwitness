@@ -8,7 +8,7 @@ import { getDb } from "@moonwitness/orm";
  * Readiness (`/readyz`) additionally verifies database connectivity and returns
  * 503 when the database is unreachable, without leaking error details.
  */
-export async function healthRoutes(fastify: FastifyInstance): Promise<void> {
+export async function registerHealthRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get("/healthz", async () => ({ status: "ok" }));
 
   fastify.get("/readyz", async (_request, reply) => {

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { FastifyInstance } from "fastify";
 import { buildApp } from "./app";
-import { seedTimeline } from "./infrastructure/persistence/seed-data";
+import { seedTimeline } from "@moonwitness/addon-timeline";
 
 let app: FastifyInstance;
 let dbDir: string;

@@ -14,7 +14,9 @@
     "clean": "rm -rf .turbo dist node_modules"
   },
   "dependencies": {
-    "@moonwitness/orm": "workspace:*"
+    "@moonwitness/orm": "workspace:*",
+    "@moonwitness/schema": "workspace:*",
+    "@moonwitness/types": "workspace:*"
   },
   "devDependencies": {
     "@moonwitness/typescript-config": "workspace:*",

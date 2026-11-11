@@ -1,11 +1,28 @@
-import type {
-  ITimelineRepository,
-  TimelineFilters,
-  TimelineStats,
-} from "../../domain/usecases/timeline/timeline.repository";
-import type { TimelineEvent, Era } from "@moonwitness/types";
+import type { Era, TimelineEvent } from "@moonwitness/types";
 import { getDb } from "@moonwitness/orm";
-import { timelineEventModel, timelineEraModel } from "./timeline-model";
+import { timelineEventModel, timelineEraModel } from "./model.js";
+
+export interface TimelineFilters {
+  era?: string;
+  kind?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface TimelineStats {
+  total: number;
+  byEra: Record<string, number>;
+  byKind: Record<string, number>;
+}
+
+export interface ITimelineRepository {
+  listEvents(filters: TimelineFilters): Promise<{ data: TimelineEvent[]; total: number }>;
+  getEvent(id: string): Promise<TimelineEvent | null>;
+  getStats(): Promise<TimelineStats>;
+  getEras(): Promise<Era[]>;
+}
 
 function parseJson<T>(value: unknown, fallback: T): T {
   if (value == null) return fallback;
@@ -48,22 +65,22 @@ function rowToEra(row: Record<string, unknown>): Era {
   };
 }
 
-export class SqlTimelineRepository implements ITimelineRepository {
-  private get eventRepo() {
-    return timelineEventModel.repository;
-  }
+export const MAX_LIST_LIMIT = 100;
+export const DEFAULT_LIST_LIMIT = 100;
 
-  private get eraRepo() {
-    return timelineEraModel.repository;
-  }
+/**
+ * Data access owned by the timeline addon; the addon routes are its only consumer.
+ */
+export class TimelineRepository implements ITimelineRepository {
+  private readonly events = timelineEventModel.repository;
+  private readonly eras = timelineEraModel.repository;
 
-  async listEvents(filters: TimelineFilters): Promise<TimelineEvent[]> {
+  async listEvents(filters: TimelineFilters): Promise<{ data: TimelineEvent[]; total: number }> {
+    const db = getDb();
     const clauses: string[] = [];
     const params: unknown[] = [];
 
-    if (this.eventRepo.softDelete) {
-      clauses.push("status != 'deleted'");
-    }
+    if (this.events.softDelete) clauses.push("status != 'deleted'");
     if (filters.era) {
       clauses.push("era = ?");
       params.push(filters.era);
@@ -81,58 +98,34 @@ export class SqlTimelineRepository implements ITimelineRepository {
       params.push(filters.to);
     }
 
-    const where = clauses.length ? ` WHERE ${clauses.join(" AND ")}` : "";
-    const limit = filters.limit ?? 100;
-    const offset = filters.offset ?? 0;
+    const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
+    const table = this.events.table;
 
-    const rows = await getDb().all<Record<string, unknown>>(
-      `SELECT * FROM ${this.eventRepo.table}${where} ORDER BY date ASC, id ASC LIMIT ? OFFSET ?`,
-      [...params, limit, offset],
-    );
-    return rows.map(rowToEvent);
-  }
-
-  async countEvents(filters: TimelineFilters): Promise<number> {
-    const clauses: string[] = [];
-    const params: unknown[] = [];
-
-    if (this.eventRepo.softDelete) {
-      clauses.push("status != 'deleted'");
-    }
-    if (filters.era) {
-      clauses.push("era = ?");
-      params.push(filters.era);
-    }
-    if (filters.kind) {
-      clauses.push("kind = ?");
-      params.push(filters.kind);
-    }
-    if (filters.from) {
-      clauses.push("date >= ?");
-      params.push(filters.from);
-    }
-    if (filters.to) {
-      clauses.push("date <= ?");
-      params.push(filters.to);
-    }
-
-    const where = clauses.length ? ` WHERE ${clauses.join(" AND ")}` : "";
-    const row = await getDb().get<{ total: number }>(
-      `SELECT COUNT(*) AS total FROM ${this.eventRepo.table}${where}`,
+    const totalRow = await db.get<{ total: number }>(
+      `SELECT COUNT(*) AS total FROM ${table} ${where}`,
       params,
     );
-    return Number(row?.total ?? 0);
+
+    const limit = Math.min(Math.max(filters.limit ?? DEFAULT_LIST_LIMIT, 1), MAX_LIST_LIMIT);
+    const offset = Math.max(filters.offset ?? 0, 0);
+
+    const rows = await db.all<Record<string, unknown>>(
+      `SELECT * FROM ${table} ${where} ORDER BY date ASC, id ASC LIMIT ? OFFSET ?`,
+      [...params, limit, offset],
+    );
+
+    return { data: rows.map(rowToEvent), total: Number(totalRow?.total ?? 0) };
   }
 
   async getEvent(id: string): Promise<TimelineEvent | null> {
-    const row = await this.eventRepo.findOne(id);
+    const row = await this.events.findOne(id);
     if (!row) return null;
     return rowToEvent(row as unknown as Record<string, unknown>);
   }
 
   async getStats(): Promise<TimelineStats> {
     const rows = await getDb().all<Record<string, unknown>>(
-      `SELECT era, kind, COUNT(*) AS total FROM ${this.eventRepo.table}
+      `SELECT era, kind, COUNT(*) AS total FROM ${this.events.table}
        WHERE status != 'deleted' GROUP BY era, kind`,
     );
 
@@ -149,7 +142,9 @@ export class SqlTimelineRepository implements ITimelineRepository {
   }
 
   async getEras(): Promise<Era[]> {
-    const rows = await this.eraRepo.find({ status: "active" });
-    return rows.map((row) => rowToEra(row as unknown as Record<string, unknown>));
+    const rows = await this.eras.find({ status: "active" });
+    return rows
+      .map((row) => rowToEra(row as unknown as Record<string, unknown>))
+      .sort((a, b) => a.years.localeCompare(b.years));
   }
 }

@@ -5,19 +5,9 @@ import { join } from "node:path";
 import Fastify from "fastify";
 import type { FastifyInstance } from "fastify";
 import { closeDb, getDb, initDb } from "@moonwitness/orm";
-import { registerTimelineAddon } from "./index.js";
+import { registerTimelineAddon, timelineDdl } from "./index.js";
 
-const DDL = `
-CREATE TABLE IF NOT EXISTS timeline_events (
-  id TEXT PRIMARY KEY, kind TEXT NOT NULL, date TEXT NOT NULL, era TEXT NOT NULL,
-  title TEXT NOT NULL, excerpt TEXT NOT NULL, body TEXT NOT NULL, location TEXT NOT NULL,
-  tags TEXT NOT NULL, sources INTEGER NOT NULL, notes INTEGER NOT NULL, image TEXT NOT NULL,
-  imagePosition TEXT, related TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'active'
-);
-CREATE TABLE IF NOT EXISTS eras (
-  id TEXT PRIMARY KEY, name TEXT NOT NULL, years TEXT NOT NULL, tagline TEXT NOT NULL, color TEXT NOT NULL
-);
-`;
+const DDL = timelineDdl;
 
 let app: FastifyInstance;
 let dir = "";
@@ -27,7 +17,7 @@ beforeEach(async () => {
   await initDb(join(dir, "addon.db"));
   await getDb().exec(DDL);
   app = Fastify();
-  await registerTimelineAddon(app);
+  await registerTimelineAddon(app, { prefix: "/api/v1/timeline" });
   await app.ready();
 });
 
@@ -36,12 +26,34 @@ afterEach(async () => {
   closeDb();
 });
 
+const NOW = "2024-01-01T00:00:00.000Z";
+
 async function insertEvent(id: string, era: string, date: string) {
   await getDb().run(
     `INSERT INTO timeline_events
-     (id, kind, date, era, title, excerpt, body, location, tags, sources, notes, image, related, status)
-     VALUES (?, 'PROJECT', ?, ?, 'title', 'ex', 'body', 'loc', '[]', 0, 0, 'hero-witness', '[]', 'active')`,
-    [id, date, era],
+     (id, kind, date, era, title, excerpt, body, location, tags, sources, notes, image, related,
+      create_date, write_date, status, version, source)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      id,
+      "PROJECT",
+      date,
+      era,
+      "title",
+      "ex",
+      "body",
+      "loc",
+      "[]",
+      0,
+      0,
+      "hero-witness",
+      "[]",
+      NOW,
+      NOW,
+      "active",
+      1,
+      "seed",
+    ],
   );
 }
 
@@ -50,7 +62,7 @@ describe("timeline addon routes (addon-owned)", () => {
     await insertEvent("e1", "origins", "2021-01-01");
     await insertEvent("e2", "neon", "2022-01-01");
 
-    const res = await app.inject({ method: "GET", url: "/events" });
+    const res = await app.inject({ method: "GET", url: "/api/v1/timeline/events" });
     expect(res.statusCode).toBe(200);
     const body = res.json() as { data: Array<{ id: string }>; total: number };
     expect(body.total).toBe(2);
@@ -59,28 +71,28 @@ describe("timeline addon routes (addon-owned)", () => {
 
   it("returns a single event by id and 404 for unknown", async () => {
     await insertEvent("e1", "origins", "2021-01-01");
-    const ok = await app.inject({ method: "GET", url: "/events/e1" });
+    const ok = await app.inject({ method: "GET", url: "/api/v1/timeline/events/e1" });
     expect(ok.statusCode).toBe(200);
 
-    const missing = await app.inject({ method: "GET", url: "/events/nope" });
+    const missing = await app.inject({ method: "GET", url: "/api/v1/timeline/events/nope" });
     expect(missing.statusCode).toBe(404);
   });
 
   it("aggregates stats by era and kind", async () => {
     await insertEvent("e1", "origins", "2021-01-01");
     await insertEvent("e2", "origins", "2021-06-01");
-    const res = await app.inject({ method: "GET", url: "/stats" });
+    const res = await app.inject({ method: "GET", url: "/api/v1/timeline/stats" });
     expect(res.statusCode).toBe(200);
-    const body = res.json() as { total: number; byEra: Record<string, number> };
-    expect(body.total).toBe(2);
-    expect(body.byEra.origins).toBe(2);
+    const body = res.json() as { data: { total: number; byEra: Record<string, number> } };
+    expect(body.data.total).toBe(2);
+    expect(body.data.byEra.origins).toBe(2);
   });
 
   it("lists eras", async () => {
     await getDb().run(
-      "INSERT INTO eras (id, name, years, tagline, color) VALUES ('origins','Origins','2020','t','#fff')",
+      `INSERT INTO timeline_eras (id, name, years, tagline, color, create_date, write_date, status, version, source) VALUES ('origins','Origins','2020','t','#fff', '2024-01-01', '2024-01-01', 'active', 1, 'seed')`,
     );
-    const res = await app.inject({ method: "GET", url: "/eras" });
+    const res = await app.inject({ method: "GET", url: "/api/v1/timeline/eras" });
     expect(res.statusCode).toBe(200);
     expect((res.json() as { data: unknown[] }).data).toHaveLength(1);
   });

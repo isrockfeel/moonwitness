@@ -196,6 +196,9 @@ importers:
       '@moonwitness/addon-base':
         specifier: workspace:*
         version: link:../../packages/addons/__base
+      '@moonwitness/addon-timeline':
+        specifier: workspace:*
+        version: link:../../packages/addons/timeline
       '@moonwitness/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -346,6 +349,12 @@ importers:
       '@moonwitness/orm':
         specifier: workspace:*
         version: link:../../orm
+      '@moonwitness/schema':
+        specifier: workspace:*
+        version: link:../../schema
+      '@moonwitness/types':
+        specifier: workspace:*
+        version: link:../../types
     devDependencies:
       '@moonwitness/typescript-config':
         specifier: workspace:*

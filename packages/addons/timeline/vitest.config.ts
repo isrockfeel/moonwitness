@@ -5,5 +5,8 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts"],
     globals: true,
+    // The ORM exposes a process-global database singleton; parallel files would
+    // fight over initDb()/closeDb().
+    fileParallelism: false,
   },
 });
