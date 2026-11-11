@@ -4,21 +4,24 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./registry": "./src/registry.ts"
   },
   "scripts": {
     "build": "echo \"addon-base: no build output\"",
     "typecheck": "tsc --noEmit",
     "lint": "echo \"addon-base: no lint configured\"",
-    "test": "echo \"addon-base: no tests\"",
+    "test": "vitest run",
     "clean": "rm -rf .turbo dist node_modules"
   },
   "dependencies": {
-    "@moonwitness/orm": "workspace:*"
+    "@moonwitness/orm": "workspace:*",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@moonwitness/typescript-config": "workspace:*",
     "fastify": "^5.1.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
   }
 }
