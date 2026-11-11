@@ -4,8 +4,14 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
 jobs:
   label:
+    name: Auto Label
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -22,11 +28,13 @@ jobs:
           sync-labels: true
 
   assign:
+    name: Auto Assign
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/assigner@v1
+      - name: Auto Assign
+        uses: actions/assigner@v1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           configuration-path: .github/assigner.yml

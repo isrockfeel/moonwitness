@@ -18,18 +18,6 @@ packages/**:
 .github/workflows/**:
   - The-Batteries
 
-apps/api/**:
-  - The-Batteries
-
-apps/web/**:
-  - The-Batteries
-
-packages/**:
-  - The-Batteries
-
-.github/**:
-  - The-Batteries
-
 docs/**:
   - The-Batteries
 
@@ -37,9 +25,6 @@ scripts/**:
   - The-Batteries
 
 # Specific file patterns
-**/Dockerfile*:
-  - The-Batteries
-
 **/Dockerfile*:
   - The-Batteries
 
@@ -70,7 +55,10 @@ scripts/**:
 *.js:
   - The-Batteries
 
-*.js:
+*.mjs:
+  - The-Batteries
+
+*.cjs:
   - The-Batteries
 
 *.go:
@@ -88,13 +76,13 @@ scripts/**:
 *.sql:
   - The-Batteries
 
-*.sql:
-  - The-Batteries
-
 *.graphql:
   - The-Batteries
 
 *.graphqls:
+  - The-Batteries
+
+*.proto:
   - The-Batteries
 
 *.proto:
