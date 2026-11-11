@@ -134,6 +134,7 @@ export function Dock() {
 
       <div className="space-y-5 px-4 py-6 sm:px-8">
         <FilterBar
+          eras={eras}
           era={era}
           onEraChange={setEra}
           sort={sort}
