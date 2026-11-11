@@ -1,8 +1,9 @@
-import { defineModel, getDb, initDb, uuidv7, BaseRepository, TimelineRepository } from "../index";
-import { BetterSqlite3Driver } from "../drivers/sqlite.driver";
-import type { BaseMetadata, RecordSource, RecordStatus } from "../base-metadata";
-import type { ActorContext, createActorContext } from "../actor-context";
-import { SYSTEM_ACTOR } from "../actor-context";
+import { defineModel, getDb, initDb, uuidv7, BaseRepository, TimelineRepository } from "../index.js";
+import { BetterSqlite3Driver } from "../drivers/sqlite.driver.js";
+import type { BaseMetadata, RecordSource, RecordStatus } from "../base-metadata.js";
+import { createActorContext } from "../actor-context.js";
+import type { ActorContext } from "../actor-context.js";
+import { SYSTEM_ACTOR } from "../actor-context.js";
 
 describe("ORM Core", () => {
   beforeAll(() => {

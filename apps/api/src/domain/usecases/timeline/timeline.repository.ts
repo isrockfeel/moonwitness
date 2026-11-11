@@ -17,6 +17,7 @@ export interface TimelineStats {
 
 export interface ITimelineRepository {
   listEvents(filters: TimelineFilters): Promise<TimelineEvent[]>;
+  countEvents(filters: TimelineFilters): Promise<number>;
   getEvent(id: string): Promise<TimelineEvent | null>;
   getStats(): Promise<TimelineStats>;
   getEras(): Promise<Era[]>;

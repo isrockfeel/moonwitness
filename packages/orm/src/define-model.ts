@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { getDb } from "./driver.js";
+import type { LibSqlDriver, LibSqlExecutor } from "./drivers/sqlite.driver.js";
+import { ConflictError } from "./errors.js";
 import type { BaseMetadata, RecordSource, RecordStatus } from "./base-metadata.js";
 import type { ActorContext } from "./actor-context.js";
 import { SYSTEM_ACTOR } from "./actor-context.js";
-import type { TimelineFilters, TimelineStats, Era, EraId, EventKind, ArtKey } from "@moonwitness/types";
-import type { TimelineEvent } from "@moonwitness/types";
 
 export interface DefineModelOptions {
   name: string; // namespaced per addon (e.g. 'timeline.event')
@@ -40,6 +40,14 @@ export interface DefineModelReturn<TBusiness extends z.ZodObject<any, any>> {
   auditHook: (record: any, action: AuditAction, before: any | null) => AuditEntry;
 }
 
+const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+function assertIdentifier(value: string, label: string): void {
+  if (!IDENTIFIER.test(value)) {
+    throw new Error(`Invalid ${label} '${value}'. Only letters, digits and underscores are allowed.`);
+  }
+}
+
 const METADATA_COLUMNS = [
   "id TEXT PRIMARY KEY",
   "create_uid TEXT",
@@ -53,6 +61,20 @@ const METADATA_COLUMNS = [
   "source TEXT NOT NULL DEFAULT 'api'",
   "source_ref TEXT",
 ] as const;
+
+const METADATA_NAMES = new Set([
+  "id",
+  "create_uid",
+  "create_date",
+  "write_uid",
+  "write_date",
+  "status",
+  "deleted_uid",
+  "deleted_date",
+  "version",
+  "source",
+  "source_ref",
+]);
 
 const AUDIT_DDL = `
 CREATE TABLE IF NOT EXISTS _orm_audit_log (
@@ -70,12 +92,13 @@ CREATE TABLE IF NOT EXISTS _orm_audit_log (
 CREATE INDEX IF NOT EXISTS idx_audit_model_entity ON _orm_audit_log (model, entity_id, changed_at);
 `.trim();
 
-let auditDdlApplied = false;
+const auditedDrivers = new WeakSet<LibSqlDriver>();
 
-function ensureAuditTable(): void {
-  if (auditDdlApplied) return;
-  getDb().exec(AUDIT_DDL);
-  auditDdlApplied = true;
+async function ensureAuditTable(): Promise<void> {
+  const db = getDb();
+  if (auditedDrivers.has(db)) return;
+  await db.exec(AUDIT_DDL);
+  auditedDrivers.add(db);
 }
 
 /** UUID v7 (time-sortable) generated from crypto primitives. */
@@ -96,27 +119,163 @@ export function uuidv7(): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
-function toIso(value: unknown): string {
-  return value instanceof Date ? value.toISOString() : String(value);
+type Codec = "text" | "integer" | "real" | "boolean" | "date" | "json";
+
+interface FieldSpec {
+  codec: Codec;
+  nullable: boolean;
+  columnType: string;
 }
 
-function rowToRecord<T>(row: Record<string, unknown>): T {
-  const record: Record<string, unknown> = { ...row };
-  for (const key of ["create_date", "write_date", "deleted_date"]) {
-    if (typeof record[key] === "string") record[key] = new Date(record[key] as string);
+function isZodType(value: z.ZodTypeAny, name: string): boolean {
+  return value.constructor.name === name;
+}
+
+function unwrap(schema: z.ZodTypeAny): { inner: z.ZodTypeAny; nullable: boolean } {
+  let current = schema;
+  let nullable = false;
+  for (;;) {
+    if (current instanceof z.ZodOptional || isZodType(current, "ZodOptional")) {
+      nullable = true;
+      current = (current as z.ZodOptional<z.ZodTypeAny>).unwrap();
+    } else if (current instanceof z.ZodNullable || isZodType(current, "ZodNullable")) {
+      nullable = true;
+      current = (current as z.ZodNullable<z.ZodTypeAny>).unwrap();
+    } else if (current instanceof z.ZodDefault || isZodType(current, "ZodDefault")) {
+      nullable = true;
+      current = (current as z.ZodDefault<z.ZodTypeAny>).removeDefault();
+    } else if (current instanceof z.ZodEffects || isZodType(current, "ZodEffects")) {
+      current = (current as z.ZodEffects<z.ZodTypeAny>).innerType();
+    } else {
+      return { inner: current, nullable };
+    }
   }
-  return record as T;
+}
+
+function fieldSpec(schema: z.ZodTypeAny, field: string): FieldSpec {
+  const { inner, nullable } = unwrap(schema);
+  if (
+    inner instanceof z.ZodString ||
+    inner instanceof z.ZodEnum ||
+    inner instanceof z.ZodLiteral
+  ) {
+    return { codec: "text", nullable, columnType: "TEXT" };
+  }
+  if (inner instanceof z.ZodNumber) {
+    const integer = (inner as z.ZodNumber).isInt;
+    return {
+      codec: integer ? "integer" : "real",
+      nullable,
+      columnType: integer ? "INTEGER" : "REAL",
+    };
+  }
+  if (inner instanceof z.ZodBoolean) {
+    return { codec: "boolean", nullable, columnType: "INTEGER" };
+  }
+  if (inner instanceof z.ZodDate) {
+    return { codec: "date", nullable, columnType: "TEXT" };
+  }
+  if (inner instanceof z.ZodArray || inner instanceof z.ZodObject || inner instanceof z.ZodRecord) {
+    return { codec: "json", nullable, columnType: "TEXT" };
+  }
+  throw new Error(
+    `Unsupported schema type for field '${field}'. Supported: string, enum, literal, number, boolean, date, array, object, record (plus optional/nullable/default wrappers).`,
+  );
+}
+
+function encodeValue(value: unknown, codec: Codec): unknown {
+  if (value === undefined || value === null) return null;
+  switch (codec) {
+    case "date":
+      return value instanceof Date ? value.toISOString() : new Date(String(value)).toISOString();
+    case "boolean":
+      return value ? 1 : 0;
+    case "json":
+      return JSON.stringify(value);
+    case "integer":
+    case "real":
+      return Number(value);
+    case "text":
+    default:
+      return String(value);
+  }
+}
+
+function encodeFilterValue(value: unknown): unknown {
+  if (value === undefined || value === null) return null;
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === "boolean") return value ? 1 : 0;
+  if (Array.isArray(value) || typeof value === "object") return JSON.stringify(value);
+  return value;
+}
+
+function decodeValue(value: unknown, codec: Codec): unknown {
+  if (value === undefined || value === null) return null;
+  switch (codec) {
+    case "date":
+      return value instanceof Date ? value : new Date(String(value));
+    case "boolean":
+      return typeof value === "boolean" ? value : Boolean(Number(value));
+    case "json":
+      return typeof value === "string" ? JSON.parse(value) : value;
+    case "integer":
+    case "real":
+      return Number(value);
+    case "text":
+    default:
+      return String(value);
+  }
 }
 
 export class BaseRepository<TBusiness extends z.ZodObject<any, any>> {
+  private readonly fields: Map<string, FieldSpec>;
+
   constructor(
     public readonly name: string,
     public readonly table: string,
     public readonly fullSchema: z.ZodObject<any, any>,
     public readonly softDelete: boolean,
-  ) {}
+    businessFields: Map<string, FieldSpec> = new Map(),
+  ) {
+    assertIdentifier(table, "table");
+    this.fields = businessFields;
+  }
 
-  async find(filters: Record<string, unknown> = {}, opts: { includeDeleted?: boolean } = {}): Promise<any[]> {
+  private validateColumn(column: string): void {
+    assertIdentifier(column, "column");
+    if (!METADATA_NAMES.has(column) && !this.fields.has(column)) {
+      throw new Error(`Unknown column '${column}' on model '${this.name}'.`);
+    }
+  }
+
+  private decodeRow<T>(row: Record<string, unknown>): T {
+    const record: Record<string, unknown> = { ...row };
+    for (const key of ["create_date", "write_date", "deleted_date"]) {
+      if (typeof record[key] === "string") record[key] = new Date(record[key] as string);
+    }
+    for (const [key, spec] of this.fields) {
+      if (key in record) record[key] = decodeValue(record[key], spec.codec);
+    }
+    return record as T;
+  }
+
+  private encodeRow(record: Record<string, unknown>): unknown[] {
+    return Object.entries(record).map(([key, value]) => {
+      const spec = this.fields.get(key);
+      if (spec) return encodeValue(value, spec.codec);
+      if (value instanceof Date) return value.toISOString();
+      if (typeof value === "boolean") return value ? 1 : 0;
+      if (Array.isArray(value) || (value !== null && typeof value === "object")) {
+        return JSON.stringify(value);
+      }
+      return value ?? null;
+    });
+  }
+
+  async find(
+    filters: Record<string, unknown> = {},
+    opts: { includeDeleted?: boolean } = {},
+  ): Promise<any[]> {
     const clauses: string[] = [];
     const params: unknown[] = [];
 
@@ -124,16 +283,17 @@ export class BaseRepository<TBusiness extends z.ZodObject<any, any>> {
       clauses.push("status != 'deleted'");
     }
     for (const [key, value] of Object.entries(filters)) {
+      this.validateColumn(key);
       clauses.push(`${key} = ?`);
-      params.push(value instanceof Date ? value.toISOString() : value);
+      params.push(encodeFilterValue(value));
     }
 
     const where = clauses.length ? ` WHERE ${clauses.join(" AND ")}` : "";
-    const rows = getDb().all<Record<string, unknown>>(
+    const rows = await getDb().all<Record<string, unknown>>(
       `SELECT * FROM ${this.table}${where} ORDER BY id`,
       params,
     );
-        return rows.map((row: Record<string, unknown>) => rowToRecord(row));
+    return rows.map((row) => this.decodeRow<Record<string, unknown>>(row));
   }
 
   async findOne(id: string, opts: { includeDeleted?: boolean } = {}): Promise<any | null> {
@@ -142,11 +302,11 @@ export class BaseRepository<TBusiness extends z.ZodObject<any, any>> {
   }
 
   async create(data: any, actor: ActorContext = SYSTEM_ACTOR): Promise<any> {
-    ensureAuditTable();
+    await ensureAuditTable();
     const now = new Date();
     const record = {
       ...data,
-      id: uuidv7(),
+      id: data.id ?? uuidv7(),
       create_uid: actor.actorId,
       create_date: now,
       write_uid: actor.actorId,
@@ -158,55 +318,77 @@ export class BaseRepository<TBusiness extends z.ZodObject<any, any>> {
       source: actor.source,
       source_ref: data.source_ref ?? null,
     };
-    const parsed = this.fullSchema.parse(record);
+    const parsed = this.fullSchema.parse(record) as Record<string, unknown>;
 
     const cols = Object.keys(parsed);
+    cols.forEach((column) => this.validateColumn(column));
     const placeholders = cols.map(() => "?").join(", ");
-    const values = cols.map((c) => toIso(parsed[c]));
-    getDb().run(
-      `INSERT INTO ${this.table} (${cols.join(", ")}) VALUES (${placeholders})`,
-      values,
-    );
-    this.writeAudit(parsed, "CREATE", null, actor);
-    return parsed;
+    const values = this.encodeRow(parsed);
+
+    await getDb().transaction(async (tx) => {
+      await tx.run(
+        `INSERT INTO ${this.table} (${cols.join(", ")}) VALUES (${placeholders})`,
+        values,
+      );
+      await this.writeAudit(tx, parsed, "CREATE", null, actor);
+    });
+
+    return this.decodeRow(parsed);
   }
 
   async update(id: string, data: any, actor: ActorContext = SYSTEM_ACTOR): Promise<any | null> {
-    ensureAuditTable();
-    const record = await this.findOne(id);
-    if (!record) return null;
+    await ensureAuditTable();
 
-    // Optimistic locking: client must send the version it read.
-    if (data.version !== undefined && data.version !== record.version) {
-      throw new Error(
-        `VersionConflictError: expected version ${record.version}, got ${data.version}`,
+    return getDb().transaction(async (tx) => {
+      const currentRow = await tx.get<Record<string, unknown>>(
+        `SELECT * FROM ${this.table} WHERE id = ?`,
+        [id],
       );
-    }
+      if (!currentRow) return null;
 
-    const now = new Date();
-    const updated = {
-      ...record,
-      ...data,
-      // magic fields are framework-owned, never client-writable
-      id: record.id,
-      create_uid: record.create_uid,
-      create_date: record.create_date,
-      write_uid: actor.actorId,
-      write_date: now,
-      version: record.version + 1,
-      source: actor.source,
-    };
-    const parsed = this.fullSchema.parse(updated);
+      const current = this.decodeRow<Record<string, unknown>>(currentRow);
+      if (data.version !== undefined && Number(data.version) !== Number(current.version)) {
+        throw new ConflictError(
+          `Version conflict on '${this.name}' ${id}: expected version ${String(current.version)}, got ${String(data.version)}.`,
+        );
+      }
 
-    const cols = Object.keys(parsed).filter((c) => c !== "id");
-    const setClause = cols.map((c) => `${c} = ?`).join(", ");
-    const values = cols.map((c) => toIso(parsed[c]));
-    getDb().run(
-      `UPDATE ${this.table} SET ${setClause} WHERE id = ?`,
-      [...values, id],
-    );
-    this.writeAudit(parsed, "UPDATE", record, actor);
-    return parsed;
+      const now = new Date();
+      const updated = {
+        ...current,
+        ...data,
+        // framework-owned fields are never client-writable
+        id: current.id,
+        create_uid: current.create_uid,
+        create_date: current.create_date,
+        write_uid: actor.actorId,
+        write_date: now,
+        version: Number(current.version) + 1,
+        source: actor.source,
+        source_ref: current.source_ref,
+      };
+      const parsed = this.fullSchema.parse(updated) as Record<string, unknown>;
+
+      const cols = Object.keys(parsed).filter((column) => column !== "id");
+      cols.forEach((column) => this.validateColumn(column));
+      const setClause = cols.map((column) => `${column} = ?`).join(", ");
+      const values = this.encodeRow(
+        Object.fromEntries(cols.map((column) => [column, parsed[column]])),
+      );
+
+      const result = await tx.run(
+        `UPDATE ${this.table} SET ${setClause} WHERE id = ? AND version = ?`,
+        [...values, id, current.version],
+      );
+      if (result.rowsAffected !== 1) {
+        throw new ConflictError(
+          `Version conflict on '${this.name}' ${id}: record changed while updating.`,
+        );
+      }
+
+      await this.writeAudit(tx, parsed, "UPDATE", current, actor);
+      return this.decodeRow(parsed);
+    });
   }
 
   async archive(id: string, actor: ActorContext = SYSTEM_ACTOR): Promise<any | null> {
@@ -223,7 +405,7 @@ export class BaseRepository<TBusiness extends z.ZodObject<any, any>> {
   }
 
   async history(id: string): Promise<AuditEntry[]> {
-    ensureAuditTable();
+    await ensureAuditTable();
     return getDb().all<AuditEntry>(
       `SELECT * FROM _orm_audit_log WHERE model = ? AND entity_id = ? ORDER BY changed_at`,
       [this.name, id],
@@ -237,39 +419,59 @@ export class BaseRepository<TBusiness extends z.ZodObject<any, any>> {
     actor: ActorContext,
     opts: { setDeletedFields?: boolean } = {},
   ): Promise<any | null> {
-    ensureAuditTable();
-    const record = await this.findOne(id, { includeDeleted: true });
-    if (!record) return null;
+    await ensureAuditTable();
 
-    const now = new Date();
-    const updated = {
-      ...record,
-      status,
-      write_uid: actor.actorId,
-      write_date: now,
-      version: record.version + 1,
-      ...(opts.setDeletedFields
-        ? { deleted_uid: actor.actorId, deleted_date: now }
-        : { deleted_uid: null, deleted_date: null }),
-    };
-    const parsed = this.fullSchema.parse(updated);
+    return getDb().transaction(async (tx) => {
+      const currentRow = await tx.get<Record<string, unknown>>(
+        `SELECT * FROM ${this.table} WHERE id = ?`,
+        [id],
+      );
+      if (!currentRow) return null;
 
-    const cols = ["status", "write_uid", "write_date", "version", "deleted_uid", "deleted_date"];
-    const setClause = cols.map((c) => `${c} = ?`).join(", ");
-    const values = cols.map((c) => toIso(parsed[c]));
-    getDb().run(`UPDATE ${this.table} SET ${setClause} WHERE id = ?`, [...values, id]);
-    this.writeAudit(parsed, action, record, actor);
-    return parsed;
+      const current = this.decodeRow<Record<string, unknown>>(currentRow);
+      const now = new Date();
+      const updated = {
+        ...current,
+        status,
+        write_uid: actor.actorId,
+        write_date: now,
+        version: Number(current.version) + 1,
+        ...(opts.setDeletedFields
+          ? { deleted_uid: actor.actorId, deleted_date: now }
+          : { deleted_uid: null, deleted_date: null }),
+      };
+      const parsed = this.fullSchema.parse(updated) as Record<string, unknown>;
+
+      const cols = ["status", "write_uid", "write_date", "version", "deleted_uid", "deleted_date"];
+      const setClause = cols.map((column) => `${column} = ?`).join(", ");
+      const values = this.encodeRow(
+        Object.fromEntries(cols.map((column) => [column, parsed[column]])),
+      );
+
+      const result = await tx.run(
+        `UPDATE ${this.table} SET ${setClause} WHERE id = ? AND version = ?`,
+        [...values, id, current.version],
+      );
+      if (result.rowsAffected !== 1) {
+        throw new ConflictError(
+          `Version conflict on '${this.name}' ${id}: record changed while updating status.`,
+        );
+      }
+
+      await this.writeAudit(tx, parsed, action, current, actor);
+      return this.decodeRow(parsed);
+    });
   }
 
-  private writeAudit(
-    record: any,
+  private async writeAudit(
+    tx: LibSqlExecutor,
+    record: Record<string, unknown>,
     action: AuditAction,
-    before: any | null,
+    before: Record<string, unknown> | null,
     actor: ActorContext,
-  ): void {
+  ): Promise<void> {
     const entry = auditHookFor(this.name)(record, action, before, actor);
-    getDb().run(
+    await tx.run(
       `INSERT INTO _orm_audit_log (id, model, entity_id, action, changed_by, changed_at, diff, entity_version, source, request_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -290,9 +492,9 @@ export class BaseRepository<TBusiness extends z.ZodObject<any, any>> {
 
 function auditHookFor(model: string) {
   return (
-    record: any,
+    record: Record<string, unknown>,
     action: AuditAction,
-    before: any | null,
+    before: Record<string, unknown> | null,
     actor: ActorContext,
   ): AuditEntry => {
     const diff: Record<string, { before: unknown; after: unknown }> = {};
@@ -310,12 +512,12 @@ function auditHookFor(model: string) {
     return {
       id: uuidv7(),
       model,
-      entity_id: record.id,
+      entity_id: String(record.id),
       action,
       changed_by: actor.actorId,
       changed_at: new Date().toISOString(),
       diff: JSON.stringify(diff),
-      entity_version: record.version,
+      entity_version: Number(record.version),
       source: actor.source,
       request_id: actor.requestId ?? null,
     };
@@ -326,6 +528,19 @@ export function defineModel<TBusiness extends z.ZodObject<any, any>>(
   options: DefineModelOptions & { schema: TBusiness },
 ): DefineModelReturn<TBusiness> {
   const { name, table, schema, softDelete = true, indexes } = options;
+
+  assertIdentifier(table, "table");
+
+  const fields = new Map<string, FieldSpec>();
+  const businessColumns: string[] = [];
+  for (const [field, fieldSchema] of Object.entries(schema.shape)) {
+    assertIdentifier(field, "column");
+    const spec = fieldSpec(fieldSchema as z.ZodTypeAny, field);
+    fields.set(field, spec);
+    if (!METADATA_NAMES.has(field)) {
+      businessColumns.push(`"${field}" ${spec.columnType}${spec.nullable ? "" : " NOT NULL"}`);
+    }
+  }
 
   const fullSchema = schema.extend({
     id: z.string(),
@@ -342,13 +557,22 @@ export function defineModel<TBusiness extends z.ZodObject<any, any>>(
   });
 
   const indexDefinitions = (indexes ?? []).map((idx) => {
-    const idxName = `idx_${table}_${idx.fields.join("_")}`;
-    const unique = idx.unique ? "UNIQUE " : "";
-    return `${unique}CREATE INDEX IF NOT EXISTS ${idxName} ON ${table} (${idx.fields.join(", ")})`;
+    const columns = idx.fields.map((field) => {
+      assertIdentifier(field, "index column");
+      if (!fields.has(field) && !METADATA_NAMES.has(field)) {
+        throw new Error(`Index on '${table}' references unknown column '${field}'.`);
+      }
+      return `${field}_`;
+    });
+    const idxName = `idx_${table}_${columns.join("_")}`;
+    assertIdentifier(idxName, "index name");
+    const kind = idx.unique ? "CREATE UNIQUE INDEX" : "CREATE INDEX";
+    return `${kind} IF NOT EXISTS ${idxName} ON ${table} (${idx.fields.join(", ")})`;
   });
 
+  const allColumns = [...METADATA_COLUMNS, ...businessColumns];
   const ddl = [
-    `CREATE TABLE IF NOT EXISTS ${table} (\n  ${METADATA_COLUMNS.join(",\n  ")}\n)`,
+    `CREATE TABLE IF NOT EXISTS ${table} (\n  ${allColumns.join(",\n  ")}\n)`,
     ...indexDefinitions,
   ].join(";\n");
 
@@ -358,104 +582,8 @@ export function defineModel<TBusiness extends z.ZodObject<any, any>>(
     schema,
     fullSchema,
     type: undefined as unknown as z.infer<TBusiness>,
-    repository: new BaseRepository<TBusiness>(name, table, fullSchema, softDelete),
+    repository: new BaseRepository<TBusiness>(name, table, fullSchema, softDelete, fields),
     ddl,
     auditHook: (record, action, before) => auditHookFor(name)(record, action, before, SYSTEM_ACTOR),
   };
 }
-
-export interface ITimelineRepository {
-  listEvents(filters: TimelineFilters): Promise<TimelineEvent[]>;
-  getEvent(id: string): Promise<TimelineEvent | null>;
-  getStats(): Promise<TimelineStats>;
-  getEras(): Promise<Era[]>;
-}
-
-export class TimelineRepository
-  extends BaseRepository<any>
-  implements ITimelineRepository
-{
-  constructor(table: string = "timeline_events") {
-    super(
-      "timeline.event",
-      table,
-      {} as z.ZodObject<any, any>,
-      true,
-    );
-  }
-
-  async listEvents(filters: TimelineFilters): Promise<TimelineEvent[]> {
-    const rows = await this.find({});
-    return rows.map((row) => ({
-      id: row.id as string,
-      kind: row.kind as EventKind,
-      date: row.date as string,
-      era: row.era as EraId,
-      title: row.title as string,
-      excerpt: row.excerpt as string,
-      body: row.body as string,
-      location: row.location as string,
-      tags: row.tags as string[],
-      sources: row.sources as number,
-      notes: row.notes as number,
-      image: row.image as ArtKey,
-      imagePosition: row.imagePosition as string,
-      related: row.related as string[],
-    }));
-  }
-
-  async getEvent(id: string): Promise<TimelineEvent | null> {
-    const row = await this.findOne(id);
-    if (!row) return null;
-    return {
-      id: row.id as string,
-      kind: row.kind as EventKind,
-      date: row.date as string,
-      era: row.era as EraId,
-      title: row.title as string,
-      excerpt: row.excerpt as string,
-      body: row.body as string,
-      location: row.location as string,
-      tags: row.tags as string[],
-      sources: row.sources as number,
-      notes: row.notes as number,
-      image: row.image as ArtKey,
-      imagePosition: row.imagePosition as string,
-      related: row.related as string[],
-    };
-  }
-
-  async getStats(): Promise<TimelineStats> {
-      const total = (await this.listEvents({})).length;
-      const byEra = (await this.listEvents({})).reduce(
-        (acc: Record<string, number>, r) => {
-          acc[r.era as string] = (acc[r.era as string] || 0) + 1;
-          return acc;
-        },
-        {} as Record<string, number>,
-      );
-      const byKind = (await this.listEvents({})).reduce(
-        (acc: Record<string, number>, r) => {
-          acc[r.kind as string] = (acc[r.kind as string] || 0) + 1;
-          return acc;
-        },
-        {} as Record<string, number>,
-      );
-      return { total, byEra, byKind };
-    }
-
-  async getEras(): Promise<Era[]> {
-    const rows = getDb().all<Record<string, unknown>>(
-      `SELECT DISTINCT era FROM ${this.table} WHERE status != 'deleted'`,
-    );
-    return rows.map((r) => ({
-      id: r.era as EraId,
-      name: r.era as string,
-      years: "",
-      tagline: "",
-      color: "",
-    }));
-  }
-}
-
-export type { BaseMetadata, ActorContext };

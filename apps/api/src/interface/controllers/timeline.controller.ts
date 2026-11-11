@@ -2,26 +2,33 @@ import type { FastifyRequest, FastifyReply } from "fastify";
 import type {
   ITimelineUseCase,
   ListTimelineEventsRequest,
-} from "../domain/usecases/timeline/timeline.usecase";
+} from "../../domain/usecases/timeline/timeline.usecase";
 import type { Result } from "@moonwitness/core";
-import { DomainError, ValidationError, NotFoundError, UnauthorizedError, ForbiddenError, ConflictError, TimeoutError } from "@moonwitness/errors";
-import type { ActorContext } from "@moonwitness/orm";
 import { SYSTEM_ACTOR } from "@moonwitness/orm";
+import type { ActorContext } from "@moonwitness/orm";
 
+/**
+ * Public read-only timeline endpoints.
+ *
+ * Actor identity is not derived from the untrusted `x-actor-id` header.
+ * Reads are anonymous; the actor context is informational only and is
+ * never used to grant privileges.
+ */
 export class TimelineController {
   constructor(private readonly timelineUseCase: ITimelineUseCase) {}
+
+  private actor(): ActorContext {
+    return SYSTEM_ACTOR;
+  }
 
   async listEvents(
     request: FastifyRequest<{ Querystring: ListTimelineEventsRequest }>,
     reply: FastifyReply,
   ) {
-    // Extract actor from request - in production this would come from JWT middleware
-    const actorId = (request.headers["x-actor-id"] as string | null) ?? null;
-    const actor: ActorContext = actorId !== null
-      ? { actorId, source: "api", requestId: request.id }
-      : SYSTEM_ACTOR;
-
-    const result = await this.timelineUseCase.listEvents(request.query, actor);
+    const result = await this.timelineUseCase.listEvents(
+      request.query,
+      this.actor(),
+    );
     return this.handleResult(result, reply);
   }
 
@@ -29,35 +36,20 @@ export class TimelineController {
     request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply,
   ) {
-    // Extract actor from request
-    const actorId = (request.headers["x-actor-id"] as string | null) ?? null;
-    const actor: ActorContext = actorId !== null
-      ? { actorId, source: "api", requestId: request.id }
-      : SYSTEM_ACTOR;
-
-    const result = await this.timelineUseCase.getEvent(request.params.id, actor);
+    const result = await this.timelineUseCase.getEvent(
+      request.params.id,
+      this.actor(),
+    );
     return this.handleResult(result, reply);
   }
 
   async getStats(reply: FastifyReply) {
-    // Extract actor from request
-    const actorId = (request.headers["x-actor-id"] as string | null) ?? null;
-    const actor: ActorContext = actorId !== null
-      ? { actorId, source: "api", requestId: request.id }
-      : SYSTEM_ACTOR;
-
-    const result = await this.timelineUseCase.getStats(actor);
+    const result = await this.timelineUseCase.getStats(this.actor());
     return this.handleResult(result, reply);
   }
 
   async getEras(reply: FastifyReply) {
-    // Extract actor from request
-    const actorId = (request.headers["x-actor-id"] as string | null) ?? null;
-    const actor: ActorContext = actorId !== null
-      ? { actorId, source: "api", requestId: request.id }
-      : SYSTEM_ACTOR;
-
-    const result = await this.timelineUseCase.getEras(actor);
+    const result = await this.timelineUseCase.getEras(this.actor());
     return this.handleResult(result, reply);
   }
 
@@ -69,24 +61,13 @@ export class TimelineController {
       return reply.code(200).send(result.value);
     }
 
-    if (result.error instanceof DomainError) {
-      const status = this.getStatusForError(result.error);
-      return reply.code(status).send({ error: result.error.message });
-    }
+    const status =
+      result.error instanceof Error &&
+      "code" in result.error &&
+      (result.error as { code: string }).code === "NOT_FOUND_ERROR"
+        ? 404
+        : 500;
 
-    return reply.code(500).send({ error: "Internal server error" });
-  }
-
-  private getStatusForError(error: DomainError): number {
-    switch (error.code) {
-      case "NOT_FOUND_ERROR":
-        return 404;
-      case "UNAUTHORIZED_ERROR":
-        return 401;
-      case "VALIDATION_ERROR":
-        return 400;
-      default:
-        return 500;
-    }
+    return reply.code(status).send({ error: result.error.message });
   }
 }

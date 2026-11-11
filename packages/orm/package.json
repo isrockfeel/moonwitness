@@ -10,19 +10,19 @@
   "scripts": {
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
-    "test": "tsx src/__tests__/orm.core.test.ts",
+    "test": "vitest run",
     "clean": "rm -rf .turbo node_modules"
   },
   "dependencies": {
-    "better-sqlite3": "^11.10.0",
     "zod": "^3.25.76",
-    "@moonwitness/types": "workspace:*"
+    "@moonwitness/types": "workspace:*",
+    "@libsql/client": "^0.15.15"
   },
   "devDependencies": {
     "@moonwitness/eslint-config": "workspace:*",
     "@moonwitness/typescript-config": "workspace:*",
-    "@types/better-sqlite3": "^7.6.13",
     "typescript": "^5.9.3",
-    "tsx": "^4.19.0"
+    "tsx": "^4.19.0",
+    "vitest": "^3.2.7"
   }
 }

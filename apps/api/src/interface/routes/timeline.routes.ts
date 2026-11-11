@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { TimelineController } from "../controllers/timeline.controller";
+import type { ListTimelineEventsRequest } from "../../domain/usecases/timeline/timeline.usecase";
 import {
   listTimelineQuerySchema,
   timelineEventListResponseSchema,
@@ -13,7 +14,7 @@ import {
 export async function timelineRoutes(fastify: FastifyInstance) {
   const controller = new TimelineController(fastify.timelineUseCase);
 
-  fastify.get(
+  fastify.get<{ Querystring: ListTimelineEventsRequest }>(
     "/events",
     {
       schema: {
@@ -30,7 +31,7 @@ export async function timelineRoutes(fastify: FastifyInstance) {
     (request, reply) => controller.listEvents(request, reply),
   );
 
-  fastify.get(
+  fastify.get<{ Params: { id: string } }>(
     "/events/:id",
     {
       schema: {

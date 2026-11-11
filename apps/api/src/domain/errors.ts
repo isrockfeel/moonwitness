@@ -1,1 +1,10 @@
-export { DomainError, ValidationError, NotFoundError, UnauthorizedError, ForbiddenError, ConflictError, TimeoutError } from "@moonwitness/errors";
+export {
+  DomainError,
+  ValidationError,
+  NotFoundError,
+  UnauthorizedError,
+  ForbiddenError,
+  ConflictError,
+  TimeoutError,
+  isDomainError,
+} from "@moonwitness/errors";

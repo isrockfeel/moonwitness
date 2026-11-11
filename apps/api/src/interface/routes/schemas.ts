@@ -5,9 +5,10 @@ export const listTimelineQuerySchema = {
     kind: { type: "string" },
     from: { type: "string" },
     to: { type: "string" },
-    limit: { type: "integer", minimum: 1, maximum: 100 },
-    offset: { type: "integer", minimum: 0 },
+    limit: { type: "integer", minimum: 1, maximum: 100, default: 100 },
+    offset: { type: "integer", minimum: 0, default: 0 },
   },
+  additionalProperties: false,
 } as const;
 
 export const timelineEventSchema = {
@@ -66,8 +67,14 @@ export const timelineStatsSchema = {
   type: "object",
   properties: {
     total: { type: "integer" },
-    byEra: { type: "object" },
-    byKind: { type: "object" },
+    byEra: {
+      type: "object",
+      additionalProperties: { type: "integer" },
+    },
+    byKind: {
+      type: "object",
+      additionalProperties: { type: "integer" },
+    },
   },
   required: ["total", "byEra", "byKind"],
 } as const;
@@ -105,6 +112,7 @@ export const errorResponseSchema = {
   properties: {
     error: { type: "string" },
   },
+  required: ["error"],
 } as const;
 
 export const paramIdSchema = {

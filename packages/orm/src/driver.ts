@@ -1,11 +1,15 @@
-import { BetterSqlite3Driver } from "./drivers/sqlite.driver.js";
+import { LibSqlDriver } from "./drivers/sqlite.driver.js";
 
-export let db: BetterSqlite3Driver | null = null;
+let db: LibSqlDriver | null = null;
 
-export function initDb(dbPath: string): BetterSqlite3Driver {
-  db = new BetterSqlite3Driver();
-  db.init(dbPath);
-  return db;
+export async function initDb(dbPath: string): Promise<LibSqlDriver> {
+  if (db) {
+    throw new Error("Database already initialized. Call closeDb() first.");
+  }
+  const driver = new LibSqlDriver();
+  await driver.init(dbPath);
+  db = driver;
+  return driver;
 }
 
 export function closeDb(): void {
@@ -15,7 +19,7 @@ export function closeDb(): void {
   }
 }
 
-export function getDb(): BetterSqlite3Driver {
+export function getDb(): LibSqlDriver {
   if (!db) {
     throw new Error("Database not initialized. Call initDb() first.");
   }

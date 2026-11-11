@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   createAvatar,
   PALETTES,
@@ -12,6 +12,7 @@ import {
 import { Sticker, Tape, WitnessAvatar, ZineButton, ZineCard, ZineCardRough, ZineInput } from "@moonwitness/ui";
 import { Crown } from "@moonwitness/ui/icons";
 import { EmpireShell } from "@/components/shell";
+import { defaultAvatarOptions, savedOptions, savedSeed, useAvatarStore } from "@/lib/avatar-store";
 
 const SEED_POOL = [
   "Zill",
@@ -133,8 +134,28 @@ export function IdLab() {
   const [tape, setTape] = useState(false);
   const [query, setQuery] = useState("");
   const [toast, setToast] = useState<string | null>(null);
+  const [applied, setApplied] = useState(false);
   const previewRef = useRef<HTMLImageElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { saved, storageAvailable, apply, reset } = useAvatarStore(savedSeed(null));
+
+  // Buka avatar yang sudah tersimpan untuk identitas ini saat pertama kali mount.
+  useEffect(() => {
+    const s = savedSeed(saved);
+    const o = savedOptions(saved);
+    setSeed(s);
+    setPalette(o.palette);
+    setDescription(o.background);
+    setRadius(o.radius);
+    setHalftone(o.halftone);
+    setCrown(o.crown);
+    setMoon(o.moon);
+    setTape(o.tape);
+    setApplied(saved !== null);
+  }, [saved]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const options = useMemo(
     () => ({ palette, background, radius, halftone, crown, moon, tape }),

@@ -4,6 +4,7 @@ import type { TimelineFilters, TimelineStats } from "../../domain/usecases/timel
 
 export interface IEventDataSource {
   listEvents(filters: TimelineFilters): Promise<TimelineEvent[]>;
+  countEvents(filters: TimelineFilters): Promise<number>;
   getEvent(id: string): Promise<TimelineEvent | null>;
   getStats(): Promise<TimelineStats>;
   getEras(): Promise<Era[]>;
@@ -14,6 +15,10 @@ export class EventDataSource implements IEventDataSource {
 
   async listEvents(filters: TimelineFilters): Promise<TimelineEvent[]> {
     return this.repository.listEvents(filters);
+  }
+
+  async countEvents(filters: TimelineFilters): Promise<number> {
+    return this.repository.countEvents(filters);
   }
 
   async getEvent(id: string): Promise<TimelineEvent | null> {
@@ -57,14 +62,28 @@ export class InMemoryEventRepository implements ITimelineRepository {
       result = result.filter((e) => e.date <= filters.to!);
     }
 
-    if (filters.limit) {
-      result = result.slice(0, filters.limit);
+    const offset = filters.offset ?? 0;
+    const limit = filters.limit ?? result.length;
+    return result.slice(offset, offset + limit);
+  }
+
+  async countEvents(filters: TimelineFilters): Promise<number> {
+    let result = [...this.events];
+
+    if (filters.era) {
+      result = result.filter((e) => e.era === filters.era);
     }
-    if (filters.offset) {
-      result = result.slice(filters.offset);
+    if (filters.kind) {
+      result = result.filter((e) => e.kind === filters.kind);
+    }
+    if (filters.from) {
+      result = result.filter((e) => e.date >= filters.from!);
+    }
+    if (filters.to) {
+      result = result.filter((e) => e.date <= filters.to!);
     }
 
-    return result;
+    return result.length;
   }
 
   async getEvent(id: string): Promise<TimelineEvent | null> {
