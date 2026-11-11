@@ -9,6 +9,7 @@ export interface VPNPeer {
   name: string;
   public_key: string;
   address: string;
+  subnet?: string;
   mode: "split" | "full" | "site";
   extra_cidrs?: string[];
   enabled: boolean;
@@ -17,6 +18,14 @@ export interface VPNPeer {
   handshake?: string;
   rx_bytes: number;
   tx_bytes: number;
+  quota_bytes?: number;
+  quota_blocked?: boolean;
+}
+
+export interface VPNSubnet {
+  name: string;
+  address: string;
+  cidr: string;
 }
 
 export interface VPNStatus {
@@ -31,6 +40,7 @@ export interface VPNStatus {
   server_configured: boolean;
   peer_count: number;
   peers: VPNPeer[];
+  subnets?: VPNSubnet[];
   available: boolean;
   missing_tools?: string[];
 }
@@ -87,11 +97,28 @@ export function useVPNDown() {
 export function useCreatePeer() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: { name: string; mode: "split" | "full" | "site"; extra_cidrs?: string[] }) =>
+    mutationFn: (input: {
+      name: string;
+      mode: "split" | "full" | "site";
+      extra_cidrs?: string[];
+      subnet?: string;
+    }) =>
       requestJson<{ peer: VPNPeer; config: string }>(`${API_BASE}/vpn/peers`, {
         method: "POST",
         body: JSON.stringify(input),
       }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["control", "vpn"] }),
+  });
+}
+
+export function useSetPeerQuota() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { name: string; quota_bytes: number }) =>
+      requestJson<{ peer: VPNPeer }>(
+        `${API_BASE}/vpn/peers/${encodeURIComponent(input.name)}/quota`,
+        { method: "POST", body: JSON.stringify({ quota_bytes: input.quota_bytes }) },
+      ),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["control", "vpn"] }),
   });
 }

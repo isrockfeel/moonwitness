@@ -4,7 +4,7 @@ import { env } from "./shared/env";
 import { schemaDdl } from "./infrastructure/persistence/schema";
 import { SqlTimelineRepository } from "./infrastructure/persistence/timeline-sql.repository";
 import { TimelineUseCase } from "./domain/usecases/timeline/timeline.usecase";
-import { authMiddleware } from "@moonwitness/auth";
+import { authMiddleware, setJwtSecret } from "@moonwitness/auth";
 import type { FastifyInstance } from "fastify";
 
 export interface BootstrapOptions {
@@ -39,6 +39,9 @@ export async function buildApp(options: BootstrapOptions = {}): Promise<FastifyI
   const fastify = await buildFastify({
     timelineUseCase,
   });
+
+  // Set JWT secret for auth middleware (avoiding circular dependency)
+  setJwtSecret(env.JWT_SECRET ?? "development-secret");
 
   // Add auth middleware to extract JWT and build ActorContext
   if (options.enableAuth ?? true) {

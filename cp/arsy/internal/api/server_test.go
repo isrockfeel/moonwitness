@@ -201,3 +201,16 @@ func TestLogsRejectsDeniedUnit(t *testing.T) {
 		t.Fatalf("harus 403, dapat %d: %s", rec.Code, rec.Body.String())
 	}
 }
+
+
+func TestDNSStatus(t *testing.T) {
+	srv := testServer(t)
+	srv.dns = nil
+	rec := do(t, srv, "GET", "/v1/dns", readonlyToken, "")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("dns status harus 200, dapat %d: %s", rec.Code, rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "\"enabled\": false") {
+		t.Fatalf("tanpa store harus disabled: %s", rec.Body.String())
+	}
+}

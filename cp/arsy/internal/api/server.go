@@ -17,6 +17,7 @@ import (
 	"github.com/isrockfeel/moonwitness/cp/arsy/internal/audit"
 	"github.com/isrockfeel/moonwitness/cp/arsy/internal/auth"
 	"github.com/isrockfeel/moonwitness/cp/arsy/internal/config"
+	"github.com/isrockfeel/moonwitness/cp/arsy/internal/dns"
 	"github.com/isrockfeel/moonwitness/cp/arsy/internal/host"
 	"github.com/isrockfeel/moonwitness/cp/arsy/internal/metrics"
 	"github.com/isrockfeel/moonwitness/cp/arsy/internal/ops"
@@ -44,6 +45,7 @@ type Server struct {
 	tokens       map[string]string
 	users        *auth.Store
 	vpn          *vpn.Store
+	dns          *dns.Store
 	loginLimiter *limiter
 	setupLimiter *limiter
 	version      string
@@ -60,6 +62,7 @@ type Options struct {
 	Audit    *audit.Log
 	Users    *auth.Store
 	VPN      *vpn.Store
+	DNS      *dns.Store
 	Version  string
 	Logger   *log.Logger
 }
@@ -84,6 +87,7 @@ func New(opts Options) (*Server, error) {
 		tokens:       tokens,
 		users:        opts.Users,
 		vpn:          opts.VPN,
+		dns:          opts.DNS,
 		loginLimiter: newLimiter(10, 5*time.Minute),
 		setupLimiter: newLimiter(10, 10*time.Minute),
 		version:      opts.Version,
@@ -161,9 +165,15 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /v1/vpn/status", s.authorize(RoleReadonly, s.handleVPNStatus))
 	mux.HandleFunc("POST /v1/vpn/up", s.authorize(RoleAdmin, s.handleVPNUp))
 	mux.HandleFunc("POST /v1/vpn/down", s.authorize(RoleAdmin, s.handleVPNDown))
+	mux.HandleFunc("GET /v1/vpn/subnets", s.authorize(RoleReadonly, s.handleVPNSubnets))
+	mux.HandleFunc("POST /v1/vpn/subnets", s.authorize(RoleAdmin, s.handleVPNAddSubnet))
+	mux.HandleFunc("DELETE /v1/vpn/subnets/{name}", s.authorize(RoleAdmin, s.handleVPNDeleteSubnet))
 	mux.HandleFunc("POST /v1/vpn/peers", s.authorize(RoleAdmin, s.handleVPNCreatePeer))
 	mux.HandleFunc("GET /v1/vpn/peers/{name}/config", s.authorize(RoleAdmin, s.handleVPNPeerConfig))
+	mux.HandleFunc("POST /v1/vpn/peers/{name}/quota", s.authorize(RoleAdmin, s.handleVPNSetQuota))
 	mux.HandleFunc("DELETE /v1/vpn/peers/{name}", s.authorize(RoleAdmin, s.handleVPNDeletePeer))
+
+	mux.HandleFunc("GET /v1/dns", s.authorize(RoleReadonly, s.handleDNS))
 
 	mux.HandleFunc("GET /v1/portforwards", s.authorize(RoleReadonly, s.handleListPortForwards))
 	mux.HandleFunc("POST /v1/portforwards", s.authorize(RoleAdmin, s.handleCreatePortForward))

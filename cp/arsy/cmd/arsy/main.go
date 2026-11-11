@@ -18,6 +18,7 @@ import (
 	"github.com/isrockfeel/moonwitness/cp/arsy/internal/auth"
 	"github.com/isrockfeel/moonwitness/cp/arsy/internal/config"
 	"github.com/isrockfeel/moonwitness/cp/arsy/internal/host"
+	"github.com/isrockfeel/moonwitness/cp/arsy/internal/dns"
 	"github.com/isrockfeel/moonwitness/cp/arsy/internal/metrics"
 	"github.com/isrockfeel/moonwitness/cp/arsy/internal/ops"
 	"github.com/isrockfeel/moonwitness/cp/arsy/internal/reconcile"
@@ -109,6 +110,7 @@ type app struct {
 	audit    *audit.Log
 	users    *auth.Store
 	vpn      *vpn.Store
+	dns      *dns.Store
 }
 
 func build(configPath string) (*app, error) {
@@ -132,6 +134,7 @@ func build(configPath string) (*app, error) {
 	if err != nil {
 		return nil, fmt.Errorf("vpn store: %w", err)
 	}
+	dnsStore := dns.NewStore()
 	return &app{
 		cfg:      cfg,
 		info:     info,
@@ -142,6 +145,7 @@ func build(configPath string) (*app, error) {
 		audit:    auditLog,
 		users:    users,
 		vpn:      vpnStore,
+		dns:      dnsStore,
 	}, nil
 }
 
@@ -175,6 +179,7 @@ func cmdServe(args []string) error {
 		Audit:    a.audit,
 		Users:    a.users,
 		VPN:      a.vpn,
+		DNS:      a.dns,
 		Version:  version,
 	})
 	if err != nil {
@@ -205,6 +210,24 @@ func cmdServe(args []string) error {
 		case restored:
 			fmt.Println("vpn: tunnel dipulihkan dari state tersimpan")
 		}
+	}
+
+	// DNS internal: jawab nama peer VPN dan forward ke upstream.
+	if a.dns != nil && cfg.DNSListen != "" {
+		dnsServer := dns.NewServer(a.dns, cfg.DNSListen)
+		dnsServer.SetUpstream(cfg.DNSUpstream)
+		syncDNS(a)
+		if a.vpn != nil {
+			a.vpn.OnChange(func(_ vpn.Server, peers []vpn.Peer) {
+				syncDNSPeers(a.dns, peers)
+			})
+		}
+		go func() {
+			if err := dnsServer.ListenAndServe(ctx); err != nil {
+				fmt.Fprintf(os.Stderr, "arsy: dns berhenti: %v\n", err)
+			}
+		}()
+		fmt.Printf("dns listening on udp://%s (upstream %s)\n", cfg.DNSListen, nonEmpty(cfg.DNSUpstream, "-"))
 	}
 
 	errCh := make(chan error, 1)
@@ -595,4 +618,24 @@ func filepathDir(path string) string {
 		return "."
 	}
 	return path[:idx]
+}
+
+func syncDNS(a *app) {
+	if a.dns == nil || a.vpn == nil {
+		return
+	}
+	_, peers := a.vpn.Snapshot()
+	syncDNSPeers(a.dns, peers)
+}
+
+func syncDNSPeers(store *dns.Store, peers []vpn.Peer) {
+	if store == nil {
+		return
+	}
+	entries := make([]dns.Peer, 0, len(peers))
+	for _, p := range peers {
+		ip := strings.SplitN(p.Address, "/", 2)[0]
+		entries = append(entries, dns.Peer{Name: p.Name, IP: ip})
+	}
+	store.SyncFromPeers(entries)
 }

@@ -99,13 +99,13 @@ func TestAllocateAddressExhausted(t *testing.T) {
 
 func TestAllowedIPsPerMode(t *testing.T) {
 	split := Peer{Mode: ModeSplit, Address: "10.66.0.2/32"}
-	got := strings.Join(split.AllowedIPs(), ",")
+	got := strings.Join(split.AllowedIPs([]string{DefaultSubnet}), ",")
 	if got != DefaultSubnet {
 		t.Fatalf("split harus hanya subnet vpn, dapat %s", got)
 	}
 
 	full := Peer{Mode: ModeFull, Address: "10.66.0.2/32"}
-	if !strings.Contains(strings.Join(full.AllowedIPs(), ","), "0.0.0.0/0") {
+	if !strings.Contains(strings.Join(full.AllowedIPs([]string{DefaultSubnet}), ","), "0.0.0.0/0") {
 		t.Fatal("full harus 0.0.0.0/0")
 	}
 

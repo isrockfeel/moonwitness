@@ -117,10 +117,24 @@ func (m Manager) applyInterface(ctx context.Context, srv Server) error {
 		return err
 	}
 
-	if _, err := m.Runner.Run(ctx, host.Command{
-		Name: "ip", Args: []string{"address", "replace", srv.Address, "dev", srv.Interface},
-	}); err != nil {
-		return err
+	subnets := effectiveSubnets(srv)
+	if len(subnets) == 0 {
+		subnets = []Subnet{{Name: "default", Address: srv.Address, CIDR: subnetOf(srv.Address)}}
+	}
+	for i, sub := range subnets {
+		addr := strings.TrimSpace(sub.Address)
+		if addr == "" {
+			continue
+		}
+		action := "add"
+		if i == 0 {
+			action = "replace"
+		}
+		if _, err := m.Runner.Run(ctx, host.Command{
+			Name: "ip", Args: []string{"address", action, addr, "dev", srv.Interface},
+		}); err != nil {
+			return err
+		}
 	}
 
 	if _, err := m.Runner.Run(ctx, host.Command{
@@ -129,6 +143,24 @@ func (m Manager) applyInterface(ctx context.Context, srv Server) error {
 		return err
 	}
 	return nil
+}
+
+func effectiveSubnets(srv Server) []Subnet {
+	if len(srv.Subnets) > 0 {
+		return srv.Subnets
+	}
+	return []Subnet{{Name: "default", Address: srv.Address, CIDR: subnetOf(srv.Address)}}
+}
+
+func subnetCIDRs(srv Server) []string {
+	subs := effectiveSubnets(srv)
+	out := make([]string, 0, len(subs))
+	for _, sub := range subs {
+		if sub.CIDR != "" {
+			out = append(out, sub.CIDR)
+		}
+	}
+	return out
 }
 
 // applyFirewall membuka port UDP VPN. Bila ufw aktif, aturan ufw dipakai;
@@ -185,10 +217,10 @@ func (m Manager) applyRoutes(ctx context.Context, srv Server) error {
 	return nil
 }
 
-// applyNAT memasang forwarding + masquerade hanya untuk subnet VPN.
+// applyNAT memasang forwarding + masquerade untuk semua subnet VPN.
 func (m Manager) applyNAT(ctx context.Context, srv Server) error {
-	subnet := subnetOf(srv.Address)
-	if subnet == "" {
+	cidrs := subnetCIDRs(srv)
+	if len(cidrs) == 0 {
 		return fmt.Errorf("alamat server %q tidak valid", srv.Address)
 	}
 	if _, err := m.Runner.Run(ctx, host.Command{
@@ -197,16 +229,17 @@ func (m Manager) applyNAT(ctx context.Context, srv Server) error {
 		return err
 	}
 
-	// nft idempoten: buat table/chain dulu, lalu flush chain kita sendiri.
-	script := fmt.Sprintf(`add table ip arsy 2>/dev/null || true
-add chain ip arsy postrouting { type nat hook postrouting priority 100 ; } 2>/dev/null || true
-flush chain ip arsy postrouting
-add rule ip arsy postrouting ip saddr %s ip daddr != %s masquerade
-add chain ip arsy forward 2>/dev/null || true
-flush chain ip arsy forward
-`, subnet, subnet)
+	var b strings.Builder
+	b.WriteString("add table ip arsy 2>/dev/null || true\n")
+	b.WriteString("add chain ip arsy postrouting { type nat hook postrouting priority 100 ; } 2>/dev/null || true\n")
+	b.WriteString("flush chain ip arsy postrouting\n")
+	for _, cidr := range cidrs {
+		fmt.Fprintf(&b, "add rule ip arsy postrouting ip saddr %s ip daddr != %s masquerade\n", cidr, cidr)
+	}
+	b.WriteString("add chain ip arsy forward 2>/dev/null || true\n")
+	b.WriteString("flush chain ip arsy forward\n")
 
-	if _, err := m.Runner.Run(ctx, host.Command{Name: "nft", Args: []string{"-f", "-"}, Stdin: script}); err != nil {
+	if _, err := m.Runner.Run(ctx, host.Command{Name: "nft", Args: []string{"-f", "-"}, Stdin: b.String()}); err != nil {
 		return fmt.Errorf("nft: %w", err)
 	}
 	return nil
@@ -216,6 +249,12 @@ flush chain ip arsy forward
 func (m Manager) syncPeers(ctx context.Context, srv Server) error {
 	_, peers := m.Store.Snapshot()
 
+	// Perbarui metering/kuota dari counter kernel sebelum sync.
+	if tr, err := m.Transfers(ctx); err == nil && len(tr) > 0 {
+		m.Store.UpdateUsage(tr)
+		_, peers = m.Store.Snapshot()
+	}
+
 	if _, err := m.Runner.Run(ctx, host.Command{
 		Name: "wg", Args: []string{"set", srv.Interface, "peer", "remove", "all"},
 	}); err != nil {
@@ -224,7 +263,7 @@ func (m Manager) syncPeers(ctx context.Context, srv Server) error {
 	}
 
 	for _, p := range peers {
-		if !p.Enabled {
+		if !p.Enabled || p.QuotaBlocked {
 			continue
 		}
 		allowed := strings.Join(p.AllowedIPsOnServer(), ",")
@@ -354,7 +393,11 @@ func subnetOf(cidr string) string {
 
 // ClientConfig menghasilkan isi wg0.conf untuk perangkat klien.
 func ClientConfig(srv Server, p Peer) string {
-	allowed := p.AllowedIPs()
+	vpnCIDRs := subnetCIDRs(srv)
+	if len(vpnCIDRs) == 0 {
+		vpnCIDRs = []string{DefaultSubnet}
+	}
+	allowed := p.AllowedIPs(vpnCIDRs)
 	// Peer split/site juga perlu menjangkau LAN di sisi server.
 	if p.Mode != ModeFull {
 		allowed = append(allowed, srv.LocalCIDRs...)

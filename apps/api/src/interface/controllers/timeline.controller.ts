@@ -17,30 +17,31 @@ import type { ActorContext } from "@moonwitness/orm";
 export class TimelineController {
   constructor(private readonly _timelineUseCase: ITimelineUseCase) {}
 
-  private actor(): ActorContext {
-    return SYSTEM_ACTOR;
+  private getActor(request: FastifyRequest): ActorContext {
+    // Use actor from request (set by authMiddleware), fallback to SYSTEM_ACTOR
+    return (request as any).actor ?? SYSTEM_ACTOR;
   }
 
   async listEvents(
     request: FastifyRequest<{ Querystring: ListTimelineEventsRequest }>,
     reply: FastifyReply,
   ) {
-    const result = await this._timelineUseCase.listEvents(request.query, this.actor());
+    const result = await this._timelineUseCase.listEvents(request.query, this.getActor(request));
     return this.handleResult(result, reply);
   }
 
   async getEvent(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const result = await this._timelineUseCase.getEvent(request.params.id, this.actor());
+    const result = await this._timelineUseCase.getEvent(request.params.id, this.getActor(request));
     return this.handleResult(result, reply);
   }
 
   async getStats(reply: FastifyReply) {
-    const result = await this._timelineUseCase.getStats(this.actor());
+    const result = await this._timelineUseCase.getStats(this.getActor(reply.request));
     return this.handleResult(result, reply);
   }
 
   async getEras(reply: FastifyReply) {
-    const result = await this._timelineUseCase.getEras(this.actor());
+    const result = await this._timelineUseCase.getEras(this.getActor(reply.request));
     return this.handleResult(result, reply);
   }
 

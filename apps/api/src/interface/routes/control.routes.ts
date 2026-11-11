@@ -17,6 +17,7 @@ const READ_PATHS = new Set([
   "logs",
   "audit",
   "users",
+  "dns",
 ]);
 
 const WRITE_PATHS = new Set(["plan", "apply", "ops/plan", "ops"]);
@@ -259,6 +260,28 @@ export async function controlRoutes(fastify: FastifyInstance) {
     return forward(request, reply, "vpn/status");
   });
 
+  fastify.get("/control/vpn/subnets", async (request, reply) => {
+    if (!(await gate(request, reply))) return reply;
+    return forward(request, reply, "vpn/subnets");
+  });
+
+  fastify.post("/control/vpn/subnets", async (request, reply) => {
+    if (!ARSY_PROXY_ADMIN) {
+      return reply.code(403).send({ error: "aksi tulis lewat web dimatikan" });
+    }
+    if (!(await gate(request, reply))) return reply;
+    return forward(request, reply, "vpn/subnets");
+  });
+
+  fastify.delete<{ Params: { name: string } }>("/control/vpn/subnets/:name", async (request, reply) => {
+    if (!ARSY_PROXY_ADMIN) {
+      return reply.code(403).send({ error: "aksi tulis lewat web dimatikan" });
+    }
+    if (!(await gate(request, reply))) return reply;
+    const name = encodeURIComponent(request.params.name);
+    return forward(request, reply, `vpn/subnets/${name}`);
+  });
+
   for (const sub of ["vpn/up", "vpn/down", "vpn/peers"] as const) {
     fastify.post(`/control/${sub}`, async (request, reply) => {
       if (!ARSY_PROXY_ADMIN) {
@@ -275,6 +298,18 @@ export async function controlRoutes(fastify: FastifyInstance) {
       if (!(await gate(request, reply))) return reply;
       const name = encodeURIComponent(request.params.name);
       return forward(request, reply, `vpn/peers/${name}/config`);
+    },
+  );
+
+  fastify.post<{ Params: { name: string } }>(
+    "/control/vpn/peers/:name/quota",
+    async (request, reply) => {
+      if (!ARSY_PROXY_ADMIN) {
+        return reply.code(403).send({ error: "aksi tulis lewat web dimatikan" });
+      }
+      if (!(await gate(request, reply))) return reply;
+      const name = encodeURIComponent(request.params.name);
+      return forward(request, reply, `vpn/peers/${name}/quota`);
     },
   );
 

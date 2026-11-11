@@ -10,6 +10,7 @@ import {
   useCreatePeer,
   useDeletePeer,
   usePeerConfig,
+  useSetPeerQuota,
   useVPNDown,
   useVPNStatus,
   useVPNUp,
@@ -91,14 +92,19 @@ function PeerRow({
   peer,
   onShowConfig,
   onDelete,
+  onSetQuota,
   busy,
 }: {
   peer: VPNPeer;
   onShowConfig: () => void;
   onDelete: () => void;
+  onSetQuota: () => void;
   busy: boolean;
 }) {
   const hs = handshakeLabel(peer.handshake);
+  const total = (peer.rx_bytes || 0) + (peer.tx_bytes || 0);
+  const quota = peer.quota_bytes ?? 0;
+  const pct = quota > 0 ? Math.min(100, Math.round((total / quota) * 100)) : 0;
   return (
     <tr className="border-b border-[var(--line)]/60 last:border-b-0">
       <td className="px-3 py-2">
@@ -106,6 +112,16 @@ function PeerRow({
         <span className="ml-2 text-[10px] tracking-widest text-zinc-600">
           {peer.mode.toUpperCase()}
         </span>
+        {peer.subnet && (
+          <span className="ml-2 text-[10px] tracking-widest text-[var(--cyan,#00bcd4)]">
+            {peer.subnet}
+          </span>
+        )}
+        {peer.quota_blocked && (
+          <span className="ml-2 border border-[var(--red)]/50 bg-[var(--red)]/10 px-1.5 py-0.5 text-[9px] tracking-widest text-[var(--red)]">
+            KUOTA HABIS
+          </span>
+        )}
         {peer.extra_cidrs && peer.extra_cidrs.length > 0 && (
           <p className="mt-0.5 font-mono text-[10px] text-zinc-500">{peer.extra_cidrs.join(", ")}</p>
         )}
@@ -123,9 +139,22 @@ function PeerRow({
         </span>
       </td>
       <td className="px-3 py-2 font-mono text-[10px] text-zinc-500">
-        ↓{formatTraffic(peer.rx_bytes)} ↑{formatTraffic(peer.tx_bytes)}
+        <div>↓{formatTraffic(peer.rx_bytes)} ↑{formatTraffic(peer.tx_bytes)}</div>
+        {quota > 0 && (
+          <div className="mt-0.5 text-[10px] text-zinc-600">
+            {formatTraffic(total)} / {formatTraffic(quota)} ({pct}%)
+          </div>
+        )}
       </td>
       <td className="px-3 py-2 text-right">
+        <button
+          type="button"
+          onClick={onSetQuota}
+          disabled={busy}
+          className="btn-zine btn-paper mr-2 px-2.5 py-1.5 text-[10px]"
+        >
+          KUOTA
+        </button>
         <button
           type="button"
           onClick={onShowConfig}
@@ -161,6 +190,7 @@ function NetworkDashboard() {
   const [peerName, setPeerName] = useState("");
   const [peerMode, setPeerMode] = useState<"split" | "full" | "site">("split");
   const [peerCIDR, setPeerCIDR] = useState("");
+  const [peerSubnet, setPeerSubnet] = useState("");
   const [config, setConfig] = useState<{ name: string; text: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -170,6 +200,7 @@ function NetworkDashboard() {
   const create = useCreatePeer();
   const remove = useDeletePeer();
   const fetchConfig = usePeerConfig();
+  const setQuota = useSetPeerQuota();
 
   function runEndpointUp() {
     setError(null);
@@ -198,7 +229,12 @@ function NetworkDashboard() {
       return;
     }
     create.mutate(
-      { name: peerName.trim(), mode: peerMode, extra_cidrs: cidrs },
+      {
+        name: peerName.trim(),
+        mode: peerMode,
+        extra_cidrs: cidrs,
+        subnet: peerSubnet.trim() || undefined,
+      },
       {
         onSuccess: (data) => {
           setConfig({ name: data.peer.name, text: data.config });
@@ -221,6 +257,24 @@ function NetworkDashboard() {
   function deletePeer(name: string) {
     setError(null);
     remove.mutate(name, { onError: (err: Error) => setError(err.message) });
+  }
+
+  function editQuota(name: string) {
+    setError(null);
+    const raw = window.prompt(
+      `Kuota total (rx+tx) untuk ${name} dalam byte. 0 = tanpa batas.`,
+      "0",
+    );
+    if (raw === null) return;
+    const quota = Number(raw.trim());
+    if (!Number.isFinite(quota) || quota < 0) {
+      setError("Kuota harus angka byte >= 0.");
+      return;
+    }
+    setQuota.mutate(
+      { name, quota_bytes: Math.floor(quota) },
+      { onError: (err: Error) => setError(err.message) },
+    );
   }
 
   const data = status.data;
@@ -272,6 +326,11 @@ function NetworkDashboard() {
                 <p className="mt-1 font-mono text-[11px] text-zinc-500">
                   udp/{data.listen_port}
                 </p>
+                {data.subnets && data.subnets.length > 0 && (
+                  <p className="mt-1 font-mono text-[10px] text-zinc-500">
+                    subnets: {data.subnets.map((s) => `${s.name}(${s.cidr})`).join(", ")}
+                  </p>
+                )}
               </ZineCard>
               <ZineCard className="p-4">
                 <p className="text-[10px] tracking-[0.2em] text-zinc-500">ENDPOINT</p>
@@ -336,7 +395,7 @@ function NetworkDashboard() {
                   <h2 className="font-brush text-xl text-white">
                     TAMBAH <span className="text-[var(--blue)]">PERANGKAT</span>
                   </h2>
-                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_auto]">
+                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_auto_auto]">
                     <ZineInput
                       value={peerName}
                       onChange={(e) => setPeerName(e.target.value)}
@@ -344,6 +403,21 @@ function NetworkDashboard() {
                       className="rounded-md px-4 py-2.5 text-sm"
                       aria-label="Nama perangkat"
                     />
+                    <ZineInput
+                      value={peerSubnet}
+                      onChange={(e) => setPeerSubnet(e.target.value)}
+                      placeholder="subnet (default)"
+                      list="vpn-subnets"
+                      className="rounded-md px-4 py-2.5 text-sm"
+                      aria-label="Subnet peer"
+                    />
+                    <datalist id="vpn-subnets">
+                      {(data.subnets ?? []).map((s) => (
+                        <option key={s.name} value={s.name}>
+                          {s.cidr}
+                        </option>
+                      ))}
+                    </datalist>
                     <div className="flex gap-1">
                       {(["split", "full", "site"] as const).map((mode) => (
                         <button
@@ -415,7 +489,7 @@ function NetworkDashboard() {
                             <th className="px-3 py-2 font-normal">NAMA</th>
                             <th className="px-3 py-2 font-normal">ALAMAT</th>
                             <th className="px-3 py-2 font-normal">HANDSHAKE</th>
-                            <th className="px-3 py-2 font-normal">TRAFIK</th>
+                            <th className="px-3 py-2 font-normal">TRAFIK / KUOTA</th>
                             <th className="px-3 py-2 font-normal" />
                           </tr>
                         </thead>
@@ -424,8 +498,9 @@ function NetworkDashboard() {
                             <PeerRow
                               key={peer.id}
                               peer={peer}
-                              busy={remove.isPending}
+                              busy={remove.isPending || setQuota.isPending}
                               onShowConfig={() => showConfig(peer.name)}
+                              onSetQuota={() => editQuota(peer.name)}
                               onDelete={() => deletePeer(peer.name)}
                             />
                           ))}

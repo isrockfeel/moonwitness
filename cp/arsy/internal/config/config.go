@@ -30,6 +30,8 @@ type Config struct {
 	DataDir           string    `json:"data_dir"`
 	TokenAdminFile    string    `json:"token_admin_file"`
 	TokenReadonlyFile string    `json:"token_readonly_file"`
+	DNSListen         string    `json:"dns_listen"`
+	DNSUpstream       string    `json:"dns_upstream"`
 	Allow             Allowlist `json:"allow"`
 }
 
@@ -47,6 +49,8 @@ func Default() Config {
 			DataDir:           filepath.Join(root, "data"),
 			TokenAdminFile:    filepath.Join(root, "token-admin"),
 			TokenReadonlyFile: filepath.Join(root, "token-readonly"),
+			DNSListen:         "127.0.0.1:5353",
+			DNSUpstream:       "1.1.1.1:53",
 			Allow:             defaultAllow(),
 		}
 	}
@@ -57,6 +61,8 @@ func Default() Config {
 		DataDir:           "/etc/arsy/data",
 		TokenAdminFile:    "/etc/arsy/token-admin",
 		TokenReadonlyFile: "/etc/arsy/token-readonly",
+		DNSListen:         "127.0.0.1:5353",
+		DNSUpstream:       "1.1.1.1:53",
 		Allow:             defaultAllow(),
 	}
 }
@@ -102,6 +108,12 @@ func Load(path string) (Config, error) {
 	}
 	if v := os.Getenv("ARSY_TOKEN_READONLY_FILE"); v != "" {
 		cfg.TokenReadonlyFile = v
+	}
+	if v := os.Getenv("ARSY_DNS_LISTEN"); v != "" {
+		cfg.DNSListen = v
+	}
+	if v := os.Getenv("ARSY_DNS_UPSTREAM"); v != "" {
+		cfg.DNSUpstream = v
 	}
 
 	if err := cfg.Validate(); err != nil {

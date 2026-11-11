@@ -6,6 +6,7 @@ const envSchema = {
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   API_PREFIX: z.string().default("/api/v1"),
   DATABASE_URL: z.string().optional(),
+  JWT_SECRET: z.string().optional(),
 };
 
 export const env = parseEnv(envSchema);
