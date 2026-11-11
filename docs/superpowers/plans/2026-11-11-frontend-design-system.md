@@ -5283,7 +5283,7 @@ State dipisah ke hook karena `index.tsx` versi final (11 bagian + 4 memo filter 
 
 Dua bagian di luar referensi §6 (bagian 10 dan 11) sudah dijamin spec. Task ini menambah satu lagi: **`ProjectUniverse`**, grid proyek yang menaut ke `/dock?q=<judul>`. Alasannya sama seperti §6.10-6.11 — halaman lama punya kemampuan itu (`mission-control.tsx:300-350`) dan §6 menjanjikan "tidak ada kemampuan yang hilang". Kalau owner mau persis seperti gambar, `projects.tsx` adalah yang pertama dihapus: hapus file, hapus satu baris render di `index.tsx`.
 
-- [ ] **Step 1: `crewStats` jadi satu sumber**
+- [x] **Step 1: `crewStats` jadi satu sumber**
 
 Tambah di `apps/web/src/lib/data.ts`, tepat setelah `witnesses`:
 
@@ -5297,7 +5297,7 @@ export const crewStats: { label: string; target: number }[] = [
 
 Angka disalin dari `landing.tsx:178-180`. Lalu di `apps/web/src/components/landing/crew.tsx`, ganti array literal yang dikirim ke `CrewConstellation` dengan impor `crewStats` dari `@/lib/data`. Dua halaman memakai angka yang sama; kalau tidak disatukan, salah satu akan menyimpang saat angka diperbarui.
 
-- [ ] **Step 2: `pipeline.tsx` (§6.6)**
+- [x] **Step 2: `pipeline.tsx` (§6.6)**
 
 ```tsx
 import type { PipelineCard, PipelineColumn } from "@moonwitness/types";
@@ -5330,7 +5330,7 @@ export function Pipeline({ columns, onOpenCard }: PipelineProps) {
 
 `grid-cols-1` ditulis eksplisit (Global Constraints: track implisit bikin overflow di 390px). Catatan "no dragging" sengaja terlihat — §D6 menolak drag-and-drop, dan pengguna yang datang dari tool kanban lain perlu tahu kenapa kartunya tidak bisa diseret.
 
-- [ ] **Step 3: `collections.tsx` (§6.7)**
+- [x] **Step 3: `collections.tsx` (§6.7)**
 
 ```tsx
 import type { Collection } from "@moonwitness/types";
@@ -5359,7 +5359,7 @@ export function Collections({ collections, onOpenCollection }: CollectionsProps)
 
 `id="cc-collections"` = anchor sidebar item **Collections** (Task 21).
 
-- [ ] **Step 4: `projects.tsx` (di luar referensi)**
+- [x] **Step 4: `projects.tsx` (di luar referensi)**
 
 Markup disalin dari `mission-control.tsx:310-349`, dengan `next/image` + `artSrc` (Task 17) dan `Link` (bukan `<a>`) supaya navigasi tetap client-side:
 
@@ -5421,7 +5421,7 @@ export function ProjectUniverse({ projects }: { projects: Project[] }) {
 
 `ZineImage` tidak dipakai di sini karena posisi crop per proyek (`p.imagePosition`) tidak bisa dilewatkan ke manifest — `ZineImage` membaca posisi dari `ARTWORK`. `next/image` tetap menghasilkan avif/webp lewat konfigurasi Task 17.
 
-- [ ] **Step 5: `studios.tsx` (§6.8)**
+- [x] **Step 5: `studios.tsx` (§6.8)**
 
 Tile-nya adalah `ModuleCard` yang sudah dipindah ke paket di Task 9 — §6.8 memang "dua tile promosi yang menyalakan drawer modul", persis perilaku `ModuleCard`. Menulis tile baru di sini akan menduplikasi ikon berwarna, nama brush, dan ringkasan stats yang sudah ada.
 
@@ -5464,7 +5464,7 @@ Expected: dua baris. Kalau salah satu tidak ada, tile-nya hilang diam-diam karen
 
 Ini juga jawaban untuk pertanyaan "masih ada yang memakai `ModuleCard` setelah grid modul lama dihapus?" — ya, bagian 8. Tanpa pemakaian ini, Task 9 memindahkan komponen yang langsung jadi kode mati.
 
-- [ ] **Step 6: `map.tsx` (§6.9)**
+- [x] **Step 6: `map.tsx` (§6.9)**
 
 ```tsx
 import type { MapCity } from "@moonwitness/types";
@@ -5520,7 +5520,7 @@ export function UniverseMap({ cities, selectedId, onSelect }: UniverseMapProps) 
 
 Panel detail adalah alasan `WorldMap` terkendali (Task 24). Kalimat kosong menyebut daftar kota karena node SVG sengaja tidak focusable — jalur keyboard ada di `<ul>` tombol yang dirender `WorldMap` sendiri.
 
-- [ ] **Step 7: `crew.tsx` (§6.10)**
+- [x] **Step 7: `crew.tsx` (§6.10)**
 
 ```tsx
 import { CrewConstellation } from "@moonwitness/ui";
@@ -5544,7 +5544,7 @@ export function CrewOrbit() {
 
 Tidak ada prop `cta`: di landing slot itu diisi `<Link>` ke `/dock`, di sini pengguna sudah di dalam dashboard jadi tidak perlu ajakan keluar. `id="cc-crew"` = anchor sidebar **Crew**.
 
-- [ ] **Step 8: `log.tsx` (§6.11)**
+- [x] **Step 8: `log.tsx` (§6.11)**
 
 Gabungan tiga panel lama (`mission-control.tsx:353-460`): ACTIVE WORKFLOWS, COMMAND FEED, MISSION ALERTS. Workflow ikut digabung karena `queueRun` menulis ke daftar itu — tanpa panelnya, menekan QUEUE NEW RUN hanya memunculkan toast dan hasil kerjanya tidak pernah terlihat.
 
@@ -5668,7 +5668,7 @@ export function MissionLog({
 
 `--red` sudah ada di `theme.css` (Task 4). Tiga kelas warna status diringkas ke `STATUS_TEXT` karena dipakai dua kali per baris; nilainya disalin persis dari `mission-control.tsx:367` dan `:376`. Dua tombol kecil lama (`px-2 py-1`, `px-1`) dinaikkan ke `min-h-11` sesuai Task 16.
 
-- [ ] **Step 9: `item-drawer.tsx`**
+- [x] **Step 9: `item-drawer.tsx`**
 
 Satu drawer untuk tiga sumber (workspace item, kartu pipeline, koleksi). Shell-nya menyalin `module-drawer.tsx` supaya dua drawer di halaman ini terasa sama.
 
@@ -5733,7 +5733,7 @@ export function ItemDrawer({ detail, onClose }: ItemDrawerProps) {
 
 `Escape` tidak ditangani di sini — satu handler di hook (Step 10) menutup drawer mana pun yang terbuka, termasuk `ModuleDrawer`.
 
-- [ ] **Step 10: `use-command-center.ts`**
+- [x] **Step 10: `use-command-center.ts`**
 
 ```ts
 "use client";
@@ -5940,7 +5940,7 @@ export function useCommandCenter(): CommandCenterState {
 
 `queueRun`, `toggleWorkflow`, dan filter query disalin dari `mission-control.tsx:185-230` — perilakunya tidak berubah, hanya tempatnya. `setSelectedCity` bertipe `(id: string) => void` (bukan `string | null`) karena `WorldMap.onSelect` hanya memilih; mengosongkan pilihan dilakukan lewat `closeOverlays` tidak diperlukan — panel detail punya fallback "Pick a node".
 
-- [ ] **Step 11: Tulis ulang `index.tsx`**
+- [x] **Step 11: Tulis ulang `index.tsx`**
 
 ```tsx
 "use client";
@@ -6026,7 +6026,7 @@ Aturan impor di file ini: data **statis** (`mapCities`, `modules`, `projects`, `
 
 Urutan render = urutan §6 (1→11) dengan `ProjectUniverse` disisipkan setelah §7. Urutan ini yang menentukan anchor mana yang menyala saat scroll, jadi jangan diacak.
 
-- [ ] **Step 12: Pipeline + bukti browser**
+- [x] **Step 12: Pipeline + bukti browser**
 
 ```bash
 pnpm turbo run lint typecheck build
@@ -6082,7 +6082,11 @@ rm -rf apps/web/src/app/__cc-preview
 
 Matikan server, verifikasi port bebas (`netstat -ano | grep :4317` harus kosong).
 
-- [ ] **Step 13: Commit**
+> **Bukti (2026-11-11):** `tsc --noEmit` apps/web EXIT=0; `next build` EXIT=0 (lint tetap gagal karena `tseslintPluginReact is not defined` di `packages/eslint-config/base.js` — WIP asing, di luar scope). Semua file komponen < 150 baris (index 77, terbesar log 122); `use-command-center.ts` 200 baris memang hook agregator sesuai desain plan. Verifikasi browser di `/cc-preview` (build produksi, port 4317): 11 bagian §6 hadir berurutan + hitungan benar (quick 4, kanban 4, collection 4, project 4, studio 2, city 8, panel 3). Interaksi: New Episode→drawer STORY FORGE, QUEUE NEW RUN→toast + baris ACTIVE WORKFLOWS +1, tile studio→drawer sama, kartu pipeline→ItemDrawer **bergambar**, tile koleksi→ItemDrawer, baris workspace→ItemDrawer **tanpa gambar**, daftar kota→CITY DETAIL terisi (LONDON), `Escape` menutup drawer. Search: "the"→workspace 6→1, "a"→4 (filter menyempitkan nyata). `scrollWidth` 390=380≤390, 768=758≤768, 1440=1430≤1440 (tanpa overflow horizontal). Screenshot di `.verify/phase4-task26/task26_{1440,768,390}.png`. 0 error; 2 warning preload `priority` hero (perilaku Next normal).
+>
+> **Cacat plan ditemukan:** Step 12 memakai folder `apps/web/src/app/__cc-preview`. App Router memperlakukan segmen berawalan `_` sebagai private (tidak dirutekan), jadi `/__cc-preview` tidak muncul di route table dan tidak bisa diakses. Dipakai `cc-preview` (tanpa underscore) agar preview benar-benar ter-render; tetap dihapus sebelum commit.
+
+- [x] **Step 13: Commit**
 
 ```bash
 git add apps/web/src/components/command-center apps/web/src/lib/data.ts apps/web/src/components/landing/crew.tsx
@@ -6090,6 +6094,8 @@ git commit -m "feat(command-center): bagian 6-11 + orkestrator final"
 ```
 
 `git status` setelahnya harus bersih dari `__cc-preview`.
+
+> **Bukti:** commit `13bf904` (12 file: 10 command-center baru + index tulis ulang, landing/crew.tsx, data.ts). Halaman preview `cc-preview` sudah dihapus sebelum commit; WIP asing (env/package/eslint-config/lock/turbo) tersisa tak ter-stage.
 
 ### Task 27: Tukar route ke `CommandCenter`, hapus Mission Control lama
 
