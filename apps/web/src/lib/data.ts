@@ -1,25 +1,37 @@
 import type {
+  Collection,
   Era,
   EventKind,
   FeedItem,
+  MapCity,
   MissionAlert,
   Module,
+  PipelineColumn,
   Project,
+  QuickAction,
   TimelineEvent,
+  UniverseStat,
   Witness,
   Workflow,
+  WorkspaceItem,
 } from "@moonwitness/types";
 
 export type {
+  Collection,
   Era,
   EventKind,
   FeedItem,
+  MapCity,
   MissionAlert,
   Module,
+  PipelineColumn,
   Project,
+  QuickAction,
   TimelineEvent,
+  UniverseStat,
   Witness,
   Workflow,
+  WorkspaceItem,
 };
 
 export const eras: Era[] = [
@@ -511,4 +523,126 @@ export const witnesses: Witness[] = [
     quote: "Six thousand witnesses. One sky. Keep going.",
     signals: 38,
   },
+];
+
+export const universeStats: UniverseStat[] = [
+  { label: "STORIES ACTIVE", value: "12", trend: "+3 this week", tone: "pink" },
+  { label: "EPISODES PUBLISHED", value: "48", trend: "+6 this month", tone: "blue" },
+  { label: "COLLECTIONS LIVE", value: "6", trend: "2 curated", tone: "yellow" },
+  { label: "TOTAL VIEWS", value: "3.2M", trend: "+18% vs last cycle", tone: "green" },
+];
+
+export const quickActions: QuickAction[] = [
+  { id: "qa-episode", label: "NEW EPISODE", icon: "plus", moduleId: "story-forge" },
+  { id: "qa-poster", label: "CREATE POSTER", icon: "image", moduleId: "poster-lab" },
+  { id: "qa-story", label: "WRITE STORY", icon: "pen", moduleId: "story-forge" },
+  { id: "qa-collection", label: "ADD TO COLLECTION", icon: "stack", moduleId: "publishing-hub" },
+];
+
+export const workspaceItems: WorkspaceItem[] = [
+  {
+    id: "ws-1",
+    title: "The Batteries — Ep. 04 rough cut",
+    kind: "PROJECT",
+    updatedAt: "12m ago",
+    status: "IN REVIEW",
+  },
+  {
+    id: "ws-2",
+    title: "Pendeta Online — script pass 2",
+    kind: "STORY",
+    updatedAt: "48m ago",
+    status: "DRAFT",
+  },
+  {
+    id: "ws-3",
+    title: "Neon Cities poster set",
+    kind: "SIGNAL",
+    updatedAt: "2h ago",
+    status: "READY",
+  },
+  {
+    id: "ws-4",
+    title: "Allahi Promise — source notes",
+    kind: "RESEARCH",
+    updatedAt: "5h ago",
+    status: "APPROVED",
+  },
+  {
+    id: "ws-5",
+    title: "Zill — world bible v1",
+    kind: "WORLD",
+    updatedAt: "yesterday",
+    status: "PUBLISHED",
+  },
+  {
+    id: "ws-6",
+    title: "Crew portraits batch 3",
+    kind: "PEOPLE",
+    updatedAt: "yesterday",
+    status: "DRAFT",
+  },
+];
+
+export const pipeline: PipelineColumn[] = [
+  {
+    stage: "DRAFT",
+    count: 8,
+    more: 5,
+    items: [
+      { id: "pl-1", title: "Batteries Ep.05 outline", type: "PROJECT", thumb: "hero-witness" },
+      { id: "pl-2", title: "Signal: MENA climate", type: "SIGNAL", thumb: "signal-tunnel" },
+      { id: "pl-3", title: "Pendeta Online draft", type: "STORY", thumb: "crew-rooftop" },
+    ],
+  },
+  {
+    stage: "IN REVIEW",
+    count: 4,
+    more: 1,
+    items: [
+      { id: "pl-4", title: "Neon Cities ep.12", type: "WORLD", thumb: "city-shadow" },
+      { id: "pl-5", title: "Poster set v3", type: "SIGNAL", thumb: "hero-witness" },
+      { id: "pl-6", title: "Allahi Promise notes", type: "RESEARCH", thumb: "signal-tunnel" },
+    ],
+  },
+  {
+    stage: "APPROVED",
+    count: 6,
+    more: 2,
+    items: [
+      { id: "pl-7", title: "Zill world bible", type: "WORLD", thumb: "crew-rooftop" },
+      { id: "pl-8", title: "Crew portraits b3", type: "PEOPLE", thumb: "city-shadow" },
+      { id: "pl-9", title: "Fracture ep.03", type: "PROJECT", thumb: "hero-witness" },
+      { id: "pl-10", title: "Expansions teaser", type: "STORY", thumb: "signal-tunnel" },
+    ],
+  },
+  {
+    stage: "PUBLISHED",
+    count: 48,
+    more: 44,
+    items: [
+      { id: "pl-11", title: "Origins ep.01", type: "PROJECT", thumb: "hero-witness" },
+      { id: "pl-12", title: "Neon Cities ep.01", type: "WORLD", thumb: "city-shadow" },
+      { id: "pl-13", title: "Rebuilding ep.01", type: "PEOPLE", thumb: "crew-rooftop" },
+      { id: "pl-14", title: "Signal log 001", type: "SIGNAL", thumb: "signal-tunnel" },
+    ],
+  },
+];
+
+export const collections: Collection[] = [
+  { id: "col-1", name: "NEON CITIES", episodes: 12, cover: "city-shadow" },
+  { id: "col-2", name: "THE FRACTURE", episodes: 8, cover: "signal-tunnel" },
+  { id: "col-3", name: "CREW PORTRAITS", episodes: 18, cover: "crew-rooftop" },
+  { id: "col-4", name: "EXPANSIONS", episodes: 10, cover: "hero-witness" },
+];
+
+export const mapCities: MapCity[] = [
+  { id: "london", city: "LONDON", x: 46, y: 30, signals: 412 },
+  { id: "istanbul", city: "ISTANBUL", x: 55, y: 38, signals: 388 },
+  { id: "seoul", city: "SEOUL", x: 80, y: 36, signals: 297 },
+  { id: "cairo", city: "CAIRO", x: 54, y: 48, signals: 254 },
+  { id: "tokyo", city: "TOKYO", x: 84, y: 40, signals: 501 },
+  { id: "lagos", city: "LAGOS", x: 47, y: 57, signals: 366 },
+  { id: "sao-paulo", city: "SÃO PAULO", x: 30, y: 70, signals: 198 },
+  { id: "nairobi", city: "NAIROBI", x: 57, y: 60, signals: 233 },
 ];

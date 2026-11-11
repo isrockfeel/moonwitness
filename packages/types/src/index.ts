@@ -96,3 +96,58 @@ export interface Witness {
   quote: string;
   signals: number;
 }
+
+export type ItemStatus = "DRAFT" | "READY" | "IN REVIEW" | "APPROVED" | "PUBLISHED";
+export type PipelineStage = "DRAFT" | "IN REVIEW" | "APPROVED" | "PUBLISHED";
+export type StatTone = "pink" | "blue" | "yellow" | "green";
+
+export interface UniverseStat {
+  label: string;
+  value: string;
+  trend?: string;
+  tone: StatTone;
+}
+
+export interface QuickAction {
+  id: string;
+  label: string;
+  icon: "plus" | "image" | "pen" | "stack";
+  moduleId: string;
+}
+
+export interface WorkspaceItem {
+  id: string;
+  title: string;
+  kind: EventKind;
+  updatedAt: string;
+  status: ItemStatus;
+}
+
+export interface PipelineCard {
+  id: string;
+  title: string;
+  type: EventKind;
+  thumb: ArtKey;
+}
+
+export interface PipelineColumn {
+  stage: PipelineStage;
+  count: number;
+  more: number;
+  items: PipelineCard[];
+}
+
+export interface Collection {
+  id: string;
+  name: string;
+  episodes: number;
+  cover: ArtKey;
+}
+
+export interface MapCity {
+  id: string;
+  city: string;
+  x: number;
+  y: number;
+  signals: number;
+}
