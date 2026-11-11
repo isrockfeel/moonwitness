@@ -2810,17 +2810,17 @@ export function EmpireShell(props: {
 
 Signature publik `EmpireShell` **tidak berubah** — tiga halaman (`/dock`, `/mission-control`, dan apa pun yang memakainya) tidak perlu disentuh.
 
-- [ ] **Step 1: Ekstrak `nav-items.ts`**
+- [x] **Step 1: Ekstrak `nav-items.ts`**
 
 Salin `empire-shell.tsx:10-65` apa adanya (9 objek dengan `id`, `label`, `href`, `icon`) ke `shell/nav-items.ts` dengan tipe `NavItem` di atas. Jangan mengubah label, href, atau path ikon — Task 21 yang memperluas daftar ini.
 
-- [ ] **Step 2: Potong sidebar**
+- [x] **Step 2: Potong sidebar**
 
 Region `<nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Empire">` (baris 131) sampai penutupnya, **plus** dua pembungkusnya: `<aside className="fixed inset-y-0 left-0 z-40 hidden w-60 ... lg:block">` (178) dan aside mobile (185). Jadi `sidebar.tsx` merender satu `<nav>` dan orkestrator yang memutuskan membungkusnya dengan aside desktop atau drawer mobile.
 
 Perilaku yang harus ikut pindah apa adanya: `aria-current`/kelas aktif berdasarkan `active`, klik item di mobile menutup drawer (`onNavigate`).
 
-- [ ] **Step 3: Potong topbar + popover**
+- [x] **Step 3: Potong topbar + popover**
 
 Region `<header className="sticky top-0 z-30 flex h-14 ...">` (192) sampai penutupnya menjadi `topbar.tsx`. Dua popover di dalamnya dipisah:
 
@@ -2849,7 +2849,7 @@ useEffect(() => {
   containerRef: React.RefObject<HTMLDivElement | null>;
 ```
 
-- [ ] **Step 4: Orkestrator**
+- [x] **Step 4: Orkestrator**
 
 `shell/index.tsx` berisi `"use client"`, semua state (`sidebarOpen`, `notifOpen`, `profileOpen`, `identity`, `role`), kedua `useEffect` (baca `mw-session` + klik-di-luar), `exitShadow()`, lalu merangkai aside desktop, drawer mobile, `Topbar`, `<main className="min-w-0 flex-1">{children}</main>`, dan `<footer>` (340-348).
 
@@ -2864,7 +2864,7 @@ if (session.identity) setIdentity(session.identity);
 if (session.role) setRole(roleLabel(session.role));
 ```
 
-- [ ] **Step 5: Hapus file lama**
+- [x] **Step 5: Hapus file lama**
 
 ```bash
 git rm apps/web/src/components/empire-shell.tsx
@@ -2873,7 +2873,9 @@ grep -rn "empire-shell" apps/web/src
 
 Expected setelah selesai: 0 baris. Pemakai (`dock/index.tsx`, `mission-control.tsx`) mengimpor `EmpireShell` dari `@/components/shell` — perbarui dua import itu.
 
-- [ ] **Step 6: Gerbang ukuran + pipeline**
+> Bukti: `grep -rn "empire-shell" apps/web/src` → **0 baris**. `dock/index.tsx` → `../shell`, `mission-control.tsx` → `./shell`.
+
+- [x] **Step 6: Gerbang ukuran + pipeline**
 
 ```bash
 wc -l apps/web/src/components/shell/*.tsx apps/web/src/components/shell/*.ts
@@ -2882,7 +2884,20 @@ pnpm turbo run lint typecheck build
 
 Expected: semua < 150 baris; pipeline hijau.
 
-- [ ] **Step 7: Bukti visual + perilaku**
+> Bukti: `index 121 · notifications 53 · profile-menu 61 · sidebar 69 · topbar 69 · nav-items 63` (total 436) — semua < 150. `pnpm exec turbo run typecheck build --filter=@moonwitness/web` → **2/2 hijau**. `lint` tetap gagal karena `eslint-config/base.js:57` asing (WIP backend), bukan split ini.
+
+- [x] **Step 7: Bukti visual + perilaku**
+
+> **Visual (`.verify/phase2-task13/` vs `.verify/phase1/`):** dimensi **identik** untuk kedua route — dock 1430×2537 / 758×2748 / 380×4715, mission-control 1430×1487 / 758×2629 / 380×3073. Pixel-diff `t13_diff.mjs`: dock 1,6–5,4% · mission-control 1,1–4,2%; pita panas hanya di area gambar (hero `priority` dock 0–450, kartu modul mission-control 0–300 & 1500/1800) → codec avif/lazy, bukan layout.
+>
+> **5 tes shell (lulus, 0 error konsol; warning "1" hanya sisa akumulasi navigasi — muat bersih = 0 warning):**
+> 1. @390 hamburger → drawer `.fixed.inset-0.z-50` muncul (display block, 9 item terlihat); klik item → drawer hilang + navigasi ke `/dock` ✓
+> 2. @1440 lonceng → panel `[role=dialog]` terbuka; klik di luar → tertutup ✓
+> 3. avatar → menu profil; dengan `mw-session={identity:"Empire Admin",role:"admin"}` tampil **"Empire Admin" / "Admin // Empire"** (via `roleLabel`) ✓
+> 4. "Exit the shadow" → `router.push("/")`, session dibersihkan ✓
+> 5. item sidebar aktif (Mission Control) `aria-current=page` + bg pink `rgb(255,45,120)` ✓
+>
+> Server 4317 dimatikan (PID 15496 di-kill).
 
 SHOT `.verify/phase2-task13/` untuk `/dock` dan `/mission-control` (3 viewport), bandingkan `.verify/phase1/`. Harus identik.
 
@@ -2895,12 +2910,14 @@ Uji perilaku shell:
 
 Matikan server.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add apps/web/src/components/shell apps/web/src/components/empire-shell.tsx apps/web/src/components/dock/index.tsx apps/web/src/components/mission-control.tsx
 git commit -m "refactor(web): pecah empire-shell jadi sidebar/topbar/notifications/profile-menu"
 ```
+
+> Commit `18969f0` — 9 file: hapus `empire-shell.tsx`, tambah 6 file `shell/`, ubah import `dock/index.tsx` + `mission-control.tsx`. Hanya file Task 13 di-commit; WIP backend/lockfile/eslint-config dibiarkan unstaged. Catatan: plan menyebut "tombol clear" di notifikasi yang tak ada di markup nyata — mengikuti kode nyata (fase 2 tanpa ubah perilaku).
 
 ---
 
