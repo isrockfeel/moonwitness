@@ -7,10 +7,6 @@ packages:
 overrides:
   postcss: "^8.5.23"
 
-# Patch-level security floor for a transitive dependency of next.
-overrides:
-  postcss: "^8.5.23"
-
 allowBuilds:
   "@tailwindcss/oxide": true
   esbuild: true
