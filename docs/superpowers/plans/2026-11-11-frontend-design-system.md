@@ -4760,7 +4760,7 @@ export function CommandCenter(): JSX.Element
 
 Anchor yang disumbang bagian 1-5: `cc-top` (hero, §6 sidebar "Dashboard") dan `cc-workspace` (bagian 5, sidebar "Episodes"). Empat anchor lain (`cc-collections`, `cc-studios`, `cc-crew`, `cc-log`) datang di Task 26.
 
-- [ ] **Step 1: `section-heading.tsx`**
+- [x] **Step 1: `section-heading.tsx`**
 
 Satu pola judul untuk 11 bagian; tanpa ini tiap section file menulis ulang heading dan `index.tsx` tidak muat di bawah 150 baris.
 
@@ -4794,7 +4794,7 @@ export function SectionHeading({ id, title, accent, note }: SectionHeadingProps)
 
 `id` ditaruh di `<h2>`, bukan di `<section>`, supaya `href="#cc-workspace"` mendarat di judulnya — scroll-into-view bawaan browser memakai elemen ber-id, dan menaruhnya di section membuat judul terpotong di bawah topbar sticky.
 
-- [ ] **Step 2: `hero.tsx` (§6.1)**
+- [x] **Step 2: `hero.tsx` (§6.1)**
 
 Hero adalah LCP halaman ini, jadi pakai `next/image` dengan sumber PNG (R6), bukan `ZineImage`:
 
@@ -4850,7 +4850,7 @@ Tiga hal disalin dari `mission-control.tsx:242-274` supaya hero terasa satu kelu
 
 `scroll-mt-24` wajib: topbar shell sticky setinggi ~64px, jadi anchor `#cc-top` tanpa offset akan menutupi judul.
 
-- [ ] **Step 3: `status.tsx` (§6.2)**
+- [x] **Step 3: `status.tsx` (§6.2)**
 
 ```tsx
 import type { UniverseStat } from "@moonwitness/types";
@@ -4884,7 +4884,7 @@ export function UniverseStatus({ stats }: { stats: UniverseStat[] }) {
 
 Empat angka (§6.2: 12 / 48 / 6 / 3.2M) datang dari `universeStats` (Task 20), bukan ditulis di sini. Badge LIVE adalah penanda statis, bukan koneksi waktu nyata — jangan menambah polling.
 
-- [ ] **Step 4: `quick-actions.tsx` (§6.3)**
+- [x] **Step 4: `quick-actions.tsx` (§6.3)**
 
 ```tsx
 import type { QuickAction } from "@moonwitness/types";
@@ -4908,7 +4908,7 @@ export function QuickActions({ actions, onAction }: QuickActionsProps) {
 
 `onAction` diisi orkestrator dengan fungsi yang membuka drawer modul sesuai `action.moduleId` — §6.3 menjamin tidak ada tombol mati.
 
-- [ ] **Step 5: `ideas.tsx` (§6.4)**
+- [x] **Step 5: `ideas.tsx` (§6.4)**
 
 Panel statis hitam-putih halftone. Tidak punya data dan tidak punya interaksi, jadi tidak menerima prop:
 
@@ -4941,7 +4941,7 @@ export function IdeasInMotion() {
 
 Kalimat manifesto disalin dari sticker sidebar (`empire-shell.tsx`, "DIFFERENT PEOPLE. SAME SKY. STORIES BEYOND BORDERS.") supaya suara halaman tetap satu — jangan mengarang slogan baru.
 
-- [ ] **Step 6: `workspace.tsx` (§6.5)**
+- [x] **Step 6: `workspace.tsx` (§6.5)**
 
 ```tsx
 import type { WorkspaceItem } from "@moonwitness/types";
@@ -4965,7 +4965,7 @@ export function Workspace({ items, onOpenItem }: WorkspaceProps) {
 
 `id="cc-workspace"` adalah anchor sidebar item **Episodes** (Task 21) — namanya harus persis sama atau observer tidak menemukan elemennya dan item itu tidak pernah menyala.
 
-- [ ] **Step 7: `module-drawer.tsx`**
+- [x] **Step 7: `module-drawer.tsx`**
 
 Pindahkan `mission-control.tsx:465-537` ke sini dengan tiga perubahan wajib:
 
@@ -5069,7 +5069,7 @@ Selain enam perubahan di tabel, markup disalin persis. `min-w-0 truncate` pada j
 
 Drawer tidak memasang `Escape`-to-close sendiri; itu tanggung jawab orkestrator (Task 26 Step 7) supaya satu handler melayani semua drawer di halaman.
 
-- [ ] **Step 8: `index.tsx` (versi bagian 1-5)**
+- [x] **Step 8: `index.tsx` (versi bagian 1-5)**
 
 Task 26 menulis ulang file ini secara lengkap. Versi di bawah sudah harus typecheck dan lint bersih, tapi belum dirutekan.
 
@@ -5181,7 +5181,9 @@ export function CommandCenter() {
 
 Versi ini sengaja lint-bersih meskipun belum lengkap: `workflows` di-elide jadi `const [, setWorkflows]` karena daftar workflow baru dirender di bagian 11 (Task 26), dan `initialAlerts` / `feedItems` belum diimpor sama sekali. Task 26 menulis ulang file ini dan mengubah elide itu jadi `const [workflows, setWorkflows]` — **satu-satunya** perubahan pada baris tersebut. Jangan menambah state spekulatif di task ini supaya lint hijau.
 
-- [ ] **Step 9: Pipeline + bukti**
+- [x] **Step 9: Pipeline + bukti**
+
+> **Bukti (2026-11-11):** `tsc --noEmit` apps/web EXIT=0; `next build` EXIT=0 (route `/mission-control` lama masih terpasang — belum dipindah, sesuai aturan Fase 4). Semua file command-center < 150 baris: index 103, module-drawer 84, hero 45, status 27, section-heading 25, ideas 24, workspace 22, quick-actions 17. `pnpm turbo` tetap terblokir manifest orm asing → bin langsung.
 
 ```bash
 pnpm turbo run lint typecheck build
@@ -5192,12 +5194,14 @@ Expected: typecheck dan build hijau; setiap file < 150 baris. `index.tsx` versi 
 
 Belum ada bukti browser di task ini karena route belum dipindah. Bukti visual ada di Task 26 Step 8 dan Task 28.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add apps/web/src/components/command-center
 git commit -m "feat(command-center): bagian 1-5 + drawer modul"
 ```
+
+> **Bukti:** commit `b3ea226` (8 file baru, command-center). Hanya file task ini di-stage; WIP asing (orm/addons/auth/env/eslint-config/lock) tersisa utuh.
 
 ### Task 26: Shadow Command Center bagian 6-11 + orkestrator final
 
