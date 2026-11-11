@@ -1,9 +1,16 @@
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { ART_SOURCES, ART_WIDTHS, outputNames } from "./optimize";
 import { ARTWORK } from "./index";
 import type { ArtKey } from "@moonwitness/types";
 
 const KEYS = Object.keys(ARTWORK) as ArtKey[];
+
+// ART_SOURCES berisi path relatif terhadap root repo. vitest bisa berjalan
+// dengan cwd = packages/assets, jadi root diturunkan dari lokasi file ini,
+// bukan dari process.cwd() — sama seperti ROOT di scripts/optimize.mjs.
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
 describe("outputNames", () => {
   it("menghasilkan satu pasangan avif+webp per lebar, urut dari kecil", () => {
@@ -49,11 +56,11 @@ describe("ARTWORK manifest", () => {
     }
   });
 
-  // shadow-command.png baru dibuat Task 19 — hapus .skip di Task 19 Step 5.
-  it.skip("setiap kunci punya sumber PNG yang benar-benar ada di repo", async () => {
+  it("setiap kunci punya sumber PNG yang benar-benar ada di repo", async () => {
     const { existsSync } = await import("node:fs");
     for (const key of KEYS) {
-      expect(existsSync(ART_SOURCES[key]), `${key} tidak ada di ${ART_SOURCES[key]}`).toBe(true);
+      const abs = resolve(REPO_ROOT, ART_SOURCES[key]);
+      expect(existsSync(abs), `${key} tidak ada di ${abs}`).toBe(true);
     }
   });
 });
