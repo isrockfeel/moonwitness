@@ -45,6 +45,11 @@ a PAT with `repo` scope as `AUTOMATION_TOKEN` and switch the workflows to use it
 human (or a local `gh` call with a PAT) must open the promotion PR; auto-merge still handles the
 merge once checks pass.
 
+Additionally, the organization must enable "Allow GitHub Actions to create and approve pull
+requests" (Settings > Actions > General > Workflow permissions) for Release Please to open its
+release PR on its own. Until that is enabled, Release Please creates the release branch and the
+version bump but cannot open the PR; open it manually with `gh pr create --base main --head release-please--branches--main`.
+
 ## Concurrency
 
 `ci.yml` and `codeql.yml` cancel superseded runs on the same ref. `release-please.yml` does not
