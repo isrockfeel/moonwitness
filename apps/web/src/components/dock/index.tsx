@@ -56,7 +56,7 @@ export function Dock() {
           .includes(q),
       );
     return [...list].sort((a, b) =>
-      sort === "newest" ? b.date.localeCompare(a.date) : a.date.localeCompare(a.date),
+      sort === "newest" ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date),
     );
   }, [era, q, sort, timelineEvents]);
 

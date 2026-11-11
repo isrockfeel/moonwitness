@@ -31,7 +31,7 @@ export function EmpireShell({
   const session = useCurrentIdentity();
   const identity = session?.identity ?? "Creator // Empire";
   const role = session?.role ?? "Empire crew";
-  const { seed: avatarSeed, options: avatarOptions } = useSavedAvatar(identity);
+  const { seed: avatarSeed } = useSavedAvatar(identity);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -139,7 +139,6 @@ export function EmpireShell({
               role={role}
               onExit={exitShadow}
               avatarSeed={avatarSeed}
-              avatarOptions={avatarOptions}
             />
           }
         />
