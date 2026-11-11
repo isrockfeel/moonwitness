@@ -79,7 +79,6 @@ function makeApi() {
         "object-shorthand": ["error", "always"],
         "padding-line-between-statements": [
           "error",
-          { blankLine: "always", prev: "*", next: "import" },
           { blankLine: "any", prev: ["const", "let", "var"], next: "const" },
         ],
       },
