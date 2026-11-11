@@ -27,6 +27,19 @@ export async function buildFastify(options: BootstrapOptions): Promise<FastifyIn
     },
     // Never leak internal error details to clients in production.
     disableRequestLogging: false,
+    // Honour an inbound correlation id, otherwise generate one.
+    genReqId: (request) => {
+      const inbound = request.headers["x-request-id"];
+      if (typeof inbound === "string" && inbound.length > 0 && inbound.length <= 200) {
+        return inbound;
+      }
+      return crypto.randomUUID();
+    },
+  });
+
+  // Echo the correlation id back and include it in every structured log line.
+  fastify.addHook("onRequest", async (request, reply) => {
+    reply.header("x-request-id", request.id);
   });
 
   await fastify.register(FastifyCors, {

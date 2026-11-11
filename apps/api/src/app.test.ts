@@ -55,6 +55,21 @@ describe("operational endpoints", () => {
     expect(response.headers["x-ratelimit-limit"]).toBeDefined();
     expect(response.headers["x-ratelimit-remaining"]).toBeDefined();
   });
+
+  it("echoes a caller-supplied request correlation id", async () => {
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/v1/healthz",
+      headers: { "x-request-id": "corr-123" },
+    });
+    expect(response.headers["x-request-id"]).toBe("corr-123");
+  });
+
+  it("generates a request correlation id when none is supplied", async () => {
+    const response = await app.inject({ method: "GET", url: "/api/v1/healthz" });
+    expect(typeof response.headers["x-request-id"]).toBe("string");
+    expect(response.headers["x-request-id"]).not.toBe("");
+  });
 });
 
 describe("addon registry wiring", () => {
