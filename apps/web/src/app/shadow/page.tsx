@@ -88,7 +88,7 @@ export default function ShadowPage() {
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto flex min-h-[calc(100vh-8rem)] max-w-7xl items-center px-4 py-10 sm:px-8">
+      <main id="main" className="relative z-10 mx-auto flex min-h-[calc(100vh-8rem)] max-w-7xl items-center px-4 py-10 sm:px-8">
         <div className="w-full max-w-md">
           <div className="zine-card-rough relative p-7 sm:p-9">
             <Tape className="-top-3 left-10 -rotate-6" />

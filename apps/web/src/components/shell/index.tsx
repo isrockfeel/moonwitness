@@ -107,7 +107,7 @@ export function EmpireShell({
           }
         />
 
-        <main className="min-w-0 flex-1">{children}</main>
+        <main id="main" className="min-w-0 flex-1">{children}</main>
 
         <footer className="flex flex-wrap items-center justify-between gap-2 border-t-2 border-[var(--line)] px-4 py-3 text-[10px] tracking-wider text-zinc-600">
           <span>MOONWITNESS XV /// DIFFERENT PEOPLE. SAME SKY. MANY STORIES.</span>

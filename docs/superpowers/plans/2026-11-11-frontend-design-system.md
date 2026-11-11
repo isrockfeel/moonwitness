@@ -3279,7 +3279,7 @@ Mulai fase ini **perbedaan visual yang disengaja boleh muncul**. Setiap task tet
 - Consumes: `cn` dari `../cn`.
 - Produces: `function SkipLink(props: { href?: string; children?: ReactNode }): JSX.Element` — default `href="#main"`, teks default `"Skip to content"`.
 
-- [ ] **Step 1: Tulis `skip-link.tsx`**
+- [x] **Step 1: Tulis `skip-link.tsx`** — dibuat `packages/ui/src/primitives/skip-link.tsx`, diekspor dari `packages/ui/src/index.ts`.
 
 ```tsx
 import type { AnchorHTMLAttributes, ReactNode } from "react";
@@ -3308,7 +3308,7 @@ export function SkipLink({ href = "#main", children = "Skip to content", classNa
 }
 ```
 
-- [ ] **Step 2: Pasang di layout + beri `id="main"` di tiap halaman**
+- [x] **Step 2: Pasang di layout + beri `id="main"` di tiap halaman** — `<SkipLink />` jadi anak pertama `<body>`; `id="main"` dipasang di shell, shadow, dan landing (Hero + footer di luar `<main>`, lihat alasan di commit).
 
 `apps/web/src/app/layout.tsx`:
 
@@ -3340,7 +3340,9 @@ Tiga target `id="main"`:
 
 `Hero` dibiarkan di luar `<main>` karena ia berisi nav-adjacent artwork; kalau lebih suka hero di dalam main, pindahkan `<Hero/>` ke dalam dan pastikan `SiteNav` tetap di luar. Pilih satu dan tulis alasannya di commit message.
 
-- [ ] **Step 3: Uji dengan keyboard**
+- [x] **Step 3: Uji dengan keyboard** — lewat di semua 4 route (`/`,`/shadow`,`/mission-control`,`/dock`): Tab #1 → `a.SkipLink` "Skip to content" href `#main` terlihat (box 16,16,179×48); Enter → `location.hash=#main`, scroll ikut; Tab #2 → fokus `inMain:true`. Tiap route tepat 1 `<main id="main">` + header/nav/footer ≥ 1. `scrollWidth` ≤ viewport.
+
+  > Bukti visual: `.verify/phase2` vs `.verify/phase3-t15` — tinggi identik (hΔ0) di 12/12. Semua diff di atas baseline persis sama dengan noise-floor A/B (self-consistency build yang sama): `shadow-768` 9.11% == 9.11%; `dock-768` setelah priming lazy-load → band kartu hilang, sisa top-band 5.69% == 5.69% (c vs c2). Kesimpulan: nol perubahan visual (sesuai — skip link `sr-only`, `<main>` cuma wrapper).
 
 ```bash
 pnpm --filter @moonwitness/web build && pnpm --filter @moonwitness/web start -p 4317 &
@@ -3360,7 +3362,7 @@ document.querySelector("main")?.id                // "main"
 document.querySelectorAll("header,nav,footer").length  // >= 1 tiap jenis
 ```
 
-- [ ] **Step 4: Pipeline + commit**
+- [x] **Step 4: Pipeline + commit** — `turbo build --filter=@moonwitness/web` hijau; `typecheck` hijau; `lint` masih terblokir cacat asing (`ReferenceError: tseslintPluginReact is not defined` di `packages/eslint-config/base.js`, bukan kode task ini). Server 4317 dimatikan.
 
 Matikan server (`netstat -ano | grep :4317` → `taskkill //PID <pid> //F`), lalu:
 

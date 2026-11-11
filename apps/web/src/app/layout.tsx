@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Permanent_Marker, Caveat, Space_Mono } from "next/font/google";
+import { SkipLink } from "@moonwitness/ui";
 import "./globals.css";
 
 const brush = Permanent_Marker({ subsets: ["latin"], weight: "400", variable: "--font-brush" });
@@ -18,7 +19,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${brush.variable} ${hand.variable} ${mono.variable}`}>
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased">
+        <SkipLink />
+        {children}
+      </body>
     </html>
   );
 }
