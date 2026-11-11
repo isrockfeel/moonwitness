@@ -4,14 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 import { artSrc } from "@/lib/art";
-import { timelineEvents } from "@/lib/data";
 import { ArrowRight, Smiley } from "@moonwitness/ui/icons";
 import { kindColors } from "@moonwitness/ui";
+import { useTimelineEvents } from "@/lib/api/timeline";
 
 function ArchiveStrip() {
   const ref = useRef<HTMLDivElement>(null);
   const scroll = (dir: number) => ref.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
-  const items = timelineEvents.slice(0, 8);
+  const { data } = useTimelineEvents({ limit: 8 });
+  const items = data?.data ?? [];
 
   return (
     <div className="relative">

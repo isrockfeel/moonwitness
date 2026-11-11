@@ -14,7 +14,15 @@ interface EventListProps {
   onReset: () => void;
 }
 
-export function EventList({ events, total, view, selectedId, query, onOpen, onReset }: EventListProps) {
+export function EventList({
+  events,
+  total,
+  view,
+  selectedId,
+  query,
+  onOpen,
+  onReset,
+}: EventListProps) {
   return (
     <section aria-label="Events">
       <div className="mb-3 flex items-center justify-between">

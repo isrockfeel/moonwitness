@@ -30,7 +30,9 @@ export function EventDetailRelated({ relatedEvents, onRelated }: EventDetailRela
             </span>
           </button>
         ))}
-        {relatedEvents.length === 0 && <p className="text-xs text-zinc-500">No related signals yet.</p>}
+        {relatedEvents.length === 0 && (
+          <p className="text-xs text-zinc-500">No related signals yet.</p>
+        )}
       </div>
     </>
   );

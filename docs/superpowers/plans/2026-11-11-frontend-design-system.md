@@ -61,13 +61,13 @@ Kalau memang butuh capture yang bisa di-diff, bekukan animasi (`animation/transi
 
 Plan ini tidak punya lubang "TBD". Yang ada adalah beberapa nilai `<…>` yang **sengaja** baru bisa dipastikan saat eksekusi, dan setiap satunya punya langkah yang mengikatnya. Jangan menebak lebih awal, dan jangan menulis nilainya ke plan sebelum langkah pengikatnya dijalankan.
 
-| Nilai | Terikat di | Cara mengikat |
-|---|---|---|
-| `<fase>`, `<route>`, `<lebar>` | Konvensi di atas | Nama folder/nama file screenshot, mengikuti tabel viewport |
-| `<pid>` | Setiap SHOT | Kolom terakhir `netstat -ano \| grep :4317` |
-| `<path-hasil-imagegen>` | Task 19 Step 2 | Path yang dikembalikan `ImageGen` |
-| `<keluarga>`, `<File>`, `<familidirenderkecil>`, `<nama famili>`, `<bobot yang di-load>` | Task 30 Step 2-3 | Kandidat pertama yang lolos lima kriteria Step 1 dan terbukti punya `OFL.txt` + `.ttf` di repo `google/fonts`. Spec §8b memang melarang nama famili ditebak di dokumen |
-| `<tanggal>`, `<angka>`, `<satu kalimat karakter>`, `<daftar dari Step 8>` | Step "catat gerbang" di Task 10, 14, 18, 28, 31 | Hasil pengukuran nyata pada langkah sebelumnya di task yang sama |
+| Nilai                                                                                    | Terikat di                                      | Cara mengikat                                                                                                                                                          |
+| ---------------------------------------------------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<fase>`, `<route>`, `<lebar>`                                                           | Konvensi di atas                                | Nama folder/nama file screenshot, mengikuti tabel viewport                                                                                                             |
+| `<pid>`                                                                                  | Setiap SHOT                                     | Kolom terakhir `netstat -ano \| grep :4317`                                                                                                                            |
+| `<path-hasil-imagegen>`                                                                  | Task 19 Step 2                                  | Path yang dikembalikan `ImageGen`                                                                                                                                      |
+| `<keluarga>`, `<File>`, `<familidirenderkecil>`, `<nama famili>`, `<bobot yang di-load>` | Task 30 Step 2-3                                | Kandidat pertama yang lolos lima kriteria Step 1 dan terbukti punya `OFL.txt` + `.ttf` di repo `google/fonts`. Spec §8b memang melarang nama famili ditebak di dokumen |
+| `<tanggal>`, `<angka>`, `<satu kalimat karakter>`, `<daftar dari Step 8>`                | Step "catat gerbang" di Task 10, 14, 18, 28, 31 | Hasil pengukuran nyata pada langkah sebelumnya di task yang sama                                                                                                       |
 
 Selain yang terdaftar di tabel ini, tidak boleh ada `<…>` di kode yang kamu tulis. Kalau kamu menemukannya, itu bug plan — hentikan dan laporkan, jangan isi sendiri.
 
@@ -75,17 +75,17 @@ Selain yang terdaftar di tabel ini, tidak boleh ada `<…>` di kode yang kamu tu
 
 Spec adalah sumber keputusan; sembilan detail implementasi di bawah ini dipertajam di sini karena spec menulis nama ideal, bukan nama yang benar-benar ada di repo. Kalau owner menolak salah satu, ubah bagian itu saja — sisanya tidak terpengaruh.
 
-| # | Isi spec | Dipertajam jadi | Alasan |
-|---|---|---|---|
-| R1 | §3.1 menyebut `EraId`, `EventKind`, `TimelineEvent`, `ModuleStats`, `MissionAlert` | Nama asli di `lib/data.ts` adalah `DockEvent`, `Alert`, dan `Module["stats"]` inline. Plan memakai `TimelineEvent`, `EventKind`, `EraId`, `MissionAlert`, `ModuleStat` (tunggal) dan menghapus nama lama | Kontrak prop di §3.2 sudah menulis `TimelineEvent`; memakai dua nama untuk satu tipe = kebingungan |
-| R2 | §3.2 "bukan ReactNode asing" | Komposit boleh menerima **satu** prop slot `ReactNode` untuk elemen interaktif milik app (mis. `<Link>`), selain `ArtKey` untuk gambar | `CrewConstellation` punya CTA `<Link href="/shadow">`; tanpa slot, link semantics (klik kanan / tab baru) hilang |
-| R3 | §3.2 mendaftarkan `ArchiveStrip` sebagai komposit | `ArchiveStrip` **tetap di app** (`components/landing/archive.tsx`) | Isinya scroller 8 `<Link>` + 8 `next/image`; memindahkannya ke paket melanggar dua aturan sekaligus |
-| R4 | §7 meminta `mission-control.tsx` dipecah di fase 2 | Fase 2 **tidak** memecah `mission-control.tsx`. Fase 4 membangun `components/command-center/*` dari nol, sudah terpecah | §D4 mengganti seluruh isi halaman; memecah lalu membuang = kerja dua kali |
-| R5 | §3.2 kontrak `EventDetail({ event, onRelated })` | `EventDetail({ event, era, relatedEvents, shareUrl, onRelated, onClose? })` | Versi sekarang membaca `dockEvents`/`eras` dari data app dan memanggil `window.location`; paket tidak boleh melakukan keduanya |
-| R6 | §5 "hero/LCP tetap di apps/web dengan next/image" + "sharp menghasilkan AVIF+WebP" | Dua jalur gambar: (a) hero/LCP = `next/image` menunjuk **PNG sumber** di `public/art`, optimizer Next yang membuat AVIF/WebP; (b) komposit paket = `<picture>` AVIF/WebP hasil `optimize.mjs` lewat primitif `ZineImage` | `next/image` menolak `srcSet` manual; manifest sharp dipakai komponen yang tidak boleh menyentuh `next/image` |
-| R7 | §7 "Setiap fase = satu commit. Rollback = `git revert` commit fase tersebut." | **Satu commit per task** (Task 0-31 ditambah Task 13b), bukan per fase. Gerbang fase tetap ada sebagai task sendiri (Task 10, 14, 18, 28, 31) | Commit per fase berarti satu commit berisi 10 task yang tidak bisa di-review atau di-revert terpisah. Rollback tetap bisa: revert rentang commit fase itu. Preferensi owner yang sudah tercatat: commit hanya file milik task-nya sendiri |
-| R8 | §6 hanya mendaftar 11 bagian | Dua hal ditambah di luar referensi: (a) bagian **PROJECT UNIVERSE** di antara §6.7 dan §6.8 (`components/command-center/projects.tsx`), (b) panel **ACTIVE WORKFLOWS** digabung ke dalam MISSION LOG (§6.11) | Keduanya ada di halaman lama (`mission-control.tsx:300-350` dan `:353-396`) dan membawa perilaku nyata: taut proyek ke `/dock?q=`, dan daftar tujuan `queueRun` + tombol Pause/Run. Tanpa keduanya, §6 melanggar janjinya sendiri ("tidak ada kemampuan yang hilang") dan tombol QUEUE NEW RUN hanya memunculkan toast. Sama seperti §6.10-6.11: kalau owner mau persis seperti gambar, dua hal ini yang pertama dihapus |
-| R9 | Tabel pemecahan §7 mendaftar `landing.tsx`, `dock.tsx`, `empire-shell.tsx`, `mission-control.tsx` | Satu file lagi dipecah: `site-nav.tsx` (181 baris) → `components/site-nav/{links.ts,mobile-menu.tsx,search-dialog.tsx,index.tsx}` di **Task 13b** | Aturan §7 bukan cuma tabel itu — gerbangnya berbunyi "setiap file komponen < 150 baris" dan berlaku untuk semua file. Tanpa Task 13b, Task 14 Step 1 pasti merah. Signature `SiteNav` tidak berubah, jadi pemakai (`landing/index.tsx`) tidak tersentuh |
+| #   | Isi spec                                                                                          | Dipertajam jadi                                                                                                                                                                                                          | Alasan                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| --- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| R1  | §3.1 menyebut `EraId`, `EventKind`, `TimelineEvent`, `ModuleStats`, `MissionAlert`                | Nama asli di `lib/data.ts` adalah `DockEvent`, `Alert`, dan `Module["stats"]` inline. Plan memakai `TimelineEvent`, `EventKind`, `EraId`, `MissionAlert`, `ModuleStat` (tunggal) dan menghapus nama lama                 | Kontrak prop di §3.2 sudah menulis `TimelineEvent`; memakai dua nama untuk satu tipe = kebingungan                                                                                                                                                                                                                                                                                                                       |
+| R2  | §3.2 "bukan ReactNode asing"                                                                      | Komposit boleh menerima **satu** prop slot `ReactNode` untuk elemen interaktif milik app (mis. `<Link>`), selain `ArtKey` untuk gambar                                                                                   | `CrewConstellation` punya CTA `<Link href="/shadow">`; tanpa slot, link semantics (klik kanan / tab baru) hilang                                                                                                                                                                                                                                                                                                         |
+| R3  | §3.2 mendaftarkan `ArchiveStrip` sebagai komposit                                                 | `ArchiveStrip` **tetap di app** (`components/landing/archive.tsx`)                                                                                                                                                       | Isinya scroller 8 `<Link>` + 8 `next/image`; memindahkannya ke paket melanggar dua aturan sekaligus                                                                                                                                                                                                                                                                                                                      |
+| R4  | §7 meminta `mission-control.tsx` dipecah di fase 2                                                | Fase 2 **tidak** memecah `mission-control.tsx`. Fase 4 membangun `components/command-center/*` dari nol, sudah terpecah                                                                                                  | §D4 mengganti seluruh isi halaman; memecah lalu membuang = kerja dua kali                                                                                                                                                                                                                                                                                                                                                |
+| R5  | §3.2 kontrak `EventDetail({ event, onRelated })`                                                  | `EventDetail({ event, era, relatedEvents, shareUrl, onRelated, onClose? })`                                                                                                                                              | Versi sekarang membaca `dockEvents`/`eras` dari data app dan memanggil `window.location`; paket tidak boleh melakukan keduanya                                                                                                                                                                                                                                                                                           |
+| R6  | §5 "hero/LCP tetap di apps/web dengan next/image" + "sharp menghasilkan AVIF+WebP"                | Dua jalur gambar: (a) hero/LCP = `next/image` menunjuk **PNG sumber** di `public/art`, optimizer Next yang membuat AVIF/WebP; (b) komposit paket = `<picture>` AVIF/WebP hasil `optimize.mjs` lewat primitif `ZineImage` | `next/image` menolak `srcSet` manual; manifest sharp dipakai komponen yang tidak boleh menyentuh `next/image`                                                                                                                                                                                                                                                                                                            |
+| R7  | §7 "Setiap fase = satu commit. Rollback = `git revert` commit fase tersebut."                     | **Satu commit per task** (Task 0-31 ditambah Task 13b), bukan per fase. Gerbang fase tetap ada sebagai task sendiri (Task 10, 14, 18, 28, 31)                                                                            | Commit per fase berarti satu commit berisi 10 task yang tidak bisa di-review atau di-revert terpisah. Rollback tetap bisa: revert rentang commit fase itu. Preferensi owner yang sudah tercatat: commit hanya file milik task-nya sendiri                                                                                                                                                                                |
+| R8  | §6 hanya mendaftar 11 bagian                                                                      | Dua hal ditambah di luar referensi: (a) bagian **PROJECT UNIVERSE** di antara §6.7 dan §6.8 (`components/command-center/projects.tsx`), (b) panel **ACTIVE WORKFLOWS** digabung ke dalam MISSION LOG (§6.11)             | Keduanya ada di halaman lama (`mission-control.tsx:300-350` dan `:353-396`) dan membawa perilaku nyata: taut proyek ke `/dock?q=`, dan daftar tujuan `queueRun` + tombol Pause/Run. Tanpa keduanya, §6 melanggar janjinya sendiri ("tidak ada kemampuan yang hilang") dan tombol QUEUE NEW RUN hanya memunculkan toast. Sama seperti §6.10-6.11: kalau owner mau persis seperti gambar, dua hal ini yang pertama dihapus |
+| R9  | Tabel pemecahan §7 mendaftar `landing.tsx`, `dock.tsx`, `empire-shell.tsx`, `mission-control.tsx` | Satu file lagi dipecah: `site-nav.tsx` (181 baris) → `components/site-nav/{links.ts,mobile-menu.tsx,search-dialog.tsx,index.tsx}` di **Task 13b**                                                                        | Aturan §7 bukan cuma tabel itu — gerbangnya berbunyi "setiap file komponen < 150 baris" dan berlaku untuk semua file. Tanpa Task 13b, Task 14 Step 1 pasti merah. Signature `SiteNav` tidak berubah, jadi pemakai (`landing/index.tsx`) tidak tersentuh                                                                                                                                                                  |
 
 ## Peta file
 
@@ -157,10 +157,12 @@ Fase 0 di spec (`git init` + commit baseline) **sudah selesai**: `d2af4e7`, spec
 ### Task 0: Tangkap baseline visual + siapkan direktori verifikasi
 
 **Files:**
+
 - Modify: `.gitignore` (tambah blok `.verify/`)
 - Create: `.verify/phase0/` (12 file PNG, tidak di-commit)
 
 **Interfaces:**
+
 - Consumes: tidak ada.
 - Produces: 12 screenshot pembanding bernama `.verify/phase0/<route>-<lebar>.png` yang dipakai gerbang Task 10, 11, 12, 13.
 
@@ -187,20 +189,20 @@ Tunggu sampai log `Ready` muncul. Login dulu ke `/shadow` dengan `admin` / `admi
 
 Untuk setiap pasangan route × viewport, set ukuran viewport lalu screenshot full page ke `.verify/phase0/`:
 
-| route | viewport | nama file |
-|---|---|---|
-| `/` | 390x844 | `.verify/phase0/landing-390.png` |
-| `/` | 768x1024 | `.verify/phase0/landing-768.png` |
-| `/` | 1440x900 | `.verify/phase0/landing-1440.png` |
-| `/shadow` | 390x844 | `.verify/phase0/shadow-390.png` |
-| `/shadow` | 768x1024 | `.verify/phase0/shadow-768.png` |
-| `/shadow` | 1440x900 | `.verify/phase0/shadow-1440.png` |
-| `/mission-control` | 390x844 | `.verify/phase0/mission-control-390.png` |
-| `/mission-control` | 768x1024 | `.verify/phase0/mission-control-768.png` |
+| route              | viewport | nama file                                 |
+| ------------------ | -------- | ----------------------------------------- |
+| `/`                | 390x844  | `.verify/phase0/landing-390.png`          |
+| `/`                | 768x1024 | `.verify/phase0/landing-768.png`          |
+| `/`                | 1440x900 | `.verify/phase0/landing-1440.png`         |
+| `/shadow`          | 390x844  | `.verify/phase0/shadow-390.png`           |
+| `/shadow`          | 768x1024 | `.verify/phase0/shadow-768.png`           |
+| `/shadow`          | 1440x900 | `.verify/phase0/shadow-1440.png`          |
+| `/mission-control` | 390x844  | `.verify/phase0/mission-control-390.png`  |
+| `/mission-control` | 768x1024 | `.verify/phase0/mission-control-768.png`  |
 | `/mission-control` | 1440x900 | `.verify/phase0/mission-control-1440.png` |
-| `/dock` | 390x844 | `.verify/phase0/dock-390.png` |
-| `/dock` | 768x1024 | `.verify/phase0/dock-768.png` |
-| `/dock` | 1440x900 | `.verify/phase0/dock-1440.png` |
+| `/dock`            | 390x844  | `.verify/phase0/dock-390.png`             |
+| `/dock`            | 768x1024 | `.verify/phase0/dock-768.png`             |
+| `/dock`            | 1440x900 | `.verify/phase0/dock-1440.png`            |
 
 Catat juga angka yang jadi pembanding gerbang: `document.documentElement.scrollWidth` pada 390px untuk keempat route (harus ≤ 390).
 
@@ -233,6 +235,7 @@ Gerbang fase (§7): pipeline hijau, bukti `@source` benar-benar memindai paket, 
 ### Task 1: Buat `packages/types`
 
 **Files:**
+
 - Create: `packages/types/package.json`
 - Create: `packages/types/tsconfig.json`
 - Create: `packages/types/eslint.config.mjs`
@@ -244,6 +247,7 @@ Gerbang fase (§7): pipeline hijau, bukti `@source` benar-benar memindai paket, 
 - Modify: `pnpm-lock.yaml` (hasil `pnpm install`)
 
 **Interfaces:**
+
 - Consumes: bentuk tipe yang sudah ada di `apps/web/src/lib/data.ts` (baris 1-7, 47-62, 284-291, 373-381, 422-427, 457, 482, 490-499).
 - Produces: ekspor `ArtKey`, `EraId`, `EventKind`, `Era`, `TimelineEvent`, `ModuleStat`, `Module`, `Project`, `Workflow`, `FeedItem`, `MissionAlert`, `Witness` dari `@moonwitness/types`. Task 3, 6, 7, 8, 9, 11, 12, 20, 21 semuanya mengimpor dari sini.
 
@@ -254,11 +258,7 @@ Isi lengkap (tipe baru untuk dashboard **belum** ditambah di sini — itu Task 2
 ```ts
 /** Kunci artwork. Komponen UI tidak pernah menerima path mentah. */
 export type ArtKey =
-  | "hero-witness"
-  | "city-shadow"
-  | "crew-rooftop"
-  | "signal-tunnel"
-  | "shadow-command";
+  "hero-witness" | "city-shadow" | "crew-rooftop" | "signal-tunnel" | "shadow-command";
 
 export type EraId = "origins" | "neon" | "fracture" | "rebuilding" | "expansions";
 
@@ -491,11 +491,11 @@ export const kindColors: Record<EventKind, string> = { ... };
 
 Semua field `image:` di `timelineEvents` dan `projects` sekarang bertipe `ArtKey`, jadi 17 kemunculan path di `lib/data.ts` harus diganti:
 
-| lama | baru |
-|---|---|
-| `"/art/hero-witness.png"` | `"hero-witness"` |
-| `"/art/city-shadow.png"` | `"city-shadow"` |
-| `"/art/crew-rooftop.png"` | `"crew-rooftop"` |
+| lama                       | baru              |
+| -------------------------- | ----------------- |
+| `"/art/hero-witness.png"`  | `"hero-witness"`  |
+| `"/art/city-shadow.png"`   | `"city-shadow"`   |
+| `"/art/crew-rooftop.png"`  | `"crew-rooftop"`  |
 | `"/art/signal-tunnel.png"` | `"signal-tunnel"` |
 
 Setelah mengganti, pastikan tidak ada path tersisa:
@@ -551,6 +551,7 @@ pnpm turbo run lint typecheck build
 ```
 
 Expected: hijau. Error yang wajar muncul dan cara benar menanganinya:
+
 - `Type '"2024-xx"' is not assignable to type 'EraId'` → data `era` tidak cocok; perbaiki datanya.
 - `Cannot find module '@moonwitness/types'` → `pnpm install` belum dijalankan atau `transpilePackages` belum ditambah.
 
@@ -560,7 +561,7 @@ Yang **tidak** ditangkap `tsc`: pemakai `ev.image` yang belum dibungkus `artSrc(
 
 Jalankan SHOT ke `.verify/phase1-task1/` (4 route × 3 viewport), lalu pakai empat bukti di "Cara membandingkan screenshot" — bukan diff pixel mentah.
 
-> **Terekam 2026-11-11 (Task 1 selesai).** 12 screenshot ada di `.verify/phase1-task1/`. (1) `scrollWidth` @390px: landing 380, shadow 380, mission-control 380, dock 380 — **identik dengan baseline**. (2) Console dengan listener terpasang sebelum `goto`: **0 error / 0 warning** di keempat route, termasuk satu putaran yang mengulang alur login `admin` → `/dock` (counter agregat MCP sempat menampilkan 1 warning; putaran terkendali dengan listener membuktikan itu sisa hitungan halaman sebelumnya, bukan pesan dari build ini). (3) Paritas `src` hasil dekode `url=`: landing 14 gambar (`/art/hero-witness.png` ×3, `/art/crew-rooftop.png` ×5, `/art/city-shadow.png` ×4, `/art/signal-tunnel.png` ×2), shadow 1 (`city-shadow`), mission-control 5 (`city-shadow` ×2, `hero-witness` ×2, `crew-rooftop` ×1), dock 20 (`city-shadow` ×7, `crew-rooftop` ×6, `hero-witness` ×4, `signal-tunnel` ×3) — **tidak ada key telanjang, tidak ada gambar rusak**. (4) Diff pixel vs baseline memang besar di `dock-390/768` (11,5%) dan `shadow-768` (6,6%), tetapi diff *sesama capture build ini* juga 6,6% pada `shadow-768` dan 0,6% pada `dock-768`; pita yang berbeda ternyata gambar yang di baseline belum sempat termuat (hero `crew-rooftop` dan thumbnail event masih hitam). Kesimpulannya tidak ada perubahan tampilan — yang berubah adalah ketepatan waktu muat gambar saat capture, dan itu sebabnya diff pixel tidak dijadikan gerbang.
+> **Terekam 2026-11-11 (Task 1 selesai).** 12 screenshot ada di `.verify/phase1-task1/`. (1) `scrollWidth` @390px: landing 380, shadow 380, mission-control 380, dock 380 — **identik dengan baseline**. (2) Console dengan listener terpasang sebelum `goto`: **0 error / 0 warning** di keempat route, termasuk satu putaran yang mengulang alur login `admin` → `/dock` (counter agregat MCP sempat menampilkan 1 warning; putaran terkendali dengan listener membuktikan itu sisa hitungan halaman sebelumnya, bukan pesan dari build ini). (3) Paritas `src` hasil dekode `url=`: landing 14 gambar (`/art/hero-witness.png` ×3, `/art/crew-rooftop.png` ×5, `/art/city-shadow.png` ×4, `/art/signal-tunnel.png` ×2), shadow 1 (`city-shadow`), mission-control 5 (`city-shadow` ×2, `hero-witness` ×2, `crew-rooftop` ×1), dock 20 (`city-shadow` ×7, `crew-rooftop` ×6, `hero-witness` ×4, `signal-tunnel` ×3) — **tidak ada key telanjang, tidak ada gambar rusak**. (4) Diff pixel vs baseline memang besar di `dock-390/768` (11,5%) dan `shadow-768` (6,6%), tetapi diff _sesama capture build ini_ juga 6,6% pada `shadow-768` dan 0,6% pada `dock-768`; pita yang berbeda ternyata gambar yang di baseline belum sempat termuat (hero `crew-rooftop` dan thumbnail event masih hitam). Kesimpulannya tidak ada perubahan tampilan — yang berubah adalah ketepatan waktu muat gambar saat capture, dan itu sebabnya diff pixel tidak dijadikan gerbang.
 
 Matikan server (`netstat` + `taskkill`) sebelum commit.
 
@@ -580,6 +581,7 @@ Catatan yang harus diketahui siapa pun yang `git bisect` lewat dua commit ini: *
 Task ini murni penataan file, tanpa logika. Manifest dan skrip optimasi ada di Task 3.
 
 **Files:**
+
 - Create: `packages/assets/package.json`
 - Create: `packages/assets/tsconfig.json`
 - Create: `packages/assets/eslint.config.mjs`
@@ -590,6 +592,7 @@ Task ini murni penataan file, tanpa logika. Manifest dan skrip optimasi ada di T
 - Modify: `pnpm-lock.yaml`
 
 **Interfaces:**
+
 - Consumes: `ARTS/*.png` (6 file) dan `vibe_images/*.png` (4 file) di root repo.
 - Produces: nama referensi stabil `01-landing.png` … `06-shadow-command-center.png` yang dirujuk `ArtEntry.credit` (Task 3) dan fidelity check fase 4 (Task 26).
 
@@ -703,14 +706,14 @@ Expected: tiap pasangan menghasilkan md5 yang **sama**, dan md5 `02-...` **berbe
 Salinan dari `ARTS/` di root repo dengan nama yang bisa dipakai sebagai acuan kerja.
 `ARTS/` tetap utuh — itu tempat owner menaruh kiriman baru.
 
-| File | Asal di `ARTS/` | Peran |
-|---|---|---|
-| `01-landing.png` | `image(1).png` | acuan layout `/` |
-| `02-mission-control.png` | `image (2).png` (dengan spasi) | acuan lama `/mission-control`; digantikan `06` |
-| `03-shadow-login.png` | `image(3).png` | acuan layout `/shadow` |
-| `04-dock-timeline.png` | `image-gen-2(20261027-002736).png` | acuan layout `/dock` |
-| `05-style-ska-poster.png` | `image(2).png` (tanpa spasi) | **gaya saja**, bukan layout |
-| `06-shadow-command-center.png` | `image-gen-2.png` | acuan layout `/mission-control` yang baru |
+| File                           | Asal di `ARTS/`                    | Peran                                          |
+| ------------------------------ | ---------------------------------- | ---------------------------------------------- |
+| `01-landing.png`               | `image(1).png`                     | acuan layout `/`                               |
+| `02-mission-control.png`       | `image (2).png` (dengan spasi)     | acuan lama `/mission-control`; digantikan `06` |
+| `03-shadow-login.png`          | `image(3).png`                     | acuan layout `/shadow`                         |
+| `04-dock-timeline.png`         | `image-gen-2(20261027-002736).png` | acuan layout `/dock`                           |
+| `05-style-ska-poster.png`      | `image(2).png` (tanpa spasi)       | **gaya saja**, bukan layout                    |
+| `06-shadow-command-center.png` | `image-gen-2.png`                  | acuan layout `/mission-control` yang baru      |
 
 `raw/` berisi PNG sumber hasil generate yang jadi input pipeline optimasi
 (`hero-witness`, `city-shadow`, `crew-roftop`, `signal-tunnel`).
@@ -743,6 +746,7 @@ Catatan untuk owner: ~14 MB biner masuk git lokal. Sesuai §10 ini **tidak di-pu
 Ini satu-satunya bagian plan yang benar-benar TDD: ada logika murni (`outputNames`) dan ada invariant data (manifest lengkap) yang layak dites.
 
 **Files:**
+
 - Create: `packages/assets/src/optimize.ts`
 - Create: `packages/assets/src/optimize.test.ts`
 - Modify: `packages/assets/src/index.ts` (ganti `export {}` dengan manifest)
@@ -752,6 +756,7 @@ Ini satu-satunya bagian plan yang benar-benar TDD: ada logika murni (`outputName
 - Modify: `apps/web/public/art/` (output optimasi, hasil menjalankan skrip)
 
 **Interfaces:**
+
 - Consumes: `ArtKey` dari `@moonwitness/types` (Task 1); PNG sumber di `apps/web/public/art/*.png`.
 - Produces:
   - `interface ArtEntry { source: string; src: string; srcSet: string; fallback: string; fallbackSrcSet: string; alt: string; position?: string; credit: string }`
@@ -865,7 +870,11 @@ export function outputNames(key: string, widths: readonly number[] = ART_WIDTHS)
   return widths.flatMap((w) => [`${key}-${w}.avif`, `${key}-${w}.webp`]);
 }
 
-export function srcSetFor(key: string, ext: "avif" | "webp", widths: readonly number[] = ART_WIDTHS) {
+export function srcSetFor(
+  key: string,
+  ext: "avif" | "webp",
+  widths: readonly number[] = ART_WIDTHS,
+) {
   return widths.map((w) => `/art/${key}-${w}.${ext} ${w}w`).join(", ");
 }
 ```
@@ -973,8 +982,14 @@ for (const [key, rel] of Object.entries(SOURCES)) {
   mkdirSync(OUT_DIR, { recursive: true });
   for (const w of WIDTHS) {
     const base = sharp(input).resize({ width: w, withoutEnlargement: true }).rotate();
-    await base.clone().avif({ quality: QUALITY }).toFile(path.join(OUT_DIR, `${key}-${w}.avif`));
-    await base.clone().webp({ quality: QUALITY }).toFile(path.join(OUT_DIR, `${key}-${w}.webp`));
+    await base
+      .clone()
+      .avif({ quality: QUALITY })
+      .toFile(path.join(OUT_DIR, `${key}-${w}.avif`));
+    await base
+      .clone()
+      .webp({ quality: QUALITY })
+      .toFile(path.join(OUT_DIR, `${key}-${w}.webp`));
     made += 2;
   }
   console.log(`[ok] ${key}: ${WIDTHS.length * 2} file`);
@@ -1044,6 +1059,7 @@ Output `.avif`/`.webp` **ikut di-commit** supaya build tidak bergantung pada sha
 Ini gerbang paling penting di fase 1 (§7, §10). Kalau `@source` tidak memindai paket, semua utility yang hanya dipakai di dalam `packages/ui` hilang dan halaman tampil polos — dan build-nya tetap hijau. Jadi gerbangnya bukan "build sukses", tapi "kelas khusus ada di CSS hasil build", plus **kontrol negatif** yang membuktikan gerbang itu bisa gagal.
 
 **Files:**
+
 - Create: `packages/ui/src/theme.css`
 - Create: `packages/ui/src/base.css`
 - Modify: `packages/ui/package.json` (exports `./theme.css`, `./base.css`)
@@ -1051,6 +1067,7 @@ Ini gerbang paling penting di fase 1 (§7, §10). Kalau `@source` tidak memindai
 - Modify: `apps/web/src/app/layout.tsx` (tidak berubah kecuali bila font fallback perlu)
 
 **Interfaces:**
+
 - Consumes: `apps/web/src/app/globals.css` versi sekarang — 408 baris, sudah dibaca penuh.
 - Produces: dua subpath export `@moonwitness/ui/theme.css` dan `@moonwitness/ui/base.css`; semua kelas `.font-brush`, `.halftone`, `.sticker*`, `.tape`, `.zine-card*`, `.btn-zine*`, `.brush-underline`, `.marquee-track`, `.orbit-ring*`, `.pulse-dot`, `.neon-flicker`, `.float-y`, `.rise-in`, `.zine-input` tersedia secara global. Task 6, 7, 8, 9 bergantung pada kelas-kelas ini.
 
@@ -1084,14 +1101,14 @@ Salin `:root` dari `globals.css` baris 5-18 apa adanya, lalu tambah fallback fon
 
 Pindahkan dari `globals.css`:
 
-| asal (`apps/web/src/app/globals.css`) | tujuan di `base.css` |
-|---|---|
-| baris 20-22 `html { scroll-behavior: smooth }` | bagian `document` (unlayered) |
-| baris 24-29 `body { ... }` | bagian `document` (unlayered) |
-| baris 31-34 `::selection` | bagian `document` (unlayered) |
-| baris 36-56 scrollbar (`::-webkit-scrollbar*` + `* { scrollbar-width }`) | bagian `document` (unlayered) |
-| baris 58-393 seluruh isi `@layer components { ... }` | bagian `components`, **tetap di dalam `@layer components`** |
-| baris 395-408 `@media (prefers-reduced-motion: reduce)` | bagian akhir file, **unlayered** |
+| asal (`apps/web/src/app/globals.css`)                                    | tujuan di `base.css`                                        |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------- |
+| baris 20-22 `html { scroll-behavior: smooth }`                           | bagian `document` (unlayered)                               |
+| baris 24-29 `body { ... }`                                               | bagian `document` (unlayered)                               |
+| baris 31-34 `::selection`                                                | bagian `document` (unlayered)                               |
+| baris 36-56 scrollbar (`::-webkit-scrollbar*` + `* { scrollbar-width }`) | bagian `document` (unlayered)                               |
+| baris 58-393 seluruh isi `@layer components { ... }`                     | bagian `components`, **tetap di dalam `@layer components`** |
+| baris 395-408 `@media (prefers-reduced-motion: reduce)`                  | bagian akhir file, **unlayered**                            |
 
 Kerangka file (isi lengkap = salinan baris-baris di atas, tanpa diubah satu deklarasi pun):
 
@@ -1205,7 +1222,7 @@ Expected: baris `@source "../../../../packages/ui/src";` kembali ada. Lalu build
 
 - [x] **Step 9: Bukti tidak ada perubahan tampilan**
 
-Gerbangnya empat bukti berurutan dari bagian "Cara membandingkan screenshot", **bukan** diff pixel mentah vs `.verify/phase0/` (sudah terbukti bukan gerbang sah). Task 4 murni memindahkan CSS, jadi yang harus sama adalah *computed style*, bukan susunan DOM.
+Gerbangnya empat bukti berurutan dari bagian "Cara membandingkan screenshot", **bukan** diff pixel mentah vs `.verify/phase0/` (sudah terbukti bukan gerbang sah). Task 4 murni memindahkan CSS, jadi yang harus sama adalah _computed style_, bukan susunan DOM.
 
 Yang diukur (build produksi `next start -p 4317`, viewport 390×844 lalu 1280×900):
 
@@ -1247,6 +1264,7 @@ Konsekuensi yang perlu dicatat: **screenshot Step 9 diambil dari working tree**,
 ### Task 5: Pindahkan ikon ke `packages/ui/src/icons`
 
 **Files:**
+
 - Create: `packages/ui/src/icons/index.tsx` (salinan `apps/web/src/components/zine.tsx`, 123 baris, 11 ikon)
 - Modify: `packages/ui/package.json` (subpath `./icons` menunjuk ke file `.tsx`)
 - Modify: `apps/web/src/components/{landing,dock,mission-control,empire-shell,site-nav}.tsx` (baris import saja)
@@ -1256,6 +1274,7 @@ Konsekuensi yang perlu dicatat: **screenshot Step 9 diambil dari working tree**,
 > **Cacat plan yang sudah diperbaiki saat eksekusi.** Versi awal task ini menulis tujuan sebagai `icons/index.ts`. Itu tidak bisa jalan: isinya JSX, dan TypeScript mem-parse `.ts` tanpa mode JSX, jadi `pnpm --filter @moonwitness/ui typecheck` gagal dengan 20+ `error TS1005: '>' expected` di baris `<svg ...>`. Nama file yang benar `index.tsx`, dan blok `exports` ikut menunjuk ke sana. Semua rujukan `icons/index.ts` di task lain (Task 6-9, 11-13, 22-24) dibaca sebagai `icons/index.tsx`.
 
 **Interfaces:**
+
 - Consumes: `apps/web/src/components/zine.tsx` — `Crown`, `Bolt`, `Smiley`, `Star4`, `Splatter`, `ArrowRight`, `PlayIcon`, `PauseIcon`, `GlobeIcon`, `EyeIcon`, `SearchIcon`, semuanya `(props: SVGProps<SVGSVGElement>) => JSX`.
 - Produces: `import { Crown, ArrowRight } from "@moonwitness/ui/icons"` — subpath ini dipakai Task 6-9, 11-13, 22-24.
 
@@ -1291,12 +1310,12 @@ Lalu bukti tampilan dengan gerbang empat bukti (bukan diff pixel vs `.verify/pha
 
 Terukur di `next start -p 4317`, viewport 1280×900, dengan listener `console`/`pageerror` dipasang sebelum navigasi:
 
-| rute | `<svg>` | `viewBox` mahkota `0 0 48 32` | splatter `0 0 24 32` | star4 `0 0 32 32` | smiley `0 0 100 100` | 24×24 | error+warning | scrollWidth |
-|---|---|---|---|---|---|---|---|---|
-| `/` | 40 | 6 | 1 | 2 | 4 | 26 | 0 | 1270 |
-| `/dock` | 35 | 5 | 0 | 1 | 1 | 28 | 0 | 1270 |
-| `/mission-control` | 50 | 15 | 5 | 1 | 1 | 27 | 0 | 1270 |
-| `/shadow` | 10 | 3 | 0 | 2 | 1 | 4 | 0 | 1280 |
+| rute               | `<svg>` | `viewBox` mahkota `0 0 48 32` | splatter `0 0 24 32` | star4 `0 0 32 32` | smiley `0 0 100 100` | 24×24 | error+warning | scrollWidth |
+| ------------------ | ------- | ----------------------------- | -------------------- | ----------------- | -------------------- | ----- | ------------- | ----------- |
+| `/`                | 40      | 6                             | 1                    | 2                 | 4                    | 26    | 0             | 1270        |
+| `/dock`            | 35      | 5                             | 0                    | 1                 | 1                    | 28    | 0             | 1270        |
+| `/mission-control` | 50      | 15                            | 5                    | 1                 | 1                    | 27    | 0             | 1270        |
+| `/shadow`          | 10      | 3                             | 0                    | 2                 | 1                    | 4     | 0             | 1280        |
 
 Kelima bentuk viewBox ikon muncul di tempat yang sama seperti sebelumnya, nol konsol, nol overflow. Satu-satunya `<svg>` berukuran nol di `/` adalah tombol menu mobile (`parent: .rounded-md.p-2.text-zinc-200.lg:hidden`) — memang disembunyikan di 1280px, bukan ikon rusak. Dua viewBox asing (`0 0 100 70` di `/`, `0 0 200 200` di `/mission-control`) adalah diagram orbit/peta inline milik app, bukan bagian set ikon.
 
@@ -1318,6 +1337,7 @@ Primitif dibuat **dan langsung dipakai** di tempat yang class string-nya memang 
 `font-brush` dan `brush-underline` **tidak** dibuatkan komponen: keduanya utility tipografi yang dipakai inline di 60+ tempat, dan membungkusnya hanya menambah DOM tanpa mengurangi duplikasi. Keduanya tetap hidup sebagai kelas CSS di `base.css`.
 
 **Files:**
+
 - Create: `packages/ui/src/primitives/zine-button.tsx`
 - Create: `packages/ui/src/primitives/sticker.tsx`
 - Create: `packages/ui/src/primitives/tape.tsx`
@@ -1333,25 +1353,36 @@ Primitif dibuat **dan langsung dipakai** di tempat yang class string-nya memang 
 - Modify: pemakai di app (lihat Step 9)
 
 **Interfaces:**
+
 - Consumes: `cn` dari `packages/ui/src/cn.ts` (sudah ada), `ARTWORK`/`ArtEntry` dari `@moonwitness/assets`, `ArtKey` dari `@moonwitness/types`.
 - Produces (dipakai Task 7-9, 11-13, 22-25):
 
 ```ts
 type ZineTone = "pink" | "yellow" | "blue" | "paper";
-function ZineButton(props: ButtonHTMLAttributes<HTMLButtonElement> & { tone?: ZineTone }): JSX.Element
+function ZineButton(
+  props: ButtonHTMLAttributes<HTMLButtonElement> & { tone?: ZineTone },
+): JSX.Element;
 
 type StickerTone = "paper" | "pink" | "yellow" | "blue" | "black";
-function Sticker(props: HTMLAttributes<HTMLSpanElement> & { tone?: StickerTone }): JSX.Element
+function Sticker(props: HTMLAttributes<HTMLSpanElement> & { tone?: StickerTone }): JSX.Element;
 
-function Tape(props: HTMLAttributes<HTMLSpanElement>): JSX.Element
-function ZineCard(props: HTMLAttributes<HTMLDivElement>): JSX.Element
-function ZineCardRough(props: HTMLAttributes<HTMLDivElement>): JSX.Element
-function ZineBadge(props: HTMLAttributes<HTMLSpanElement> & { color: string; dark?: boolean }): JSX.Element
-function ZineInput(props: InputHTMLAttributes<HTMLInputElement>): JSX.Element
-function ZineImage(props: { art: ArtKey; alt?: string; className?: string; sizes?: string; eager?: boolean }): JSX.Element
-function Marquee(props: HTMLAttributes<HTMLDivElement> & { children: ReactNode }): JSX.Element
-function Halftone(props: HTMLAttributes<HTMLDivElement> & { tone?: "white" | "pink" }): JSX.Element
-function Grain(props: HTMLAttributes<HTMLSpanElement>): JSX.Element
+function Tape(props: HTMLAttributes<HTMLSpanElement>): JSX.Element;
+function ZineCard(props: HTMLAttributes<HTMLDivElement>): JSX.Element;
+function ZineCardRough(props: HTMLAttributes<HTMLDivElement>): JSX.Element;
+function ZineBadge(
+  props: HTMLAttributes<HTMLSpanElement> & { color: string; dark?: boolean },
+): JSX.Element;
+function ZineInput(props: InputHTMLAttributes<HTMLInputElement>): JSX.Element;
+function ZineImage(props: {
+  art: ArtKey;
+  alt?: string;
+  className?: string;
+  sizes?: string;
+  eager?: boolean;
+}): JSX.Element;
+function Marquee(props: HTMLAttributes<HTMLDivElement> & { children: ReactNode }): JSX.Element;
+function Halftone(props: HTMLAttributes<HTMLDivElement> & { tone?: "white" | "pink" }): JSX.Element;
+function Grain(props: HTMLAttributes<HTMLSpanElement>): JSX.Element;
 ```
 
 Tidak ada `ZineLink`, walaupun 8 dari 14 pemakai `btn-zine` adalah `<Link>`. Alasannya: paket tidak boleh mengimpor `next/link`, dan `<a>` polos kehilangan client-side navigation. Pemakai itu tetap menulis `<Link className="btn-zine ...">` di app — kelas CSS-nya tersedia global dari `base.css`, jadi tidak ada yang hilang.
@@ -1389,14 +1420,13 @@ export interface ZineButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>
   tone?: ZineTone;
 }
 
-export function ZineButton({ tone = "pink", className, type = "button", ...props }: ZineButtonProps) {
-  return (
-    <button
-      type={type}
-      className={cn("btn-zine", TONE_CLASS[tone], className)}
-      {...props}
-    />
-  );
+export function ZineButton({
+  tone = "pink",
+  className,
+  type = "button",
+  ...props
+}: ZineButtonProps) {
+  return <button type={type} className={cn("btn-zine", TONE_CLASS[tone], className)} {...props} />;
 }
 ```
 
@@ -1641,15 +1671,15 @@ git rm packages/ui/src/button.tsx packages/ui/src/card.tsx packages/ui/src/badge
 
 Ganti markup app dengan komponen, **tanpa mengubah kelas lain** yang menyertainya:
 
-| situs | sebelum | sesudah |
-|---|---|---|
-| `shadow/page.tsx:92,93` | `<span className="tape -top-3 left-10 -rotate-6" />` | `<Tape className="-top-3 left-10 -rotate-6" />` |
-| `landing.tsx:197`, `landing.tsx:324` | `<span className="tape ..." />` | `<Tape className="..." />` |
-| `landing.tsx:461` | `<div className="halftone-pink pointer-events-none absolute inset-0 opacity-30" />` | `<Halftone tone="pink" className="pointer-events-none absolute inset-0 opacity-30" />` |
-| `mission-control.tsx:94` | `<div className="halftone absolute inset-0 opacity-40" />` | `<Halftone className="absolute inset-0 opacity-40" />` |
-| `landing.tsx:125` | `<div className="halftone relative h-72 ...">` | biarkan — ini container beranak, bukan overlay; `Halftone` hanya untuk overlay |
-| `shadow/page.tsx:55`, `dock.tsx:281`, `landing.tsx:296,512`, `mission-control.tsx:243` | `<div className="grain relative ...">` | `<div className="relative ...">` + `<Grain />` sebagai anak pertama |
-| semua `<input className="zine-input ...">` (5 situs, cari dengan `grep -rn "zine-input" apps/web/src`) | | `<ZineInput className="..." />` |
+| situs                                                                                                  | sebelum                                                                             | sesudah                                                                                |
+| ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `shadow/page.tsx:92,93`                                                                                | `<span className="tape -top-3 left-10 -rotate-6" />`                                | `<Tape className="-top-3 left-10 -rotate-6" />`                                        |
+| `landing.tsx:197`, `landing.tsx:324`                                                                   | `<span className="tape ..." />`                                                     | `<Tape className="..." />`                                                             |
+| `landing.tsx:461`                                                                                      | `<div className="halftone-pink pointer-events-none absolute inset-0 opacity-30" />` | `<Halftone tone="pink" className="pointer-events-none absolute inset-0 opacity-30" />` |
+| `mission-control.tsx:94`                                                                               | `<div className="halftone absolute inset-0 opacity-40" />`                          | `<Halftone className="absolute inset-0 opacity-40" />`                                 |
+| `landing.tsx:125`                                                                                      | `<div className="halftone relative h-72 ...">`                                      | biarkan — ini container beranak, bukan overlay; `Halftone` hanya untuk overlay         |
+| `shadow/page.tsx:55`, `dock.tsx:281`, `landing.tsx:296,512`, `mission-control.tsx:243`                 | `<div className="grain relative ...">`                                              | `<div className="relative ...">` + `<Grain />` sebagai anak pertama                    |
+| semua `<input className="zine-input ...">` (5 situs, cari dengan `grep -rn "zine-input" apps/web/src`) |                                                                                     | `<ZineInput className="..." />`                                                        |
 
 Untuk `grain`, satu contoh lengkap (`dock.tsx:281`):
 
@@ -1681,14 +1711,14 @@ Expected: pipeline hijau dan grep menemukan `.18em` (bukti `@source` masih beker
 
 Tercatat: **11/11 task sukses** dan `grep -o '\.18em' apps/web/.next/static/css/*.css` = **3 kecocokan**. Gerbang grep Step 8 juga diuji terhadap masukan yang seharusnya cocok (`grep -rn "\bButton\b|\bCard\b|\bBadge\b" packages/ui/src` → 6 kecocokan), jadi angka 0 di `apps/web/src` berarti benar-benar "tidak ada pemakai", bukan pola yang mati.
 
-Bukti visual pakai gerbang empat bukti, dan khusus task ini bukti utamanya adalah *computed style* elemen primitif (karena yang berubah adalah siapa yang merender elemen, bukan tampilannya). Di `next start -p 4317`, listener console dipasang sebelum navigasi, viewport 1280×900:
+Bukti visual pakai gerbang empat bukti, dan khusus task ini bukti utamanya adalah _computed style_ elemen primitif (karena yang berubah adalah siapa yang merender elemen, bukan tampilannya). Di `next start -p 4317`, listener console dipasang sebelum navigasi, viewport 1280×900:
 
-| rute | `Grain` (span `.grain`) | `Tape` | `Halftone` | `ZineInput` (`input.zine-input`) | error+warning |
-|---|---|---|---|---|---|
-| `/` | 2 — 1270×828 & 1270×562, `::after` `position:absolute` + `background-image: url("data:image/svg+xml,…")` + `mix-blend-mode: overlay` | 2 — 95×38 & 93×31, `position:absolute` | pink 8px 8px radial + container `.halftone` lama 7px 7px (sengaja dibiarkan, lihat tabel Step 9) | 0 | 0 |
-| `/shadow` | 1 — 1280×900 | 2 — 94×35 & 93×31 | 0 | 2 — border `rgb(42,42,56)`, bg `rgb(14,14,21)` | 0 |
-| `/dock` | 1 — 1030×283 | 0 | 0 | 1 (kolom pencarian `EmpireShell`) | 0 |
-| `/mission-control` | 1 — 1030×260 | 0 | 1 — 7px 7px | 1 | 0 |
+| rute               | `Grain` (span `.grain`)                                                                                                              | `Tape`                                 | `Halftone`                                                                                       | `ZineInput` (`input.zine-input`)               | error+warning |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------- | ------------- |
+| `/`                | 2 — 1270×828 & 1270×562, `::after` `position:absolute` + `background-image: url("data:image/svg+xml,…")` + `mix-blend-mode: overlay` | 2 — 95×38 & 93×31, `position:absolute` | pink 8px 8px radial + container `.halftone` lama 7px 7px (sengaja dibiarkan, lihat tabel Step 9) | 0                                              | 0             |
+| `/shadow`          | 1 — 1280×900                                                                                                                         | 2 — 94×35 & 93×31                      | 0                                                                                                | 2 — border `rgb(42,42,56)`, bg `rgb(14,14,21)` | 0             |
+| `/dock`            | 1 — 1030×283                                                                                                                         | 0                                      | 0                                                                                                | 1 (kolom pencarian `EmpireShell`)              | 0             |
+| `/mission-control` | 1 — 1030×260                                                                                                                         | 0                                      | 1 — 7px 7px                                                                                      | 1                                              | 0             |
 
 Tiga kegagalan senyap yang disebut plan sudah dicek satu per satu: noise `grain` **tidak** hilang (span `absolute inset-0` + `::after` terisi), `tape` **tidak** bergeser (parent tetap `relative`, ukuran pil sama seperti sebelum migrasi), dan focus input **tidak** kehilangan border pink — `page.focus('input.zine-input')` menghasilkan `border-color: rgb(255,45,120)` + `box-shadow: rgba(255,45,120,0.2) 0 0 0 3px`. Overflow 390px: `scrollWidth = clientWidth = 380`.
 
@@ -1712,6 +1742,7 @@ Bukti konsistensi state yang di-commit (bukan working tree): `git grep --cached 
 ### Task 7: Komposit timeline (`EventCard`, `EventDetail`, `EraBand`)
 
 **Files:**
+
 - Create: `packages/ui/src/composites/kind-colors.ts`
 - Create: `packages/ui/src/composites/event-card.tsx`
 - Create: `packages/ui/src/composites/event-detail.tsx`
@@ -1721,17 +1752,18 @@ Bukti konsistensi state yang di-commit (bukan working tree): `git grep --cached 
 - Modify: `apps/web/src/lib/data.ts` (hapus `kindColors` — pindah ke paket)
 
 **Interfaces:**
+
 - Consumes: `TimelineEvent`, `Era`, `EraId`, `EventKind` dari `@moonwitness/types`; `ZineCard`, `ZineCardRough`, `ZineBadge`, `ZineImage`, `Sticker`, `Tape` dari Task 6; `Crown`, `ArrowRight`, `Splatter`, `Star4` dari Task 5.
 - Produces:
 
 ```ts
-const kindColors: Record<EventKind, string>   // @moonwitness/ui
+const kindColors: Record<EventKind, string>; // @moonwitness/ui
 function EventCard(props: {
   event: TimelineEvent;
   selected: boolean;
   list: boolean;
   onOpen: () => void;
-}): JSX.Element
+}): JSX.Element;
 function EventDetail(props: {
   event: TimelineEvent;
   era: Era;
@@ -1739,12 +1771,12 @@ function EventDetail(props: {
   shareUrl: string;
   onRelated: (id: string) => void;
   onClose?: () => void;
-}): JSX.Element
+}): JSX.Element;
 function EraBand(props: {
   eras: Era[];
   active: EraId | "all";
   onSelect: (era: EraId | "all") => void;
-}): JSX.Element
+}): JSX.Element;
 ```
 
 - [x] **Step 1: `kind-colors.ts`**
@@ -1934,14 +1966,14 @@ Matikan server.
 
 **Bukti visual (empat bukti, seperti Task 4–6).** Server `next start -p 4317` (port dicek `netstat` dulu, bebas), listener console dipasang sebelum navigasi, `waitUntil: domcontentloaded`.
 
-| viewport | scrollWidth×innerWidth | error console per navigasi | bukti utama |
-|---|---|---|---|
-| 1440×900 | 1440×1440 (tidak overflow) | **0** | 13 kartu; klik kartu #2 → detail `MOONWITNESS IS BORN` → `THE SHADOW GROWS`; border kartu terpilih `rgb(255,45,120)` = `--pink`; klik related #1 → `A BRIGHTER QUESTION`; 3 tag pill; tombol Share warna `rgb(46,168,255)` |
-| 1440, `?era=fracture` | — | **0** | chip aktif `aria-pressed=true` + `filter:none`, empat chip lain `filter:grayscale(1)`, `object-position:50% 50%` (peta `eraArt` benar) |
-| 1440, share | — | **0** | `navigator.clipboard.writeText` disadap lewat `addInitScript` → teks tersadap `http://127.0.0.1:4317/dock?event=moonwitness-born`, tombol berubah jadi `Copied ✓`. Ini bukti `origin` (guard `useEffect`) + prop `shareUrl` tersambung; tanpa sadapan, kegagalan clipboard akan memanggil `window.prompt` dan memblokir Playwright |
-| 1440, pita era diklik | — | **0** | `Showing 13 of 13` → `Showing 2 of 13` → klik lagi → `13 of 13`. State penyaring memang tetap di app, komponen hanya terkendali |
-| 390×844 | 380×390 | **0** | kartu → drawer `role=dialog` muncul, judul `NEW WORLDS, SAME SKY`, tombol ✕ menghapus drawer dari DOM |
-| 768×1024 | 758×768 | **0** | 5 chip pita era tetap ter-render |
+| viewport              | scrollWidth×innerWidth     | error console per navigasi | bukti utama                                                                                                                                                                                                                                                                                                                        |
+| --------------------- | -------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1440×900              | 1440×1440 (tidak overflow) | **0**                      | 13 kartu; klik kartu #2 → detail `MOONWITNESS IS BORN` → `THE SHADOW GROWS`; border kartu terpilih `rgb(255,45,120)` = `--pink`; klik related #1 → `A BRIGHTER QUESTION`; 3 tag pill; tombol Share warna `rgb(46,168,255)`                                                                                                         |
+| 1440, `?era=fracture` | —                          | **0**                      | chip aktif `aria-pressed=true` + `filter:none`, empat chip lain `filter:grayscale(1)`, `object-position:50% 50%` (peta `eraArt` benar)                                                                                                                                                                                             |
+| 1440, share           | —                          | **0**                      | `navigator.clipboard.writeText` disadap lewat `addInitScript` → teks tersadap `http://127.0.0.1:4317/dock?event=moonwitness-born`, tombol berubah jadi `Copied ✓`. Ini bukti `origin` (guard `useEffect`) + prop `shareUrl` tersambung; tanpa sadapan, kegagalan clipboard akan memanggil `window.prompt` dan memblokir Playwright |
+| 1440, pita era diklik | —                          | **0**                      | `Showing 13 of 13` → `Showing 2 of 13` → klik lagi → `13 of 13`. State penyaring memang tetap di app, komponen hanya terkendali                                                                                                                                                                                                    |
+| 390×844               | 380×390                    | **0**                      | kartu → drawer `role=dialog` muncul, judul `NEW WORLDS, SAME SKY`, tombol ✕ menghapus drawer dari DOM                                                                                                                                                                                                                              |
+| 768×1024              | 758×768                    | **0**                      | 5 chip pita era tetap ter-render                                                                                                                                                                                                                                                                                                   |
 
 **`objectPosition` per event selamat.** List view: `60% 25%`; grid view kartu pertama: `60% 25%`; drawer detail: `60% 25%` — semuanya nilai dari `lib/data.ts`, bukan nilai manifest. Ini yang membedakan deviasi Step 2 dari "kebetulan mirip".
 
@@ -1951,7 +1983,7 @@ Matikan server.
 
 **Delta visual yang diterima dan disengaja.** Badge jenis (`PROJECT`, `SIGNAL`, …) kini sedikit lebih renggang karena `ZineBadge` membawa `SOURCE_PROBE_CLASS` (`tracking-[0.18em]`) — perawatan design system yang sudah diputuskan di Task 6, bukan efek samping Task 7. Warna badge identik (`kindColors` dipindah apa adanya; `dark` menggantikan `color: kind === "SIGNAL" ? "#111" : "#fff"`).
 
-**Dua jebakan yang tercatat.** (1) Log console agregat `.playwright-mcp/console-*.log` bertambah 46 baris tepat setelah navigasi pertama, isinya `ERR_CONNECTION_REFUSED` dan "Failed to fetch RSC payload" — semuanya ber-timestamp ~1,547,477 ms, yaitu sisa dari konteks browser yang sama ketika port 4317 masih mati (sebelum Task 6 ditutup). Penomoran "New console entries" dari tool menandai baris *baru bagi tool*, bukan baru bagi navigasi ini; yang bisa dipakai hanya listener yang dipasang sendiri per navigasi (hasil: 0). (2) `filter` chip aktif sempat terbaca `grayscale(1)` sesaat setelah klik karena `transition-all duration-300` — pengukuran ulang yang membaca kelima chip sekaligus memberi `none` untuk yang aktif. Lesson: jangan simpulkan state transisi dari satu sampel.
+**Dua jebakan yang tercatat.** (1) Log console agregat `.playwright-mcp/console-*.log` bertambah 46 baris tepat setelah navigasi pertama, isinya `ERR_CONNECTION_REFUSED` dan "Failed to fetch RSC payload" — semuanya ber-timestamp ~1,547,477 ms, yaitu sisa dari konteks browser yang sama ketika port 4317 masih mati (sebelum Task 6 ditutup). Penomoran "New console entries" dari tool menandai baris _baru bagi tool_, bukan baru bagi navigasi ini; yang bisa dipakai hanya listener yang dipasang sendiri per navigasi (hasil: 0). (2) `filter` chip aktif sempat terbaca `grayscale(1)` sesaat setelah klik karena `transition-all duration-300` — pengukuran ulang yang membaca kelima chip sekaligus memberi `none` untuk yang aktif. Lesson: jangan simpulkan state transisi dari satu sampel.
 
 Matikan server: listener PID 28040 dihentikan, `netstat` tidak menyisakan `LISTENING` di 4317 (hanya `TIME_WAIT` sisa koneksi).
 
@@ -1968,7 +2000,7 @@ Perintah `git add` untuk `packages/ui/src`, `dock.tsx`, `data.ts`, dan plan teta
 
 Bukti konsistensi state yang di-commit: `git grep --cached "duo-img\|duo-tint\|duo-halftone\|marginalia" -- apps packages` = **kosong** (tidak ada kelas yang direferensikan tapi tidak didefinisikan di HEAD); `git grep --cached -n kindColors` = 9 baris, semuanya sah (2 di `landing.tsx`, 6 di `packages/ui`, 1 definisi); `packages/ui/src/index.ts` baris 14–17 memuat keempat ekspor komposit; `dock.tsx` hanya memakai komposit lewat satu impor `@moonwitness/ui`.
 
-**Batasan yang dicatat jujur:** pipeline 11/11 dijalankan terhadap *working tree*, bukan terhadap checkout bersih dari commit ini. Yang membuktikan HEAD konsisten adalah grep di atas (satu-satunya selisih HEAD vs working tree adalah pasangan `landing.tsx`/`globals.css` milik orang lain, dan HEAD tidak mereferensikan kelas dari sisi working tree mana pun), bukan build bersih.
+**Batasan yang dicatat jujur:** pipeline 11/11 dijalankan terhadap _working tree_, bukan terhadap checkout bersih dari commit ini. Yang membuktikan HEAD konsisten adalah grep di atas (satu-satunya selisih HEAD vs working tree adalah pasangan `landing.tsx`/`globals.css` milik orang lain, dan HEAD tidak mereferensikan kelas dari sisi working tree mana pun), bukan build bersih.
 
 Commit: `6c6ef1f refactor(ui): komposit timeline (EventCard, EventDetail, EraBand) pindah ke paket` — 10 file, +416/−319.
 
@@ -1979,6 +2011,7 @@ Commit: `6c6ef1f refactor(ui): komposit timeline (EventCard, EventDetail, EraBan
 `ArchiveStrip` **tidak** ikut pindah (lihat R3) — ia tetap di app dan baru dipecah di Task 11.
 
 **Files:**
+
 - Create: `packages/ui/src/composites/transmission-card.tsx`
 - Create: `packages/ui/src/composites/count-up.tsx`
 - Create: `packages/ui/src/composites/crew-constellation.tsx`
@@ -1986,21 +2019,22 @@ Commit: `6c6ef1f refactor(ui): komposit timeline (EventCard, EventDetail, EraBan
 - Modify: `apps/web/src/components/landing.tsx` (hapus 10-84 `TransmissionCard`, 86-117 `CountUp`, 119-219 `CrewConstellation`)
 
 **Interfaces:**
+
 - Consumes: `TimelineEvent`, `Witness` dari `@moonwitness/types`; `ZineCardRough`, `ZineCard`, `Sticker`, `Tape`, `ZineImage` dari Task 6; `PlayIcon`, `PauseIcon`, `Crown`, `ArrowRight` dari Task 5.
 - Produces:
 
 ```ts
-function CountUp(props: { target: number; suffix?: string }): JSX.Element
+function CountUp(props: { target: number; suffix?: string }): JSX.Element;
 function TransmissionCard(props: {
   event: TimelineEvent;
   durationSeconds?: number;
   label?: string;
-}): JSX.Element
+}): JSX.Element;
 function CrewConstellation(props: {
   witnesses: Witness[];
   stats: { label: string; target: number }[];
-  cta?: ReactNode;   // slot R2: app yang menyuplai <Link>
-}): JSX.Element
+  cta?: ReactNode; // slot R2: app yang menyuplai <Link>
+}): JSX.Element;
 ```
 
 - [x] **Step 1: `count-up.tsx`**
@@ -2016,13 +2050,13 @@ Pindahkan `TransmissionCard` dari `landing.tsx:10-84`, dengan perubahan wajib:
 1. Tambah `"use client"` (state timer internal — §3.2 mengizinkan karena state tidak bocor ke tipe publik).
 2. Isi yang tadinya hardcoded jadi berasal dari prop `event`:
 
-| hardcoded lama | baru |
-|---|---|
-| `const total = 204` | `durationSeconds = 204` (default prop) |
-| `TRANSMISSION 001` | prop `label` (default `"TRANSMISSION 001"`), karena angka 001 adalah teks tampilan, bukan turunan dari `event.id` |
-| `<h3>A SIGNAL FROM BELOW</h3>` | `{event.title.toUpperCase()}` |
-| `<p>Strange sounds…</p>` | `{event.excerpt}` |
-| `src="/art/signal-tunnel.png"` + alt | `<ZineImage art={event.image} sizes="(max-width: 768px) 100vw, 33vw" />` |
+| hardcoded lama                       | baru                                                                                                              |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| `const total = 204`                  | `durationSeconds = 204` (default prop)                                                                            |
+| `TRANSMISSION 001`                   | prop `label` (default `"TRANSMISSION 001"`), karena angka 001 adalah teks tampilan, bukan turunan dari `event.id` |
+| `<h3>A SIGNAL FROM BELOW</h3>`       | `{event.title.toUpperCase()}`                                                                                     |
+| `<p>Strange sounds…</p>`             | `{event.excerpt}`                                                                                                 |
+| `src="/art/signal-tunnel.png"` + alt | `<ZineImage art={event.image} sizes="(max-width: 768px) 100vw, 33vw" />`                                          |
 
 Signature akhir:
 
@@ -2037,7 +2071,7 @@ export function TransmissionCard({ event, durationSeconds = 204, label = "TRANSM
 
 3. `fmt`, progressbar `role="progressbar"` + `aria-valuenow/min/max`, `aria-label` tombol play/pause: **pertahankan semua**. Itu a11y yang sudah benar dan akan diperiksa lagi di Task 16.
 
-> **Cacat plan (ditemukan sebelum menulis kode):** tabel di atas menyuruh `{event.title.toUpperCase()}` / `{event.excerpt}` dan Step 4 menyuruh `event={timelineEvents[0]!}`. `timelineEvents[0]` adalah `moonwitness-born` → *"MOONWITNESS IS BORN"* + *"First public signal. A small site, a big question."* + artwork `city-shadow`, sedangkan kartu lama menampilkan *"A SIGNAL FROM BELOW"* + *"Strange sounds. A deeper current. What are we really hearing?"* + `signal-tunnel`. `grep -ri "signal from below\|strange sounds\|deeper current" apps/web/src/lib` → **0 match**: copy itu tidak dimiliki event mana pun, jadi menjalankan plan apa adanya = mengganti isi landing, bukan merombak strukturnya.
+> **Cacat plan (ditemukan sebelum menulis kode):** tabel di atas menyuruh `{event.title.toUpperCase()}` / `{event.excerpt}` dan Step 4 menyuruh `event={timelineEvents[0]!}`. `timelineEvents[0]` adalah `moonwitness-born` → _"MOONWITNESS IS BORN"_ + _"First public signal. A small site, a big question."_ + artwork `city-shadow`, sedangkan kartu lama menampilkan _"A SIGNAL FROM BELOW"_ + _"Strange sounds. A deeper current. What are we really hearing?"_ + `signal-tunnel`. `grep -ri "signal from below\|strange sounds\|deeper current" apps/web/src/lib` → **0 match**: copy itu tidak dimiliki event mana pun, jadi menjalankan plan apa adanya = mengganti isi landing, bukan merombak strukturnya.
 >
 > **Deviasi yang dipilih:** `TransmissionCardProps` ditambah dua override opsional, `title?: string` dan `excerpt?: string`, yang defaultnya tetap `event.title` / `event.excerpt` (`(title ?? event.title).toUpperCase()`). Komponennya tetap event-driven untuk pemakaian lain; app yang memegang copy promosi. Event yang dipakai `timelineEvents.find(e => e.id === "voices-in-the-fog")` — dipilih hanya karena artworknya `signal-tunnel` (temanya "audio letters" paling dekat dengan "strange sounds"). `imagePosition` **tidak** diteruskan: `<Image>` lama tidak punya `objectPosition`, dan manifest `signal-tunnel` = `"center"`, jadi `ZineImage` tanpa `position` menghasilkan bingkai yang sama persis.
 >
@@ -2065,20 +2099,24 @@ if (!selected) return null;
 3. Tiga angka stats yang tadinya literal di dalam komponen (baris 177-181: CREW MEMBERS 1324 / COUNTRIES 87 / SIGNALS 6912) jadi prop `stats`, supaya app yang memegang data:
 
 ```tsx
-{stats.map((s) => (
-  <div key={s.label} className="border border-[var(--line)] bg-[var(--panel-2)] px-2 py-3">
-    <div className="font-brush text-xl text-[var(--yellow)] sm:text-2xl">
-      <CountUp target={s.target} />
+{
+  stats.map((s) => (
+    <div key={s.label} className="border border-[var(--line)] bg-[var(--panel-2)] px-2 py-3">
+      <div className="font-brush text-xl text-[var(--yellow)] sm:text-2xl">
+        <CountUp target={s.target} />
+      </div>
+      <div className="mt-1 text-[10px] tracking-widest text-zinc-500">{s.label}</div>
     </div>
-    <div className="mt-1 text-[10px] tracking-widest text-zinc-500">{s.label}</div>
-  </div>
-))}
+  ));
+}
 ```
 
 4. `<Link href="/shadow" className="btn-zine btn-blue px-5 py-3 text-base">EXPLORE THE CREW <ArrowRight/></Link>` (baris 213-215) **dihapus dari paket** dan diganti slot `cta`:
 
 ```tsx
-{cta}
+{
+  cta;
+}
 ```
 
 App menyuplai `<Link>` yang sama persis, jadi tampilan tidak berubah dan link semantics tetap (R2).
@@ -2143,7 +2181,7 @@ const CREW_STATS = [
 >
 > Import yang jadi tidak terpakai ikut dicabut: `useEffect`, `useState`, `PlayIcon`, `PauseIcon` (0 kemunculan tersisa di file); `useRef`, `Image`, `Link`, `artSrc`, `timelineEvents`, `witnesses`, `kindColors`, `Tape`, `Grain`, `Halftone`, `Bolt`, `Crown`, `Smiley`, `Splatter`, `Star4`, `ArrowRight`, `SiteNav` tetap terpakai — diaudit per-identifier dengan `grep -v '^import ' | grep -cw`, hasilnya 0 import yatim.
 
-> **Penyerapan CSS duo (instruksi owner, di luar plan):** sebelum Task 8, working tree punya blok `@layer components` belum di-commit di `apps/web/src/app/globals.css` berisi `.duo-img`, `.duo-tint`, `.duo-halftone`, `.marginalia` — dan `TransmissionCard` yang mau kupindah memakai `duo-img` + `duo-tint` di dalamnya. Owner memilih "Paksa Task 8 sekarang, bawa duo ke paket", dan komentar di file itu sendiri bilang *"Task yang memakainya yang memindahkannya"*. Jadi keempat aturan dipindah **verbatim** ke `packages/ui/src/base.css` (di dalam `@layer components`, setelah `.zine-input`) dan blok di `globals.css` dihapus sehingga file itu kembali persis seperti HEAD (0 baris diff). Tidak ada yang hilang: kelasnya tetap ada, hanya pemiliknya pindah paket. Sisa pemakaian duo/marginalia di `landing.tsx` (hero, dua kartu sinyal, about, catatan pinggir) **masih WIP orang lain dan tetap tidak k stage** — lihat Step 6.
+> **Penyerapan CSS duo (instruksi owner, di luar plan):** sebelum Task 8, working tree punya blok `@layer components` belum di-commit di `apps/web/src/app/globals.css` berisi `.duo-img`, `.duo-tint`, `.duo-halftone`, `.marginalia` — dan `TransmissionCard` yang mau kupindah memakai `duo-img` + `duo-tint` di dalamnya. Owner memilih "Paksa Task 8 sekarang, bawa duo ke paket", dan komentar di file itu sendiri bilang _"Task yang memakainya yang memindahkannya"_. Jadi keempat aturan dipindah **verbatim** ke `packages/ui/src/base.css` (di dalam `@layer components`, setelah `.zine-input`) dan blok di `globals.css` dihapus sehingga file itu kembali persis seperti HEAD (0 baris diff). Tidak ada yang hilang: kelasnya tetap ada, hanya pemiliknya pindah paket. Sisa pemakaian duo/marginalia di `landing.tsx` (hero, dua kartu sinyal, about, catatan pinggir) **masih WIP orang lain dan tetap tidak k stage** — lihat Step 6.
 
 - [x] **Step 5: Pipeline + bukti visual + bukti `"use client"` di paket**
 
@@ -2166,15 +2204,15 @@ Ambil SHOT ke `.verify/phase1-task8/`, bandingkan `.verify/phase0/landing-*.png`
 >
 > **Bukti `"use client"` ter-transpile (perilaku, bukan build).** Diukur pada navigasi bersih (`?probe=<ts>`), satu klik = satu langkah, label & `aria-valuenow` dibaca lewat DOM:
 >
-> | langkah | `aria-label` tombol | `aria-valuenow` | baris status |
-> |---|---|---|---|
-> | awal | `Play transmission` | 0 | `STANDBY 00:00 / 03:24` |
-> | +1 klik, tunggu 2,2 s | `Pause transmission` | 2 | `● RECEIVING… 00:02 / 03:24` |
-> | +1 klik (pause), tunggu 1,8 s | `Play transmission` | 2 (tidak naik) | `STANDBY 00:02 / 03:24` |
+> | langkah                       | `aria-label` tombol  | `aria-valuenow` | baris status                 |
+> | ----------------------------- | -------------------- | --------------- | ---------------------------- |
+> | awal                          | `Play transmission`  | 0               | `STANDBY 00:00 / 03:24`      |
+> | +1 klik, tunggu 2,2 s         | `Pause transmission` | 2               | `● RECEIVING… 00:02 / 03:24` |
+> | +1 klik (pause), tunggu 1,8 s | `Play transmission`  | 2 (tidak naik)  | `STANDBY 00:02 / 03:24`      |
 >
 > Constellation: 7 dot saksi; default terpilih = `witnesses[0]` (Zill / Bandung, ID / 41 signals) — membuktikan fallback `?? witnesses[0]`; klik dot ke-4 → kartu profil berubah jadi Amara / Lagos, NG / 19 signals dan hanya dot itu `aria-pressed=true`. CountUp: sebelum scroll ketiga stats `0…`, setelah `#crew` masuk viewport → `1,324 / 87 / 6,912`. Console per-navigasi: **0 error, 0 warning**.
 >
-> **Jebakan yang ketemu lagi.** Percobaan pertamaku pakai `waitUntil: 'commit'` + `locator.click()`: klik mendarat di DOM pra-hidrasi sehingga state tidak jalan, dan `innerText` pada locator ber-`filter()` timeout 30 s — dua-duanya *false negative*, bukan bug kode. Ganti ke dokumen baru + `element.click()` di dalam `page.evaluate` → hasilnya deterministik. Pelajaran yang sama seperti Task 7: jangan simpulkan state dari satu percobaan yang gagal diam.
+> **Jebakan yang ketemu lagi.** Percobaan pertamaku pakai `waitUntil: 'commit'` + `locator.click()`: klik mendarat di DOM pra-hidrasi sehingga state tidak jalan, dan `innerText` pada locator ber-`filter()` timeout 30 s — dua-duanya _false negative_, bukan bug kode. Ganti ke dokumen baru + `element.click()` di dalam `page.evaluate` → hasilnya deterministik. Pelajaran yang sama seperti Task 7: jangan simpulkan state dari satu percobaan yang gagal diam.
 >
 > **Bukti visual.** `.verify/phase1-task8/landing-1440.png` = **1430x3500**, persis `phase0/landing-1440.png`. Crop sejajar (`cmp-crew-1440.png`, `cmp-signals-1440.png`, kiri=phase0 kanan=task8): geometri constellation identik (posisi dot, garis, dot kuning terpilih), sticker pink "REAL PEOPLE. REAL PLACES. SAME SKY." identik, kartu profil & tombol EXPLORE THE CREW identik, ketiga judul kartu sinyal + excerpt + progressbar `STANDBY 00:00 / 03:24` identik. Yang **berbeda dan memang harus beda**: (a) angka CountUp di sisi kiri tampil 0 karena capture phase0 tidak memicu IntersectionObserver — bukan regresi, nilainya sudah dibuktikan lewat DOM; (b) gambar kartu kini teduh duo magenta/biru, karena treatment WIP owner ikut masuk ke paket (lihat Step 4).
 >
@@ -2206,6 +2244,7 @@ git commit -m "refactor(ui): TransmissionCard + CrewConstellation jadi komposit 
 `OrbitDiagram` (`mission-control.tsx:91-163`) dan `orbitNodes` (81-88) **tidak** dipindah — §D7 menghapusnya, dan penghapusannya terjadi bersama penggantian halaman di Task 27. Memindahkannya ke paket sekarang berarti menulis kode yang langsung dibuang.
 
 **Files:**
+
 - Create: `packages/ui/src/composites/module-glyphs.ts`
 - Create: `packages/ui/src/composites/module-glyph.tsx`
 - Create: `packages/ui/src/composites/module-card.tsx`
@@ -2213,13 +2252,14 @@ git commit -m "refactor(ui): TransmissionCard + CrewConstellation jadi komposit 
 - Modify: `apps/web/src/components/mission-control.tsx` (hapus baris 18-27 `moduleIcons`, 29-44 `ModuleIcon`, 46-88 `ModuleCard`)
 
 **Interfaces:**
+
 - Consumes: `Module` dari `@moonwitness/types`; `ZineCardRough` dari Task 6; `Crown`, `ArrowRight` dari Task 5.
 - Produces:
 
 ```ts
-const MODULE_GLYPHS: Record<string, string>          // path stroke SVG per nama ikon modul
-function ModuleGlyph(props: { icon: string; className?: string }): JSX.Element
-function ModuleCard(props: { module: Module; onOpen: (m: Module) => void }): JSX.Element
+const MODULE_GLYPHS: Record<string, string>; // path stroke SVG per nama ikon modul
+function ModuleGlyph(props: { icon: string; className?: string }): JSX.Element;
+function ModuleCard(props: { module: Module; onOpen: (m: Module) => void }): JSX.Element;
 ```
 
 `ModuleCard` dipakai ulang di fase 4 untuk bagian 8 (tile Story Studio / Poster Forge), jadi ini bukan komponen untuk halaman yang akan dibuang.
@@ -2272,7 +2312,7 @@ export function ModuleGlyph({ icon, className }: { icon: string; className?: str
 `MODULE_GLYPHS.gear` bertipe `string | undefined` karena `noUncheckedIndexedAccess`, padahal `d` butuh `string`. Tulis fallback-nya eksplisit:
 
 ```tsx
-      <path d={MODULE_GLYPHS[icon] ?? MODULE_GLYPHS.gear ?? ""} />
+<path d={MODULE_GLYPHS[icon] ?? MODULE_GLYPHS.gear ?? ""} />
 ```
 
 - [x] **Step 3: `module-card.tsx`**
@@ -2304,6 +2344,7 @@ Pemakaian `<ModuleCard module={m} onOpen={setOpenModule} />` tidak berubah.
 - [x] **Step 5: Pipeline + bukti visual + commit**
 
 > **Bukti eksekusi:**
+>
 > - **Perubahan lingkungan dari tim backend:** `apps/api` sudah berganti nama jadi `@moonwitness/api` (filter `!@moonwitness/api-app` lama tidak dikenal lagi), dan muncul workspace baru `packages/errors`, `packages/schema`, `packages/contracts`. `pnpm turbo run` memicu auto-install pnpm yang mengotori `pnpm-lock.yaml` (+627 baris) — **bukan perubahan saya, sengaja tidak di-stage.**
 > - **Pipeline:** dijalankan dengan `pnpm exec turbo` (bypass verify-deps pnpm) + `--filter='!@moonwitness/api' --filter='!@moonwitness/errors' --filter='!@moonwitness/schema' --filter='!@moonwitness/contracts'`. Hasil **11/11 hijau**. Paket backend `errors`/`schema` gagal lint dengan `'eslint' is not recognized` — persis cacat lingkungan `api-app` di Task 8, di luar scope frontend, jadi di-eksklusi. `/mission-control` build 4.38 kB / 129 kB.
 > - **Gate §3.2:** `grep -rn "next/" packages/ui/src` → 0 baris (exit 1).
@@ -2334,9 +2375,11 @@ git commit -m "refactor(ui): ModuleCard + glyph modul pindah ke paket"
 Task ini tidak menulis kode produk. Ia mengumpulkan bukti bahwa fase 1 selesai dan **netral secara visual** (§7).
 
 **Files:**
+
 - Modify: `docs/superpowers/specs/2026-11-11-frontend-design-system-design.md` (tambah satu baris status fase 1 di §7)
 
 **Interfaces:**
+
 - Consumes: hasil Task 0-9; `.verify/phase0/` sebagai pembanding.
 - Produces: catatan gerbang yang dipakai Task 11-13b sebagai pembanding (`.verify/phase1/`).
 
@@ -2386,6 +2429,7 @@ Expected: 0 baris.
 - [x] **Step 5: Perbandingan visual penuh**
 
 > **Bukti (`.verify/phase1/`, 4 route × 3 viewport):**
+>
 > - **Dimensi halaman: 12/12 identik** dengan `.verify/phase0/` (setelah tangkap pada keadaan settled). `landing-390` = 4867, `shadow-390` = 913 — keduanya cocok persis.
 > - **Jebakan yang ditemukan & dibereskan:** tangkap naif (tanpa scroll) membuat `landing-390`/`shadow-390` terukur lebih tinggi (5033/1026) karena CountUp + lazy-image belum settled. Setelah scroll-through + poll sampai `scrollHeight` stabil 3× berturut, tinggi = 4867/913 (identik phase0). Jadi selisih itu artefak waktu tangkap, bukan regresi layout.
 > - **Selisih pixel (decoder PNG mandiri + heatmap + profil baris):** tersisa hanya di region gambar — `dock-768` 17%, `landing-768` 13%, `dock-390` 13%, dst.; gap antar-kartu & blok teks = 0%. Dua penyebab, keduanya konsekuensi arsitektur fase 1: (a) pipeline aset statis menyajikan avif/webp manifest, bukan keluaran optimizer `next/image` → beda codec yang tak terlihat mata; (b) state lazy-load beda antar sesi (phase0 dock menayangkan beberapa slot hitam di bawah lipatan, phase1 menayangkan gambar penuh). Perbandingan langsung `dock-768` phase0 vs phase1: grid, posisi kartu, teks, warna, "13/13", filter era — **sama**; gambar yang tumpang-tindih adalah artwork & crop yang sama (`event-card.tsx` meneruskan `position={event.imagePosition}`).
@@ -2403,7 +2447,7 @@ Buka berpasangan dan catat perbedaan. Yang **diperbolehkan** berbeda hanya: fram
 Ukur juga overflow horizontal pada 390px untuk keempat route:
 
 ```js
-document.documentElement.scrollWidth   // harus <= 390
+document.documentElement.scrollWidth; // harus <= 390
 ```
 
 Expected: ≤ 390 untuk `/`, `/shadow`, `/mission-control`, `/dock`. Angka ini adalah perbaikan dari sesi sebelumnya (layering + grid eksplisit) dan tidak boleh mundur.
@@ -2449,6 +2493,7 @@ wc -l apps/web/src/components/*.tsx
 ### Task 11: Pecah `landing.tsx` jadi `components/landing/`
 
 **Files:**
+
 - Create: `apps/web/src/components/landing/hero.tsx`
 - Create: `apps/web/src/components/landing/signals.tsx`
 - Create: `apps/web/src/components/landing/crew.tsx`
@@ -2460,25 +2505,26 @@ wc -l apps/web/src/components/*.tsx
 - Modify: `apps/web/src/app/page.tsx` (import `Landing`)
 
 **Interfaces:**
+
 - Consumes: `SiteNav` dari `../site-nav`; `ArchiveStrip` (dipindah ke `archive.tsx`); komposit `TransmissionCard`, `CrewConstellation`, `Marquee` dari `@moonwitness/ui`; data `timelineEvents`, `witnesses` dari `@/lib/data`.
 - Produces:
 
 ```ts
 // landing/hero.tsx
-function Hero(): JSX.Element                       // section id="home"
+function Hero(): JSX.Element; // section id="home"
 // landing/signals.tsx
-function Signals(): JSX.Element                    // section id="signals", memuat TransmissionCard
+function Signals(): JSX.Element; // section id="signals", memuat TransmissionCard
 // landing/crew.tsx
-function Crew(): JSX.Element                       // section id="crew", memuat CrewConstellation
+function Crew(): JSX.Element; // section id="crew", memuat CrewConstellation
 // landing/archive.tsx
-function ArchiveStrip(): JSX.Element               // scroller 8 <Link> + next/image (R3)
-function Archive(): JSX.Element                    // section id="archive"
+function ArchiveStrip(): JSX.Element; // scroller 8 <Link> + next/image (R3)
+function Archive(): JSX.Element; // section id="archive"
 // landing/about.tsx
-function About(): JSX.Element                      // section id="about"
+function About(): JSX.Element; // section id="about"
 // landing/footer.tsx
-function LandingFooter(): JSX.Element              // footer + nav Footer
+function LandingFooter(): JSX.Element; // footer + nav Footer
 // landing/index.tsx
-export function Landing(): JSX.Element
+export function Landing(): JSX.Element;
 ```
 
 Setiap section menerima datanya sendiri langsung dari `@/lib/data` — tidak ada prop drilling dari orkestrator, karena `lib/data.ts` adalah modul statis tanpa副作用. Kalau nanti tim backend mengganti `lib/data.ts` dengan fetch, yang berubah adalah tiap file section, bukan orkestrator.
@@ -2487,15 +2533,15 @@ Setiap section menerima datanya sendiri langsung dari `@/lib/data` — tidak ada
 
 Buka `landing.tsx` dan potong berdasarkan marker:
 
-| region | dari marker | sampai |
-|---|---|---|
-| `hero.tsx` | `{/* HERO */}` | tepat sebelum `{/* MARQUEE */}` |
-| marquee | `{/* MARQUEE */}` | tepat sebelum `{/* SIGNALS / FEATURES */}` — **tetap di orkestrator**, sekarang hanya `<Marquee>` + item |
-| `signals.tsx` | `{/* SIGNALS / FEATURES */}` | tepat sebelum `{/* CREW */}` |
-| `crew.tsx` | `{/* CREW */}` | tepat sebelum `{/* ARCHIVE */}` |
-| `archive.tsx` | `{/* ARCHIVE */}` | tepat sebelum `{/* ABOUT / JOIN */}` + fungsi `ArchiveStrip` |
-| `about.tsx` | `{/* ABOUT / JOIN */}` | tepat sebelum `<footer` |
-| `footer.tsx` | `<footer` | akhir komponen `Landing` |
+| region        | dari marker                  | sampai                                                                                                   |
+| ------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `hero.tsx`    | `{/* HERO */}`               | tepat sebelum `{/* MARQUEE */}`                                                                          |
+| marquee       | `{/* MARQUEE */}`            | tepat sebelum `{/* SIGNALS / FEATURES */}` — **tetap di orkestrator**, sekarang hanya `<Marquee>` + item |
+| `signals.tsx` | `{/* SIGNALS / FEATURES */}` | tepat sebelum `{/* CREW */}`                                                                             |
+| `crew.tsx`    | `{/* CREW */}`               | tepat sebelum `{/* ARCHIVE */}`                                                                          |
+| `archive.tsx` | `{/* ARCHIVE */}`            | tepat sebelum `{/* ABOUT / JOIN */}` + fungsi `ArchiveStrip`                                             |
+| `about.tsx`   | `{/* ABOUT / JOIN */}`       | tepat sebelum `<footer`                                                                                  |
+| `footer.tsx`  | `<footer`                    | akhir komponen `Landing`                                                                                 |
 
 Tiap file baru: `"use client"` di baris pertama bila region itu memakai hook/handler (hero, signals, crew, archive hampir pasti ya; about dan footer periksa dulu), lalu import yang dibutuhkan region itu saja — jangan menyalin seluruh blok import `landing.tsx` ke setiap file.
 
@@ -2602,6 +2648,7 @@ git commit -m "refactor(web): pecah landing.tsx jadi 7 file section"
 ### Task 12: Pecah `dock.tsx` jadi `components/dock/`
 
 **Files:**
+
 - Create: `apps/web/src/components/dock/hero.tsx`
 - Create: `apps/web/src/components/dock/filter-bar.tsx`
 - Create: `apps/web/src/components/dock/event-list.tsx`
@@ -2611,12 +2658,13 @@ git commit -m "refactor(web): pecah landing.tsx jadi 7 file section"
 - Modify: `apps/web/src/app/dock/page.tsx` bila import berubah
 
 **Interfaces:**
+
 - Consumes: `EraBand`, `EventCard`, `EventDetail` dari `@moonwitness/ui`; `EmpireShell` dari `../shell` (Task 13) atau `../empire-shell` bila Task 13 belum dikerjakan; `timelineEvents`, `eras` dari `@/lib/data`; `useSearchParams` dari `next/navigation`.
 - Produces:
 
 ```ts
 // dock/hero.tsx
-function DockHero(): JSX.Element
+function DockHero(): JSX.Element;
 // dock/filter-bar.tsx
 interface FilterBarProps {
   query: string;
@@ -2629,15 +2677,15 @@ interface FilterBarProps {
   onViewChange: (v: "grid" | "list") => void;
   resultCount: number;
 }
-function FilterBar(props: FilterBarProps): JSX.Element
-type SortKey = "newest" | "oldest" | "signals"   // salin persis nilai yang sudah ada di dock.tsx
+function FilterBar(props: FilterBarProps): JSX.Element;
+type SortKey = "newest" | "oldest" | "signals"; // salin persis nilai yang sudah ada di dock.tsx
 // dock/event-list.tsx
 function EventList(props: {
   events: TimelineEvent[];
   view: "grid" | "list";
   selectedId: string | null;
   onOpen: (id: string) => void;
-}): JSX.Element
+}): JSX.Element;
 // dock/event-detail-panel.tsx
 function EventDetailPanel(props: {
   event: TimelineEvent;
@@ -2647,22 +2695,22 @@ function EventDetailPanel(props: {
   onRelated: (id: string) => void;
   onClose?: () => void;
   variant: "aside" | "drawer";
-}): JSX.Element
+}): JSX.Element;
 // dock/index.tsx
-export function Dock(): JSX.Element
+export function Dock(): JSX.Element;
 ```
 
 `SortKey` harus disalin dari nilai yang benar-benar ada di `dock.tsx` sekarang — jalankan `grep -n "sort" apps/web/src/components/dock.tsx` dan pakai union yang ada, jangan menebak.
 
 - [x] **Step 1: Potong per region**
 
-| region | dari marker | sampai |
-|---|---|---|
-| `hero.tsx` | `{/* HERO */}` | tepat sebelum `{/* FILTER BAR */}` |
-| `filter-bar.tsx` | `{/* FILTER BAR */}` | tepat sebelum pita era (`<EraBand`) |
-| pita era | `<EraBand` | **tetap di orkestrator** — sudah satu baris komponen |
-| `event-list.tsx` | `{/* EVENTS + DETAIL */}` | sampai penutup grid daftar event |
-| `event-detail-panel.tsx` | `<aside className="hidden xl:block"` dan `{/* MOBILE/TABLET DETAIL DRAWER */}` | akhir komponen `Dock` |
+| region                   | dari marker                                                                    | sampai                                               |
+| ------------------------ | ------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| `hero.tsx`               | `{/* HERO */}`                                                                 | tepat sebelum `{/* FILTER BAR */}`                   |
+| `filter-bar.tsx`         | `{/* FILTER BAR */}`                                                           | tepat sebelum pita era (`<EraBand`)                  |
+| pita era                 | `<EraBand`                                                                     | **tetap di orkestrator** — sudah satu baris komponen |
+| `event-list.tsx`         | `{/* EVENTS + DETAIL */}`                                                      | sampai penutup grid daftar event                     |
+| `event-detail-panel.tsx` | `<aside className="hidden xl:block"` dan `{/* MOBILE/TABLET DETAIL DRAWER */}` | akhir komponen `Dock`                                |
 
 Semua **state tetap di orkestrator** (`query`, `kind`, `sort`, `view`, `selected`, `origin`, pembacaan `useSearchParams`). Anak-anak terkendali penuh lewat prop. Ini penting: filter dan daftar harus tetap tersinkronisasi, dan memindah state ke anak akan memutus `?event=` dari URL.
 
@@ -2671,18 +2719,42 @@ Semua **state tetap di orkestrator** (`query`, `kind`, `sort`, `view`, `selected
 `apps/web/src/components/dock/index.tsx` berisi `"use client"`, semua state + `useEffect` yang membaca `params.get("event")`, fungsi `select(id)`, memo filter, lalu merangkai:
 
 ```tsx
-<EmpireShell active="dock" breadcrumb="..." search={{ value: query, onChange: setQuery, placeholder: "..." }}>
+<EmpireShell
+  active="dock"
+  breadcrumb="..."
+  search={{ value: query, onChange: setQuery, placeholder: "..." }}
+>
   <DockHero />
   <FilterBar {...filterProps} />
   <EraBand eras={eras} active={era} onSelect={setEra} />
   <div className="...grid...">
-    <EventList events={visibleEvents} view={view} selectedId={selected?.id ?? null} onOpen={select} />
+    <EventList
+      events={visibleEvents}
+      view={view}
+      selectedId={selected?.id ?? null}
+      onOpen={select}
+    />
     {selected && selectedEra && (
-      <EventDetailPanel variant="aside" event={selected} era={selectedEra} relatedEvents={related} shareUrl={shareUrl(selected.id)} onRelated={select} />
+      <EventDetailPanel
+        variant="aside"
+        event={selected}
+        era={selectedEra}
+        relatedEvents={related}
+        shareUrl={shareUrl(selected.id)}
+        onRelated={select}
+      />
     )}
   </div>
   {selected && selectedEra && (
-    <EventDetailPanel variant="drawer" event={selected} era={selectedEra} relatedEvents={related} shareUrl={shareUrl(selected.id)} onRelated={select} onClose={closeDetail} />
+    <EventDetailPanel
+      variant="drawer"
+      event={selected}
+      era={selectedEra}
+      relatedEvents={related}
+      shareUrl={shareUrl(selected.id)}
+      onRelated={select}
+      onClose={closeDetail}
+    />
   )}
 </EmpireShell>
 ```
@@ -2718,6 +2790,7 @@ Expected: semua < 150 baris; pipeline hijau.
 > **Visual (`.verify/phase2-task12/` vs `.verify/phase1/dock-*.png`):** dimensi 3 viewport **identik** — 1430×2537, 758×2748, 380×4715. Pixel-diff `t12_diff.mjs`: 1440=0,32% · 768=5,44% · 390=2,94%; semua pita panas terkonsentrasi di hero 0–450 (artwork `priority` crew-rooftop + gradien + splatter) → artefak codec/variant avif, bukan layout. Mata (dock-768): shell, hero "13/13", filter bar, EraBand, 13 kartu, kartu terpilih highlight — utuh.
 >
 > **7 tes perilaku (semua lulus, 0 error konsol):**
+>
 > 1. `/dock?event=moonwitness-born` → aside menampilkan event itu ✓
 > 2. search "signal" → 13→6, kosongkan → 13 ✓
 > 3. chip era "Neon Cities" → 13→2, klik lagi → 13 ✓ (catatan: plan menyebut "kind SIGNAL", tapi dock nyata tak punya filter kind — yang diuji chip era, sesuai kode)
@@ -2731,6 +2804,7 @@ Expected: semua < 150 baris; pipeline hijau.
 SHOT ke `.verify/phase2-task12/`, bandingkan `.verify/phase1/dock-*.png` (3 viewport) — harus identik.
 
 Lalu uji perilaku yang paling mudah rusak saat state dipindah:
+
 1. Buka `/dock?event=moonwitness-born` → panel detail langsung menampilkan event itu.
 2. Ketik di kotak search → daftar menyusut.
 3. Klik chip kind `SIGNAL` → hanya event SIGNAL; klik lagi → semua kembali.
@@ -2753,6 +2827,7 @@ git commit -m "refactor(web): pecah dock.tsx jadi 5 file, state tetap di orkestr
 ### Task 13: Pecah `empire-shell.tsx` jadi `components/shell/`
 
 **Files:**
+
 - Create: `apps/web/src/components/shell/nav-items.ts`
 - Create: `apps/web/src/components/shell/sidebar.tsx`
 - Create: `apps/web/src/components/shell/topbar.tsx`
@@ -2762,6 +2837,7 @@ git commit -m "refactor(web): pecah dock.tsx jadi 5 file, state tetap di orkestr
 - Delete: `apps/web/src/components/empire-shell.tsx`
 
 **Interfaces:**
+
 - Consumes: `roleLabel` dari `@/lib/auth` (**hanya dibaca, tidak diubah** — Global Constraints), `feedItems` dari `@/lib/data`, `useRouter` dari `next/navigation`, `Link` dari `next/link`, ikon dari `@moonwitness/ui/icons`.
 - Produces (dipakai Task 21 saat sidebar diperluas ke 10 item):
 
@@ -2771,16 +2847,16 @@ export interface NavItem {
   id: string;
   label: string;
   href: string;
-  icon: string;          // path stroke SVG, sama seperti sekarang
+  icon: string; // path stroke SVG, sama seperti sekarang
 }
-export const navItems: NavItem[];   // 9 item, salin persis dari empire-shell.tsx:10-65
+export const navItems: NavItem[]; // 9 item, salin persis dari empire-shell.tsx:10-65
 
 // shell/sidebar.tsx
 function Sidebar(props: {
   items: NavItem[];
   active: string;
-  onNavigate?: () => void;      // menutup sidebar mobile setelah klik
-}): JSX.Element
+  onNavigate?: () => void; // menutup sidebar mobile setelah klik
+}): JSX.Element;
 
 // shell/topbar.tsx
 function Topbar(props: {
@@ -2790,14 +2866,24 @@ function Topbar(props: {
   identity: string;
   role: string;
   onExit: () => void;
-  notifications: ReactNode;      // slot: <Notifications/> dirender orkestrator
-  profileMenu: ReactNode;        // slot: <ProfileMenu/> dirender orkestrator
-}): JSX.Element
+  notifications: ReactNode; // slot: <Notifications/> dirender orkestrator
+  profileMenu: ReactNode; // slot: <ProfileMenu/> dirender orkestrator
+}): JSX.Element;
 
 // shell/notifications.tsx
-function Notifications(props: { open: boolean; onToggle: () => void; onClear: () => void }): JSX.Element
+function Notifications(props: {
+  open: boolean;
+  onToggle: () => void;
+  onClear: () => void;
+}): JSX.Element;
 // shell/profile-menu.tsx
-function ProfileMenu(props: { open: boolean; onToggle: () => void; identity: string; role: string; onExit: () => void }): JSX.Element
+function ProfileMenu(props: {
+  open: boolean;
+  onToggle: () => void;
+  identity: string;
+  role: string;
+  onExit: () => void;
+}): JSX.Element;
 
 // shell/index.tsx
 export function EmpireShell(props: {
@@ -2805,7 +2891,7 @@ export function EmpireShell(props: {
   breadcrumb: string;
   search: { value: string; onChange: (v: string) => void; placeholder: string };
   children: ReactNode;
-}): JSX.Element
+}): JSX.Element;
 ```
 
 Signature publik `EmpireShell` **tidak berubah** — tiga halaman (`/dock`, `/mission-control`, dan apa pun yang memakainya) tidak perlu disentuh.
@@ -2846,7 +2932,7 @@ useEffect(() => {
 `popRef` diteruskan ke `Topbar` sebagai prop `containerRef` bila diperlukan — tambahkan ke signature `Topbar`:
 
 ```ts
-  containerRef: React.RefObject<HTMLDivElement | null>;
+containerRef: React.RefObject<HTMLDivElement | null>;
 ```
 
 - [x] **Step 4: Orkestrator**
@@ -2891,6 +2977,7 @@ Expected: semua < 150 baris; pipeline hijau.
 > **Visual (`.verify/phase2-task13/` vs `.verify/phase1/`):** dimensi **identik** untuk kedua route — dock 1430×2537 / 758×2748 / 380×4715, mission-control 1430×1487 / 758×2629 / 380×3073. Pixel-diff `t13_diff.mjs`: dock 1,6–5,4% · mission-control 1,1–4,2%; pita panas hanya di area gambar (hero `priority` dock 0–450, kartu modul mission-control 0–300 & 1500/1800) → codec avif/lazy, bukan layout.
 >
 > **5 tes shell (lulus, 0 error konsol; warning "1" hanya sisa akumulasi navigasi — muat bersih = 0 warning):**
+>
 > 1. @390 hamburger → drawer `.fixed.inset-0.z-50` muncul (display block, 9 item terlihat); klik item → drawer hilang + navigasi ke `/dock` ✓
 > 2. @1440 lonceng → panel `[role=dialog]` terbuka; klik di luar → tertutup ✓
 > 3. avatar → menu profil; dengan `mw-session={identity:"Empire Admin",role:"admin"}` tampil **"Empire Admin" / "Admin // Empire"** (via `roleLabel`) ✓
@@ -2902,6 +2989,7 @@ Expected: semua < 150 baris; pipeline hijau.
 SHOT `.verify/phase2-task13/` untuk `/dock` dan `/mission-control` (3 viewport), bandingkan `.verify/phase1/`. Harus identik.
 
 Uji perilaku shell:
+
 1. 390px: buka hamburger → drawer sidebar muncul; klik satu item → drawer tertutup dan navigasi terjadi.
 2. 1440px: klik lonceng → panel notifikasi terbuka; klik di luar panel → tertutup.
 3. Klik avatar → menu profil terbuka, menampilkan `identity` dan `role` dari session (login dulu sebagai `admin` → harus tampil `Empire Admin` dan `Admin // Empire`).
@@ -2926,6 +3014,7 @@ git commit -m "refactor(web): pecah empire-shell jadi sidebar/topbar/notificatio
 Spec §7 tidak mendaftar `site-nav.tsx` di tabel pemecahan, tapi gerbang §7 ("setiap file komponen < 150 baris") berlaku untuk semua file — dan `site-nav.tsx` sekarang **181 baris**. Tanpa task ini, Task 14 Step 1 pasti merah. Sufiks `b` dipakai supaya nomor Task 14-31 tidak bergeser; puluhan rujukan silang di dokumen ini bergantung pada nomor itu.
 
 **Files:**
+
 - Create: `apps/web/src/components/site-nav/links.ts`
 - Create: `apps/web/src/components/site-nav/mobile-menu.tsx`
 - Create: `apps/web/src/components/site-nav/search-dialog.tsx`
@@ -2934,21 +3023,25 @@ Spec §7 tidak mendaftar `site-nav.tsx` di tabel pemecahan, tapi gerbang §7 ("s
 - Modify: `apps/web/src/components/landing/index.tsx` (impor `../site-nav` tetap sah — yang diimpor foldernya, bukan filenya)
 
 **Interfaces:**
+
 - Consumes: `useRouter` dari `next/navigation`, `Link` dari `next/link`, `Crown`/`SearchIcon`/`GlobeIcon` dari `@moonwitness/ui/icons`, `Wordmark` **belum ada** di task ini (datang di Task 29).
 - Produces:
 
 ```ts
 // site-nav/links.ts
-export interface NavLink { id: string; label: string }
-export const links: NavLink[];        // 5 item, salin persis dari site-nav.tsx:8-14
+export interface NavLink {
+  id: string;
+  label: string;
+}
+export const links: NavLink[]; // 5 item, salin persis dari site-nav.tsx:8-14
 
 // site-nav/mobile-menu.tsx
 function MobileMenu(props: {
   links: NavLink[];
   active: string;
-  onSelect: (id: string) => void;     // pilih section di orkestrator
-  onClose: () => void;                // tutup menu di orkestrator
-}): JSX.Element
+  onSelect: (id: string) => void; // pilih section di orkestrator
+  onClose: () => void; // tutup menu di orkestrator
+}): JSX.Element;
 
 // site-nav/search-dialog.tsx
 function SearchDialog(props: {
@@ -2956,10 +3049,10 @@ function SearchDialog(props: {
   onQueryChange: (v: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
-}): JSX.Element
+}): JSX.Element;
 
 // site-nav/index.tsx
-export function SiteNav(): JSX.Element
+export function SiteNav(): JSX.Element;
 ```
 
 Signature publik `SiteNav` tidak berubah, jadi `landing/index.tsx` tidak perlu disentuh sama sekali — `import { SiteNav } from "../site-nav"` menyelesaikan ke `site-nav/index.tsx` setelah `site-nav.tsx` dihapus. **Hapus keduanya dalam satu commit**, kalau tidak Node akan memilih file `.tsx` dan folder baru jadi kode mati.
@@ -3180,6 +3273,7 @@ pnpm turbo run lint typecheck build
 Expected: grep hanya menemukan impor di `landing/index.tsx` (yang tetap sah); tidak ada file ≥ 150 baris (`index.tsx` ~105, `search-dialog.tsx` ~45, `mobile-menu.tsx` ~40, `links.ts` ~12); pipeline hijau.
 
 Start produksi, buka `/` di 1440x900 dan 390x844:
+
 1. Scroll → item nav menyala bergantian (observer masih jalan).
 2. Klik SEARCH → dialog terbuka, `Esc`/klik backdrop menutup, submit ke `/dock?q=`.
 3. Di 390px: hamburger membuka menu mobile, klik item → menu tertutup dan halaman scroll ke section.
@@ -3205,9 +3299,11 @@ git commit -m "refactor(web): pecah site-nav jadi folder, signature SiteNav teta
 ### Task 14: Gerbang fase 2
 
 **Files:**
+
 - Modify: `docs/superpowers/specs/2026-11-11-frontend-design-system-design.md` (catatan gerbang fase 2 di §7)
 
 **Interfaces:**
+
 - Consumes: hasil Task 11-13b; `.verify/phase1/` sebagai pembanding.
 - Produces: `.verify/phase2/` — pembanding untuk fase 3 (di fase 3 perbedaan **sengaja** baru boleh muncul).
 
@@ -3268,6 +3364,7 @@ Mulai fase ini **perbedaan visual yang disengaja boleh muncul**. Setiap task tet
 ### Task 15: Skip link + landmark
 
 **Files:**
+
 - Create: `packages/ui/src/primitives/skip-link.tsx`
 - Modify: `packages/ui/src/index.ts` (export `SkipLink`)
 - Modify: `apps/web/src/app/layout.tsx` (render `<SkipLink />` sebagai anak pertama `<body>`)
@@ -3276,6 +3373,7 @@ Mulai fase ini **perbedaan visual yang disengaja boleh muncul**. Setiap task tet
 - Modify: `apps/web/src/components/landing/index.tsx` (bungkus section dengan `<main id="main">`)
 
 **Interfaces:**
+
 - Consumes: `cn` dari `../cn`.
 - Produces: `function SkipLink(props: { href?: string; children?: ReactNode }): JSX.Element` — default `href="#main"`, teks default `"Skip to content"`.
 
@@ -3290,7 +3388,12 @@ export interface SkipLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
 }
 
 /** Tidak pakai next/link: ini anchor ke fragment di halaman yang sama. */
-export function SkipLink({ href = "#main", children = "Skip to content", className, ...props }: SkipLinkProps) {
+export function SkipLink({
+  href = "#main",
+  children = "Skip to content",
+  className,
+  ...props
+}: SkipLinkProps) {
   return (
     <a
       href={href}
@@ -3315,13 +3418,14 @@ export function SkipLink({ href = "#main", children = "Skip to content", classNa
 ```tsx
 import { SkipLink } from "@moonwitness/ui";
 // ...
-      <body className="min-h-screen antialiased">
-        <SkipLink />
-        {children}
-      </body>
+<body className="min-h-screen antialiased">
+  <SkipLink />
+  {children}
+</body>;
 ```
 
 Tiga target `id="main"`:
+
 - `components/shell/index.tsx`: `<main className="min-w-0 flex-1">` → `<main id="main" className="min-w-0 flex-1">`
 - `app/shadow/page.tsx`: `<main className="relative z-10 mx-auto ...">` → tambah `id="main"`
 - `components/landing/index.tsx`: bungkus `<Hero/> … <LandingFooter/>`? **Tidak** — footer tidak boleh ada di dalam `<main>`. Bungkus hanya section konten:
@@ -3349,6 +3453,7 @@ pnpm --filter @moonwitness/web build && pnpm --filter @moonwitness/web start -p 
 ```
 
 Untuk tiap route (`/`, `/shadow`, `/mission-control`, `/dock`):
+
 1. Fokus awal di halaman → tekan `Tab` sekali → skip link **terlihat** (kuning, kiri atas) dan `document.activeElement.textContent` = `Skip to content`.
 2. Tekan `Enter` → fokus pindah ke `<main id="main">`; scroll posisi mengikuti.
 3. Tekan `Tab` lagi → fokus masuk ke elemen pertama di dalam main, bukan kembali ke atas.
@@ -3357,9 +3462,9 @@ Untuk tiap route (`/`, `/shadow`, `/mission-control`, `/dock`):
 Verifikasi programatik bahwa tiap route punya tepat satu landmark `main`:
 
 ```js
-document.querySelectorAll("main").length          // 1
-document.querySelector("main")?.id                // "main"
-document.querySelectorAll("header,nav,footer").length  // >= 1 tiap jenis
+document.querySelectorAll("main").length; // 1
+document.querySelector("main")?.id; // "main"
+document.querySelectorAll("header,nav,footer").length; // >= 1 tiap jenis
 ```
 
 - [x] **Step 4: Pipeline + commit** — `turbo build --filter=@moonwitness/web` hijau; `typecheck` hijau; `lint` masih terblokir cacat asing (`ReferenceError: tseslintPluginReact is not defined` di `packages/eslint-config/base.js`, bukan kode task ini). Server 4317 dimatikan.
@@ -3377,6 +3482,7 @@ git commit -m "feat(a11y): skip link + landmark main di semua route"
 ### Task 16: Target sentuh 44px, `aria-current`, dan cincin fokus global
 
 **Files:**
+
 - Modify: `packages/ui/src/base.css` (satu aturan `:focus-visible` global di **awal** `@layer components`)
 - Modify: `packages/ui/src/composites/crew-constellation.tsx` (hit area witness dot)
 - Modify: `apps/web/src/components/landing/archive.tsx` (tombol scroll)
@@ -3385,6 +3491,7 @@ git commit -m "feat(a11y): skip link + landmark main di semua route"
 - Modify: `apps/web/src/components/dock/{filter-bar,event-list}.tsx`
 
 **Interfaces:**
+
 - Consumes: hasil Task 11-13b (nama file section sudah terpecah).
 - Produces: tidak ada ekspor baru. Perubahan kelas saja.
 
@@ -3411,20 +3518,20 @@ Untuk elemen yang boleh tumbuh (tombol scroll, chip, item nav, tombol ikon), pak
 
 ```tsx
 // landing/archive.tsx — tombol ← dan →
-className="zine-card min-h-11 min-w-11 px-3 py-1.5 text-zinc-300 hover:text-[var(--pink)]"
+className = "zine-card min-h-11 min-w-11 px-3 py-1.5 text-zinc-300 hover:text-[var(--pink)]";
 
 // dock/filter-bar.tsx — chip kind & sort
-className="… min-h-11 px-3 …"        // hanya di breakpoint kecil bila tampilan desktop harus tetap rapat:
-className="… max-lg:min-h-11 px-3 …"
+className = "… min-h-11 px-3 …"; // hanya di breakpoint kecil bila tampilan desktop harus tetap rapat:
+className = "… max-lg:min-h-11 px-3 …";
 
 // shell/sidebar.tsx — item nav
-className="… min-h-11 …"
+className = "… min-h-11 …";
 
 // shell/topbar.tsx, site-nav/index.tsx (hamburger + search) — tombol ikon
-className="… min-h-11 min-w-11 …"
+className = "… min-h-11 min-w-11 …";
 
 // site-nav/mobile-menu.tsx — link nav di menu mobile
-className="… min-h-11 …"
+className = "… min-h-11 …";
 ```
 
 Pilih `min-h-11` polos bila perubahan tinggi di desktop masih terlihat wajar (sidebar, topbar, tombol scroll); pilih `max-lg:min-h-11` bila rapatnya chip di desktop adalah bagian dari tampilan (filter bar dock). Tulis pilihan itu di commit message.
@@ -3434,17 +3541,17 @@ Pilih `min-h-11` polos bila perubahan tinggi di desktop masih terlihat wajar (si
 Tambah di `packages/ui/src/base.css`, sebagai aturan **pertama di dalam** `@layer components` (sebelum `.font-brush`), supaya aturan yang lebih spesifik seperti `.btn-zine:focus-visible` tetap menang:
 
 ```css
-  /* Cincin fokus dasar. Aturan komponen yang lebih spesifik menimpanya;
+/* Cincin fokus dasar. Aturan komponen yang lebih spesifik menimpanya;
      utility Tailwind (focus:outline-none) menang karena layer di atasnya. */
-  a:focus-visible,
-  button:focus-visible,
-  input:focus-visible,
-  select:focus-visible,
-  textarea:focus-visible,
-  [tabindex]:focus-visible {
-    outline: 3px solid var(--yellow);
-    outline-offset: 2px;
-  }
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--yellow);
+  outline-offset: 2px;
+}
 ```
 
 - [x] **Step 4: `aria-current` pada navigasi** — `sidebar.tsx` sudah punya `aria-current="page"` (dipertahankan). Ditambah `aria-current={active===link.id?"true":undefined}` di `site-nav/index.tsx` (link desktop) dan `site-nav/mobile-menu.tsx` (link mobile). Chip filter dock sudah `aria-pressed` (toggle) — tidak diubah ke aria-current.
@@ -3474,6 +3581,7 @@ Chip filter adalah toggle, jadi `aria-pressed` lebih tepat daripada `aria-curren
 - [x] **Step 5: Verifikasi di browser** — audit 390px per route: semua kontrol in-scope sudah keluar dari daftar <44px (archive, chip era, sort, view 44×44, mobile-menu, sidebar, hamburger/search/bell/profile, input search topbar). `scrollWidth` = 380 ≤ 390 di keempat route (tanpa overflow). Screenshot `.verify/phase3-task16/` vs `.verify/phase2/`: perubahan yang tampak = tinggi target (diniatkan); tidak ada pergeseran layout atau dot yang membesar.
 
   > **Sisa <44px & klasifikasinya (dijelaskan, bukan diabaikan):**
+  >
   > - **Witness dot** (32px) & **era dot `EraBand`** (14px): kotak kecil by-design, area sentuh diperbesar `::after` (dot) — untuk era dot belum dipasang `::after`; masuk Task 18.
   > - **Skip link** (1×1 saat tidak fokus): keyboard-only, jadi 179×48 saat difokus — bukan target sentuh.
   > - **CTA hero** (40px), **link footer** (32px), **tombol modul/tab mission-control** (25px): di luar daftar file Task 16. Mission-control akan diganti command-center (Task 27) → target sentuh dipegang ulang di sana. Hero/footer jadi kandidat Task 18.
@@ -3485,8 +3593,12 @@ Build + start, lalu untuk tiap route pada 390x844:
 // semua target interaktif >= 44px
 [...document.querySelectorAll("a,button,input,select,[tabindex]")]
   .filter((el) => el.offsetParent !== null)
-  .map((el) => ({ t: el.textContent?.trim().slice(0, 24) || el.getAttribute("aria-label"), w: el.getBoundingClientRect().width, h: el.getBoundingClientRect().height }))
-  .filter((x) => x.w < 44 || x.h < 44)
+  .map((el) => ({
+    t: el.textContent?.trim().slice(0, 24) || el.getAttribute("aria-label"),
+    w: el.getBoundingClientRect().width,
+    h: el.getBoundingClientRect().height,
+  }))
+  .filter((x) => x.w < 44 || x.h < 44);
 ```
 
 Expected: array kosong, **kecuali** elemen yang memang bukan target sentuh (mis. `<span>` bertabindex, atau teks di dalam link yang diukur sendiri). Setiap sisa harus dijelaskan, bukan diabaikan.
@@ -3508,6 +3620,7 @@ git commit -m "feat(a11y): target sentuh 44px, cincin fokus global, aria-current
 Kondisi yang sudah benar dan **tidak perlu diubah**: tepat satu `priority` per halaman (`landing/hero.tsx`, `dock/hero.tsx`, `shadow/page.tsx:60`, `command-center`/`mission-control.tsx:248`) dan semua 15 `next/image` sudah punya `sizes`.
 
 **Files:**
+
 - Modify: `apps/web/next.config.ts` (blok `images`)
 - Modify: `apps/web/src/components/landing/{hero,signals,crew,about}.tsx` (path literal → `artSrc`)
 - Modify: `apps/web/src/components/dock/hero.tsx`
@@ -3516,6 +3629,7 @@ Kondisi yang sudah benar dan **tidak perlu diubah**: tepat satu `priority` per h
 - Modify: `apps/web/src/app/shadow/page.tsx` (blok `<Image>` di baris ±57; `priority`-nya di 60, **hanya `src`** — jangan sentuh logika login)
 
 **Interfaces:**
+
 - Consumes: `artSrc(key: ArtKey): string` dari `apps/web/src/lib/art.ts` (Task 3), `ARTWORK` dari `@moonwitness/assets`.
 - Produces: tidak ada ekspor baru. Setelah task ini, `grep -rn '"/art/' apps/web/src` menghasilkan **0 baris**.
 
@@ -3550,16 +3664,16 @@ Pertahankan field lain yang sudah ada di file itu (baca dulu, jangan menimpa). `
 
 Hari ini ada **14** situs yang menulis path mentah (`grep -rn '"/art/' apps/web/src` di atas kode asli). Satu di antaranya hilang sebelum task ini: `landing.tsx:36` ada di dalam `TransmissionCard`, yang dipindah ke `packages/ui` oleh Task 8 dan di sana memakai manifest lewat `ZineImage` (R6), bukan path literal. Sisanya **13**, dan setelah fase 2 mereka tinggal di file-file ini:
 
-| file (nama setelah fase 2) | asalnya | path literal | ganti jadi |
-|---|---|---|---|
-| `landing/hero.tsx` | `landing.tsx:299` | `/art/hero-witness.png` | `artSrc("hero-witness")` |
-| `landing/signals.tsx` (2 situs) | `landing.tsx:400`, `:427` | `/art/crew-rooftop.png`, `/art/city-shadow.png` | `artSrc("crew-rooftop")`, `artSrc("city-shadow")` |
-| `landing/crew.tsx` | `landing.tsx:478` | `/art/crew-rooftop.png` | `artSrc("crew-rooftop")` |
-| `landing/about.tsx` | `landing.tsx:515` | `/art/crew-rooftop.png` | `artSrc("crew-rooftop")` |
-| `dock/hero.tsx` | `dock.tsx:283` | `/art/crew-rooftop.png` | `artSrc("crew-rooftop")` |
-| `dock/index.tsx` (5 situs di pita era) | `dock.tsx` blok `{/* ERA BAND */}`, `:410`, `:412`, `:414`, `:416`, `:417` | rantai ternary `e.id === … ? "/art/x.png"` | ternary yang menghasilkan `ArtKey`, dibungkus sekali: `src={artSrc(e.id === "fracture" ? "signal-tunnel" : e.id === "origins" ? "city-shadow" : e.id === "neon" ? "hero-witness" : e.id === "rebuilding" ? "city-shadow" : "crew-rooftop")}` |
-| `mission-control.tsx` | `mission-control.tsx:245` | `/art/city-shadow.png` | `artSrc("city-shadow")` |
-| `shadow/page.tsx` | `shadow/page.tsx:57` | `/art/city-shadow.png` | `artSrc("city-shadow")` |
+| file (nama setelah fase 2)             | asalnya                                                                    | path literal                                    | ganti jadi                                                                                                                                                                                                                                   |
+| -------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `landing/hero.tsx`                     | `landing.tsx:299`                                                          | `/art/hero-witness.png`                         | `artSrc("hero-witness")`                                                                                                                                                                                                                     |
+| `landing/signals.tsx` (2 situs)        | `landing.tsx:400`, `:427`                                                  | `/art/crew-rooftop.png`, `/art/city-shadow.png` | `artSrc("crew-rooftop")`, `artSrc("city-shadow")`                                                                                                                                                                                            |
+| `landing/crew.tsx`                     | `landing.tsx:478`                                                          | `/art/crew-rooftop.png`                         | `artSrc("crew-rooftop")`                                                                                                                                                                                                                     |
+| `landing/about.tsx`                    | `landing.tsx:515`                                                          | `/art/crew-rooftop.png`                         | `artSrc("crew-rooftop")`                                                                                                                                                                                                                     |
+| `dock/hero.tsx`                        | `dock.tsx:283`                                                             | `/art/crew-rooftop.png`                         | `artSrc("crew-rooftop")`                                                                                                                                                                                                                     |
+| `dock/index.tsx` (5 situs di pita era) | `dock.tsx` blok `{/* ERA BAND */}`, `:410`, `:412`, `:414`, `:416`, `:417` | rantai ternary `e.id === … ? "/art/x.png"`      | ternary yang menghasilkan `ArtKey`, dibungkus sekali: `src={artSrc(e.id === "fracture" ? "signal-tunnel" : e.id === "origins" ? "city-shadow" : e.id === "neon" ? "hero-witness" : e.id === "rebuilding" ? "city-shadow" : "crew-rooftop")}` |
+| `mission-control.tsx`                  | `mission-control.tsx:245`                                                  | `/art/city-shadow.png`                          | `artSrc("city-shadow")`                                                                                                                                                                                                                      |
+| `shadow/page.tsx`                      | `shadow/page.tsx:57`                                                       | `/art/city-shadow.png`                          | `artSrc("city-shadow")`                                                                                                                                                                                                                      |
 
 Delapan baris tabel = 13 situs (satu baris `landing/signals.tsx` dihitung dua, satu baris pita era dihitung lima).
 
@@ -3592,10 +3706,14 @@ pnpm --filter @moonwitness/web build && pnpm --filter @moonwitness/web start -p 
 Buka `/` di 1440x900 dengan network recording, lalu jalankan di console:
 
 ```js
-performance.getEntriesByType("resource")
+performance
+  .getEntriesByType("resource")
   .filter((r) => /\/art\/|_next\/image/.test(r.name))
-  .map((r) => ({ url: r.name.split("/").slice(-2).join("/"), kb: Math.round((r.transferSize ?? 0) / 1024) }))
-  .sort((a, b) => b.kb - a.kb)
+  .map((r) => ({
+    url: r.name.split("/").slice(-2).join("/"),
+    kb: Math.round((r.transferSize ?? 0) / 1024),
+  }))
+  .sort((a, b) => b.kb - a.kb);
 ```
 
 Expected: gambar terbesar < 400 KB. Catat tiga angka teratas — dipakai lagi di Task 18.
@@ -3622,10 +3740,12 @@ git commit -m "perf(web): path artwork lewat manifest + tuning optimizer gambar"
 ### Task 18: Gerbang fase 3 (Lighthouse, LCP, console, reduced-motion)
 
 **Files:**
+
 - Modify: `docs/superpowers/specs/2026-11-11-frontend-design-system-design.md` (catatan gerbang fase 3 di §7)
 - Create: `.verify/phase3/lh-*.json` (tidak di-commit)
 
 **Interfaces:**
+
 - Consumes: hasil Task 15-17.
 - Produces: angka terukur yang jadi pembanding fase 4 dan 5.
 
@@ -3655,7 +3775,13 @@ Expected: `perf >= 85` untuk keduanya, `bytes < 1 MB` (§5). Kalau di bawah 85, 
 Bila `lighthouse` tidak bisa dijalankan di lingkungan ini, ganti dengan pengukuran langsung dan **tulis di catatan gerbang bahwa Lighthouse tidak tersedia**:
 
 ```js
-new PerformanceObserver((l) => console.log(JSON.stringify(l.getEntries().map((e) => ({ lcp: e.startTime, el: e.element?.tagName, url: e.url }))))).observe({ type: "largest-contentful-paint", buffered: true });
+new PerformanceObserver((l) =>
+  console.log(
+    JSON.stringify(
+      l.getEntries().map((e) => ({ lcp: e.startTime, el: e.element?.tagName, url: e.url })),
+    ),
+  ),
+).observe({ type: "largest-contentful-paint", buffered: true });
 ```
 
 - [x] **Step 3: Console bersih** — 0 error, 0 warning di keempat route. Peringatan tunggal yang tampak di footer hasil Playwright adalah internal tooling, bukan console halaman (collector `page.on('console')` = kosong).
@@ -3665,6 +3791,7 @@ Untuk keempat route, buka dengan console terbuka dan reload. Expected: **0 error
 - [x] **Step 4: `prefers-reduced-motion` masih berfungsi** — dengan reduce: `marquee-track`/`float-y` = `animationName:none`, `scroll-behavior:auto`, `neon-flicker` tak ada di `/`. `CountUp` (rAF) masih meramp → **guard `matchMedia` ditambahkan** di `count-up.tsx` (lompat ke `target` saat reduce). Terverifikasi: nilai akhir 1.324/87/6.912 sudah tampil di t=120ms dan identik di t=2.120ms (tidak ramp).
 
 DevTools → Rendering → Emulate `prefers-reduced-motion: reduce`, reload `/`:
+
 - marquee berhenti (tidak ada animasi geser)
 - `CountUp` tetap menampilkan angka akhir (1324 / 87 / 6912) — bukan 0
 - tidak ada elemen yang berkedip (`neon-flicker`) atau melayang (`float-y`)
@@ -3675,7 +3802,10 @@ DevTools → Rendering → Emulate `prefers-reduced-motion: reduce`, reload `/`:
 ```tsx
 const reduce =
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-if (reduce) { setValue(target); return; }
+if (reduce) {
+  setValue(target);
+  return;
+}
 ```
 
 Taruh di dalam callback IntersectionObserver sebelum `requestAnimationFrame` pertama, dan uji ulang.
@@ -3721,12 +3851,14 @@ Urutan task sengaja: artwork → tipe+data → sidebar → komposit → section 
 Owner sudah mengizinkan generate ulang artwork bila perlu (keputusan "Boleh generate ulang bila perlu"). Ini satu-satunya artwork baru yang dibutuhkan.
 
 **Files:**
+
 - Create: `apps/web/public/art/shadow-command.png`
 - Create: `packages/assets/references/raw/shadow-command.png` (salinan sumber)
 - Modify: `packages/assets/src/optimize.test.ts` (hapus `.skip` pada tes filesystem)
 - Modify: `apps/web/public/art/shadow-command-{480,960,1440,1920}.{avif,webp}` (hasil skrip)
 
 **Interfaces:**
+
 - Consumes: `ArtKey` sudah memuat `"shadow-command"` (Task 1); `ART_SOURCES["shadow-command"]` sudah menunjuk `apps/web/public/art/shadow-command.png` (Task 3); `ARTWORK["shadow-command"]` sudah ada (Task 3).
 - Produces: byte artwork yang membuat tes filesystem Task 3 hijau dan hero Shadow Command Center bisa dirender.
 
@@ -3813,10 +3945,12 @@ git commit -m "feat(assets): artwork shadow-command + aktifkan tes keberadaan su
 ### Task 20: Tipe + data dashboard
 
 **Files:**
+
 - Modify: `packages/types/src/index.ts` (tambah tipe §3.1)
 - Modify: `apps/web/src/lib/data.ts` (tambah 6 koleksi data baru)
 
 **Interfaces:**
+
 - Consumes: `ArtKey`, `EventKind` dari Task 1.
 - Produces (dipakai Task 22-26):
 
@@ -3826,13 +3960,50 @@ export type ItemStatus = "DRAFT" | "READY" | "IN REVIEW" | "APPROVED" | "PUBLISH
 export type PipelineStage = "DRAFT" | "IN REVIEW" | "APPROVED" | "PUBLISHED";
 export type StatTone = "pink" | "blue" | "yellow" | "green";
 
-export interface UniverseStat { label: string; value: string; trend?: string; tone: StatTone; }
-export interface QuickAction { id: string; label: string; icon: "plus" | "image" | "pen" | "stack"; moduleId: string; }
-export interface WorkspaceItem { id: string; title: string; kind: EventKind; updatedAt: string; status: ItemStatus; }
-export interface PipelineCard { id: string; title: string; type: EventKind; thumb: ArtKey; }
-export interface PipelineColumn { stage: PipelineStage; count: number; more: number; items: PipelineCard[]; }
-export interface Collection { id: string; name: string; episodes: number; cover: ArtKey; }
-export interface MapCity { id: string; city: string; x: number; y: number; signals: number; }
+export interface UniverseStat {
+  label: string;
+  value: string;
+  trend?: string;
+  tone: StatTone;
+}
+export interface QuickAction {
+  id: string;
+  label: string;
+  icon: "plus" | "image" | "pen" | "stack";
+  moduleId: string;
+}
+export interface WorkspaceItem {
+  id: string;
+  title: string;
+  kind: EventKind;
+  updatedAt: string;
+  status: ItemStatus;
+}
+export interface PipelineCard {
+  id: string;
+  title: string;
+  type: EventKind;
+  thumb: ArtKey;
+}
+export interface PipelineColumn {
+  stage: PipelineStage;
+  count: number;
+  more: number;
+  items: PipelineCard[];
+}
+export interface Collection {
+  id: string;
+  name: string;
+  episodes: number;
+  cover: ArtKey;
+}
+export interface MapCity {
+  id: string;
+  city: string;
+  x: number;
+  y: number;
+  signals: number;
+}
 
 // @/lib/data
 export const universeStats: UniverseStat[];
@@ -3867,12 +4038,48 @@ export const quickActions: QuickAction[] = [
 ];
 
 export const workspaceItems: WorkspaceItem[] = [
-  { id: "ws-1", title: "The Batteries — Ep. 04 rough cut", kind: "PROJECT", updatedAt: "12m ago", status: "IN REVIEW" },
-  { id: "ws-2", title: "Pendeta Online — script pass 2", kind: "STORY", updatedAt: "48m ago", status: "DRAFT" },
-  { id: "ws-3", title: "Neon Cities poster set", kind: "SIGNAL", updatedAt: "2h ago", status: "READY" },
-  { id: "ws-4", title: "Allahi Promise — source notes", kind: "RESEARCH", updatedAt: "5h ago", status: "APPROVED" },
-  { id: "ws-5", title: "Zill — world bible v1", kind: "WORLD", updatedAt: "yesterday", status: "PUBLISHED" },
-  { id: "ws-6", title: "Crew portraits batch 3", kind: "PEOPLE", updatedAt: "yesterday", status: "DRAFT" },
+  {
+    id: "ws-1",
+    title: "The Batteries — Ep. 04 rough cut",
+    kind: "PROJECT",
+    updatedAt: "12m ago",
+    status: "IN REVIEW",
+  },
+  {
+    id: "ws-2",
+    title: "Pendeta Online — script pass 2",
+    kind: "STORY",
+    updatedAt: "48m ago",
+    status: "DRAFT",
+  },
+  {
+    id: "ws-3",
+    title: "Neon Cities poster set",
+    kind: "SIGNAL",
+    updatedAt: "2h ago",
+    status: "READY",
+  },
+  {
+    id: "ws-4",
+    title: "Allahi Promise — source notes",
+    kind: "RESEARCH",
+    updatedAt: "5h ago",
+    status: "APPROVED",
+  },
+  {
+    id: "ws-5",
+    title: "Zill — world bible v1",
+    kind: "WORLD",
+    updatedAt: "yesterday",
+    status: "PUBLISHED",
+  },
+  {
+    id: "ws-6",
+    title: "Crew portraits batch 3",
+    kind: "PEOPLE",
+    updatedAt: "yesterday",
+    status: "DRAFT",
+  },
 ];
 ```
 
@@ -3981,6 +4188,7 @@ git commit -m "feat(data): tipe + data dashboard Shadow Command Center"
 §D5: 10 item sidebar bukan 10 route. Delapan item pertama adalah state di dalam halaman Shadow Command Center (scroll ke anchor atau buka drawer modul), hanya dua yang keluar route.
 
 **Files:**
+
 - Modify: `apps/web/src/components/shell/nav-items.ts` (9 item → 10 item, model target baru)
 - Modify: `apps/web/src/components/shell/sidebar.tsx` (render target + penanda aktif berbasis scroll)
 - Modify: `apps/web/src/components/shell/index.tsx` (baca pathname, turunkan item aktif, teruskan ke sidebar)
@@ -3988,6 +4196,7 @@ git commit -m "feat(data): tipe + data dashboard Shadow Command Center"
 - Modify: `apps/web/src/components/mission-control.tsx:234` (hapus `active="mission-control"`; file ini baru dihapus di Task 27)
 
 **Interfaces:**
+
 - Consumes: `usePathname` dari `next/navigation`, `Link` dari `next/link`, `Module`/`modules` dari `@/lib/data` (drawer dibuka lewat query `?module=`), pola `IntersectionObserver` dari `site-nav/index.tsx` (hasil Task 13b; asalnya `site-nav.tsx:23-37`).
 - Produces:
 
@@ -4002,13 +4211,13 @@ export type NavTarget =
 export interface NavItem {
   id: string;
   label: string;
-  icon: string;      // path stroke SVG
+  icon: string; // path stroke SVG
   target: NavTarget;
 }
 
-export function navHref(item: NavItem): string;   // helper: target -> string href
-export function activeByPath(pathname: string): string;  // route -> id nav item aktif
-export const navItems: NavItem[];                 // 10 item
+export function navHref(item: NavItem): string; // helper: target -> string href
+export function activeByPath(pathname: string): string; // route -> id nav item aktif
+export const navItems: NavItem[]; // 10 item
 ```
 
 Signature `EmpireShell` berubah: prop `active: string` **dihapus** dan diturunkan dari `usePathname()`.
@@ -4018,7 +4227,7 @@ export function EmpireShell(props: {
   breadcrumb: string;
   search: { value: string; onChange: (v: string) => void; placeholder: string };
   children: ReactNode;
-}): JSX.Element
+}): JSX.Element;
 ```
 
 Alasannya: setelah id nav item diganti (Task 21 Step 1), string `"dock"` dan `"mission-control"` yang dikirim kedua halaman tidak lagi cocok dengan item mana pun, dan tidak ada type-check yang bisa menangkap salah ketik di sana. Menurunkan dari pathname membuat satu-satunya cara salah adalah menambah route tanpa menambah entri peta — dan itu terlihat langsung di browser sebagai "tidak ada item aktif", bukan sebagai item yang salah menyala.
@@ -4044,26 +4253,66 @@ Salin path ikon dari `navItems` lama bila sudah ada; untuk item baru, pakai path
 
 ```ts
 export const navItems: NavItem[] = [
-  { id: "dashboard", label: "Dashboard", icon: "M4 11 L12 4 L20 11 M6 10 L6 20 L18 20 L18 10",
-    target: { kind: "section", href: "/mission-control", anchor: "cc-top" } },
-  { id: "story-studio", label: "Story Studio", icon: "M4 20 L6 14 L16 4 L20 8 L10 18 Z M14 6 L18 10",
-    target: { kind: "module", href: "/mission-control", moduleId: "story-forge" } },
-  { id: "episodes", label: "Episodes", icon: "M4 5 L20 5 L20 19 L4 19 Z M8 9 L16 9 M8 13 L13 13",
-    target: { kind: "section", href: "/mission-control", anchor: "cc-workspace" } },
-  { id: "poster-forge", label: "Poster Forge", icon: "M4 5 L20 5 L20 19 L4 19 Z M4 15 L9 10 L14 15 L17 12 L20 15 M9 8.5 A0.5 0.5 0 1 0 9 8.5",
-    target: { kind: "module", href: "/mission-control", moduleId: "poster-lab" } },
-  { id: "collections", label: "Collections", icon: "M4 7 L12 3 L20 7 L12 11 Z M4 12 L12 16 L20 12 M4 17 L12 21 L20 17",
-    target: { kind: "section", href: "/mission-control", anchor: "cc-collections" } },
-  { id: "research", label: "Research", icon: "M10 3 L14 3 M11 3 L11 9 L5 19 Q4 21 7 21 L17 21 Q20 21 19 19 L13 9 L13 3 M8 15 L16 15",
-    target: { kind: "section", href: "/mission-control", anchor: "cc-studios" } },
-  { id: "crew", label: "Crew", icon: "M9 11 A3.5 3.5 0 1 0 9 4 A3.5 3.5 0 1 0 9 11 M2 20 Q2 15 9 15 Q16 15 16 20 M17 11 A3 3 0 1 0 17 5 M18 20 Q18 16 22 16",
-    target: { kind: "section", href: "/mission-control", anchor: "cc-crew" } },
-  { id: "mission-log", label: "Mission Log", icon: "M5 4 L19 4 L19 20 L5 20 Z M8 8 L16 8 M8 12 L16 12 M8 16 L13 16",
-    target: { kind: "section", href: "/mission-control", anchor: "cc-log" } },
-  { id: "archive", label: "Archive", icon: "M4 8 L12 4 L20 8 L20 16 L12 20 L4 16 Z M4 8 L12 12 L20 8 M12 12 L12 20",
-    target: { kind: "route", href: "/dock" } },
-  { id: "settings", label: "Settings", icon: "M12 8 A4 4 0 1 0 12 16 A4 4 0 1 0 12 8 M12 2 L12 5 M12 19 L12 22 M2 12 L5 12 M19 12 L22 12 M5 5 L7 7 M17 17 L19 19 M19 5 L17 7 M7 17 L5 19",
-    target: { kind: "route", href: "/shadow" } },
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: "M4 11 L12 4 L20 11 M6 10 L6 20 L18 20 L18 10",
+    target: { kind: "section", href: "/mission-control", anchor: "cc-top" },
+  },
+  {
+    id: "story-studio",
+    label: "Story Studio",
+    icon: "M4 20 L6 14 L16 4 L20 8 L10 18 Z M14 6 L18 10",
+    target: { kind: "module", href: "/mission-control", moduleId: "story-forge" },
+  },
+  {
+    id: "episodes",
+    label: "Episodes",
+    icon: "M4 5 L20 5 L20 19 L4 19 Z M8 9 L16 9 M8 13 L13 13",
+    target: { kind: "section", href: "/mission-control", anchor: "cc-workspace" },
+  },
+  {
+    id: "poster-forge",
+    label: "Poster Forge",
+    icon: "M4 5 L20 5 L20 19 L4 19 Z M4 15 L9 10 L14 15 L17 12 L20 15 M9 8.5 A0.5 0.5 0 1 0 9 8.5",
+    target: { kind: "module", href: "/mission-control", moduleId: "poster-lab" },
+  },
+  {
+    id: "collections",
+    label: "Collections",
+    icon: "M4 7 L12 3 L20 7 L12 11 Z M4 12 L12 16 L20 12 M4 17 L12 21 L20 17",
+    target: { kind: "section", href: "/mission-control", anchor: "cc-collections" },
+  },
+  {
+    id: "research",
+    label: "Research",
+    icon: "M10 3 L14 3 M11 3 L11 9 L5 19 Q4 21 7 21 L17 21 Q20 21 19 19 L13 9 L13 3 M8 15 L16 15",
+    target: { kind: "section", href: "/mission-control", anchor: "cc-studios" },
+  },
+  {
+    id: "crew",
+    label: "Crew",
+    icon: "M9 11 A3.5 3.5 0 1 0 9 4 A3.5 3.5 0 1 0 9 11 M2 20 Q2 15 9 15 Q16 15 16 20 M17 11 A3 3 0 1 0 17 5 M18 20 Q18 16 22 16",
+    target: { kind: "section", href: "/mission-control", anchor: "cc-crew" },
+  },
+  {
+    id: "mission-log",
+    label: "Mission Log",
+    icon: "M5 4 L19 4 L19 20 L5 20 Z M8 8 L16 8 M8 12 L16 12 M8 16 L13 16",
+    target: { kind: "section", href: "/mission-control", anchor: "cc-log" },
+  },
+  {
+    id: "archive",
+    label: "Archive",
+    icon: "M4 8 L12 4 L20 8 L20 16 L12 20 L4 16 Z M4 8 L12 12 L20 8 M12 12 L12 20",
+    target: { kind: "route", href: "/dock" },
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    icon: "M12 8 A4 4 0 1 0 12 16 A4 4 0 1 0 12 8 M12 2 L12 5 M12 19 L12 22 M2 12 L5 12 M19 12 L22 12 M5 5 L7 7 M17 17 L19 19 M19 5 L17 7 M7 17 L5 19",
+    target: { kind: "route", href: "/shadow" },
+  },
 ];
 ```
 
@@ -4203,6 +4452,7 @@ pnpm turbo run lint typecheck build
 ```
 
 Start produksi, buka `/dock` (satu-satunya halaman yang shell-nya sudah jadi):
+
 1. Sidebar menampilkan 10 item dengan label baru.
 2. Klik `Archive` → tetap di `/dock` (item aktif).
 3. Klik `Dashboard` → pindah ke `/mission-control` (halaman lama masih terpasang sampai Task 27 — anchor belum ada, jadi browser hanya pindah route tanpa scroll; itu diharapkan).
@@ -4229,6 +4479,7 @@ git commit -m "feat(shell): sidebar 10 item dengan target section/drawer/route"
 ### Task 22: Komposit status (`StatBlock`, `StatusBadge`, `QuickActionGrid`, `WorkspaceList`)
 
 **Files:**
+
 - Create: `packages/ui/src/composites/stat-block.tsx`
 - Create: `packages/ui/src/composites/status-badge.tsx`
 - Create: `packages/ui/src/composites/quick-action-grid.tsx`
@@ -4237,14 +4488,21 @@ git commit -m "feat(shell): sidebar 10 item dengan target section/drawer/route"
 - Modify: `packages/ui/src/composites/module-glyphs.ts` (tambah glyph `plus` dan `stack`)
 
 **Interfaces:**
+
 - Consumes: `UniverseStat`, `StatTone`, `ItemStatus`, `QuickAction`, `WorkspaceItem` dari `@moonwitness/types` (Task 20); `ZineCard`, `ZineCardRough`, `ZineBadge` (Task 6); `MODULE_GLYPHS`/`ModuleGlyph` (Task 9).
 - Produces:
 
 ```ts
-function StatBlock(props: { stat: UniverseStat }): JSX.Element
-function StatusBadge(props: { status: ItemStatus }): JSX.Element
-function QuickActionGrid(props: { actions: QuickAction[]; onAction: (action: QuickAction) => void }): JSX.Element
-function WorkspaceList(props: { items: WorkspaceItem[]; onOpenItem: (id: string) => void }): JSX.Element
+function StatBlock(props: { stat: UniverseStat }): JSX.Element;
+function StatusBadge(props: { status: ItemStatus }): JSX.Element;
+function QuickActionGrid(props: {
+  actions: QuickAction[];
+  onAction: (action: QuickAction) => void;
+}): JSX.Element;
+function WorkspaceList(props: {
+  items: WorkspaceItem[];
+  onOpenItem: (id: string) => void;
+}): JSX.Element;
 ```
 
 - [x] **Step 1: Tambah dua glyph**
@@ -4310,8 +4568,15 @@ const TONE_VAR: Record<StatTone, string> = {
 export function StatBlock({ stat }: { stat: UniverseStat }) {
   return (
     <ZineCard className="relative overflow-hidden p-4">
-      <span aria-hidden className="absolute inset-x-0 top-0 h-1" style={{ background: TONE_VAR[stat.tone] }} />
-      <div className="font-brush text-3xl leading-none sm:text-4xl" style={{ color: TONE_VAR[stat.tone] }}>
+      <span
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-1"
+        style={{ background: TONE_VAR[stat.tone] }}
+      />
+      <div
+        className="font-brush text-3xl leading-none sm:text-4xl"
+        style={{ color: TONE_VAR[stat.tone] }}
+      >
         {stat.value}
       </div>
       <div className={cn("mt-2 text-[10px] tracking-widest text-zinc-500")}>{stat.label}</div>
@@ -4382,7 +4647,11 @@ export function WorkspaceList({ items, onOpenItem }: WorkspaceListProps) {
           onClick={() => onOpenItem(item.id)}
           className="flex min-h-11 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--panel-2)] focus-visible:bg-[var(--panel-2)]"
         >
-          <span aria-hidden className="h-2 w-2 shrink-0 rounded-full" style={{ background: kindColors[item.kind] }} />
+          <span
+            aria-hidden
+            className="h-2 w-2 shrink-0 rounded-full"
+            style={{ background: kindColors[item.kind] }}
+          />
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm text-zinc-200">{item.title}</span>
             <span className="mt-0.5 block text-[10px] tracking-widest text-zinc-500">
@@ -4433,11 +4702,13 @@ git commit -m "feat(ui): komposit status dashboard (StatBlock, StatusBadge, Quic
 §D6: **tanpa drag-and-drop**. Kartu bisa diklik untuk membuka drawer detail; memindahkan antar kolom adalah operasi backend dan bukan bagian v1.
 
 **Files:**
+
 - Create: `packages/ui/src/composites/kanban-column.tsx`
 - Create: `packages/ui/src/composites/collections-grid.tsx`
 - Modify: `packages/ui/src/index.ts`
 
 **Interfaces:**
+
 - Consumes: `PipelineColumn`, `PipelineStage`, `PipelineCard`, `Collection`, `EventKind` dari `@moonwitness/types`; `ZineCard`, `ZineImage` (Task 6); `kindColors` (Task 7).
 - Produces:
 
@@ -4445,12 +4716,12 @@ git commit -m "feat(ui): komposit status dashboard (StatBlock, StatusBadge, Quic
 function KanbanColumn(props: {
   column: PipelineColumn;
   onOpenItem: (card: PipelineCard) => void;
-}): JSX.Element
+}): JSX.Element;
 function CollectionsGrid(props: {
   collections: Collection[];
   onOpenCollection: (id: string) => void;
-}): JSX.Element
-const STAGE_COLOR: Record<PipelineStage, string>;   // diekspor untuk dipakai orkestrator bila perlu
+}): JSX.Element;
+const STAGE_COLOR: Record<PipelineStage, string>; // diekspor untuk dipakai orkestrator bila perlu
 ```
 
 - [x] **Step 1: `kanban-column.tsx`**
@@ -4502,7 +4773,10 @@ export function KanbanColumn({ column, onOpenItem }: KanbanColumnProps) {
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-xs text-zinc-200">{card.title}</span>
-              <span className="mt-1 block text-[10px] tracking-widest" style={{ color: kindColors[card.type] }}>
+              <span
+                className="mt-1 block text-[10px] tracking-widest"
+                style={{ color: kindColors[card.type] }}
+              >
                 {card.type}
               </span>
             </span>
@@ -4510,9 +4784,7 @@ export function KanbanColumn({ column, onOpenItem }: KanbanColumnProps) {
         ))}
       </div>
       {column.more > 0 && (
-        <p className="text-center text-[10px] tracking-widest text-zinc-600">
-          +{column.more} MORE
-        </p>
+        <p className="text-center text-[10px] tracking-widest text-zinc-600">+{column.more} MORE</p>
       )}
     </section>
   );
@@ -4606,10 +4878,12 @@ git commit -m "feat(ui): KanbanColumn (tanpa drag-and-drop) + CollectionsGrid"
 §6.9: node kota + garis koneksi, `onSelect` membuka detail kota di panel samping.
 
 **Files:**
+
 - Create: `packages/ui/src/composites/world-map.tsx`
 - Modify: `packages/ui/src/index.ts`
 
 **Interfaces:**
+
 - Consumes: `MapCity` dari `@moonwitness/types`; `ZineCardRough`, `Halftone` (Task 6).
 - Produces:
 
@@ -4618,7 +4892,7 @@ function WorldMap(props: {
   cities: MapCity[];
   selectedId: string | null;
   onSelect: (id: string) => void;
-}): JSX.Element
+}): JSX.Element;
 ```
 
 Komponen ini **terkendali** (selected dari luar) karena panel detail kota dirender app di samping peta — §3.2: "Komponen yang perlu tahu pilihan ke dunia luar menerima callback".
@@ -4643,21 +4917,28 @@ export function WorldMap({ cities, selectedId, onSelect }: WorldMapProps) {
   return (
     <ZineCardRough className="relative overflow-hidden p-4">
       <Halftone className="absolute inset-0 opacity-30" />
-      <svg viewBox="0 0 100 80" className="relative h-64 w-full sm:h-80" role="group" aria-label="Universe map">
+      <svg
+        viewBox="0 0 100 80"
+        className="relative h-64 w-full sm:h-80"
+        role="group"
+        aria-label="Universe map"
+      >
         {cities.map((a, i) =>
-          cities.slice(i + 1).map((b) => (
-            <line
-              key={`${a.id}-${b.id}`}
-              x1={a.x}
-              y1={a.y * 0.8}
-              x2={b.x}
-              y2={b.y * 0.8}
-              stroke={i % 2 ? "#ff2d78" : "#2ea8ff"}
-              strokeWidth="0.18"
-              strokeDasharray="1.2 1.6"
-              opacity="0.4"
-            />
-          )),
+          cities
+            .slice(i + 1)
+            .map((b) => (
+              <line
+                key={`${a.id}-${b.id}`}
+                x1={a.x}
+                y1={a.y * 0.8}
+                x2={b.x}
+                y2={b.y * 0.8}
+                stroke={i % 2 ? "#ff2d78" : "#2ea8ff"}
+                strokeWidth="0.18"
+                strokeDasharray="1.2 1.6"
+                opacity="0.4"
+              />
+            )),
         )}
         {cities.map((c) => (
           <circle
@@ -4729,6 +5010,7 @@ git commit -m "feat(ui): WorldMap dengan node kota dan daftar tombol setara"
 Route **belum** dipindah di task ini — Task 27 yang memindah. Jadi semua file di sini belum terlihat publik dan `mission-control.tsx` lama tetap terpasang utuh sampai Task 26 selesai. Tidak ada commit di fase 4 yang membuat halaman publik setengah jadi.
 
 **Files:**
+
 - Create: `apps/web/src/components/command-center/section-heading.tsx`
 - Create: `apps/web/src/components/command-center/hero.tsx`
 - Create: `apps/web/src/components/command-center/status.tsx`
@@ -4739,23 +5021,35 @@ Route **belum** dipindah di task ini — Task 27 yang memindah. Jadi semua file 
 - Create: `apps/web/src/components/command-center/index.tsx`
 
 **Interfaces:**
+
 - Consumes: `artSrc` dari `@/lib/art` (Task 1); `UniverseStat`, `QuickAction`, `WorkspaceItem`, `Project`, `Module` dari `@moonwitness/types` (Task 1, 20); `StatBlock`, `QuickActionGrid`, `WorkspaceList`, `Halftone`, `ZineBadge` dari `@moonwitness/ui` (Task 6, 22); `ModuleGlyph` dari `@moonwitness/ui` (Task 9); `Crown`, `Splatter`, `Star4`, `ArrowRight` dari `@moonwitness/ui/icons` (Task 5); `EmpireShell` tanpa prop `active` (Task 13 + Task 21); `universeStats`, `quickActions`, `workspaceItems`, `projects`, `modules`, `initialWorkflows` dari `@/lib/data`.
 - Produces (dipakai Task 26, yang menulis ulang `index.tsx`):
 
 ```ts
-function SectionHeading(props: { id?: string; title: string; accent?: string; note?: string }): JSX.Element
-function CommandHero(): JSX.Element
-function UniverseStatus(props: { stats: UniverseStat[] }): JSX.Element
-function QuickActions(props: { actions: QuickAction[]; onAction: (a: QuickAction) => void }): JSX.Element
-function IdeasInMotion(): JSX.Element
-function Workspace(props: { items: WorkspaceItem[]; onOpenItem: (id: string) => void }): JSX.Element
+function SectionHeading(props: {
+  id?: string;
+  title: string;
+  accent?: string;
+  note?: string;
+}): JSX.Element;
+function CommandHero(): JSX.Element;
+function UniverseStatus(props: { stats: UniverseStat[] }): JSX.Element;
+function QuickActions(props: {
+  actions: QuickAction[];
+  onAction: (a: QuickAction) => void;
+}): JSX.Element;
+function IdeasInMotion(): JSX.Element;
+function Workspace(props: {
+  items: WorkspaceItem[];
+  onOpenItem: (id: string) => void;
+}): JSX.Element;
 function ModuleDrawer(props: {
   module: Module;
   projects: Project[];
   onQueue: (m: Module) => void;
   onClose: () => void;
-}): JSX.Element
-export function CommandCenter(): JSX.Element
+}): JSX.Element;
+export function CommandCenter(): JSX.Element;
 ```
 
 Anchor yang disumbang bagian 1-5: `cc-top` (hero, §6 sidebar "Dashboard") dan `cc-workspace` (bagian 5, sidebar "Episodes"). Empat anchor lain (`cc-collections`, `cc-studios`, `cc-crew`, `cc-log`) datang di Task 26.
@@ -4956,7 +5250,12 @@ export interface WorkspaceProps {
 export function Workspace({ items, onOpenItem }: WorkspaceProps) {
   return (
     <section aria-labelledby="cc-workspace" className="scroll-mt-24">
-      <SectionHeading id="cc-workspace" title="RECENT WORKSPACE" accent="ITEMS" note={`${items.length} items`} />
+      <SectionHeading
+        id="cc-workspace"
+        title="RECENT WORKSPACE"
+        accent="ITEMS"
+        note={`${items.length} items`}
+      />
       <WorkspaceList items={items} onOpenItem={onOpenItem} />
     </section>
   );
@@ -4969,14 +5268,14 @@ export function Workspace({ items, onOpenItem }: WorkspaceProps) {
 
 Pindahkan `mission-control.tsx:465-537` ke sini dengan tiga perubahan wajib:
 
-| lama | baru | alasan |
-|---|---|---|
-| baca `openModule` dari state | terima `module: Module` | komponen jadi murni, state tetap di orkestrator |
-| `setOpenModule(null)` | `onClose()` | callback keluar (§3.2) |
-| `queueRun(openModule)` | `onQueue(module)` | callback keluar |
-| `projects.slice(0, 3)` | `projects.slice(0, 3)` dari prop `projects` | drawer tidak impor data sendiri |
-| `ModuleIcon` | `ModuleGlyph` (Task 9) | ikon lama sudah pindah ke paket |
-| tombol tutup `className="p-2 …"` | `className="min-h-11 min-w-11 p-2 …"` | Task 16: target sentuh ≥ 44px |
+| lama                             | baru                                        | alasan                                          |
+| -------------------------------- | ------------------------------------------- | ----------------------------------------------- |
+| baca `openModule` dari state     | terima `module: Module`                     | komponen jadi murni, state tetap di orkestrator |
+| `setOpenModule(null)`            | `onClose()`                                 | callback keluar (§3.2)                          |
+| `queueRun(openModule)`           | `onQueue(module)`                           | callback keluar                                 |
+| `projects.slice(0, 3)`           | `projects.slice(0, 3)` dari prop `projects` | drawer tidak impor data sendiri                 |
+| `ModuleIcon`                     | `ModuleGlyph` (Task 9)                      | ikon lama sudah pindah ke paket                 |
+| tombol tutup `className="p-2 …"` | `className="min-h-11 min-w-11 p-2 …"`       | Task 16: target sentuh ≥ 44px                   |
 
 ```tsx
 import type { Module, Project } from "@moonwitness/types";
@@ -5206,6 +5505,7 @@ git commit -m "feat(command-center): bagian 1-5 + drawer modul"
 ### Task 26: Shadow Command Center bagian 6-11 + orkestrator final
 
 **Files:**
+
 - Create: `apps/web/src/components/command-center/pipeline.tsx`
 - Create: `apps/web/src/components/command-center/collections.tsx`
 - Create: `apps/web/src/components/command-center/projects.tsx`
@@ -5220,23 +5520,34 @@ git commit -m "feat(command-center): bagian 1-5 + drawer modul"
 - Modify: `apps/web/src/components/landing/crew.tsx` (pakai `crewStats`)
 
 **Interfaces:**
+
 - Consumes: `KanbanColumn`, `CollectionsGrid`, `WorldMap`, `CrewConstellation`, `ModuleCard`, `ZineCard`, `ZineCardRough`, `ZineImage` dari `@moonwitness/ui` (Task 6, 8, 9, 23, 24); `artSrc` (Task 1); `pipeline`, `collections`, `mapCities`, `projects`, `witnesses`, `feedItems`, `initialAlerts`, `initialWorkflows`, `modules` dari `@/lib/data`; `SectionHeading`, `CommandHero`, `UniverseStatus`, `QuickActions`, `IdeasInMotion`, `Workspace`, `ModuleDrawer` dari Task 25.
 - Produces (dipakai Task 27-28):
 
 ```ts
-function Pipeline(props: { columns: PipelineColumn[]; onOpenCard: (card: PipelineCard) => void }): JSX.Element
-function Collections(props: { collections: Collection[]; onOpenCollection: (id: string) => void }): JSX.Element
-function ProjectUniverse(props: { projects: Project[] }): JSX.Element
-function Studios(props: { modules: Module[]; onOpen: (m: Module) => void }): JSX.Element
-function UniverseMap(props: { cities: MapCity[]; selectedId: string | null; onSelect: (id: string) => void }): JSX.Element
-function CrewOrbit(): JSX.Element
+function Pipeline(props: {
+  columns: PipelineColumn[];
+  onOpenCard: (card: PipelineCard) => void;
+}): JSX.Element;
+function Collections(props: {
+  collections: Collection[];
+  onOpenCollection: (id: string) => void;
+}): JSX.Element;
+function ProjectUniverse(props: { projects: Project[] }): JSX.Element;
+function Studios(props: { modules: Module[]; onOpen: (m: Module) => void }): JSX.Element;
+function UniverseMap(props: {
+  cities: MapCity[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+}): JSX.Element;
+function CrewOrbit(): JSX.Element;
 function MissionLog(props: {
   feed: FeedItem[];
   alerts: MissionAlert[];
   workflows: Workflow[];
   onDismissAlert: (id: string) => void;
   onToggleWorkflow: (id: string) => void;
-}): JSX.Element
+}): JSX.Element;
 
 // item-drawer.tsx
 export interface ItemDrawerDetail {
@@ -5245,7 +5556,7 @@ export interface ItemDrawerDetail {
   art?: ArtKey;
   rows: { label: string; value: string }[];
 }
-function ItemDrawer(props: { detail: ItemDrawerDetail; onClose: () => void }): JSX.Element
+function ItemDrawer(props: { detail: ItemDrawerDetail; onClose: () => void }): JSX.Element;
 
 // use-command-center.ts
 export interface CommandCenterState {
@@ -5275,8 +5586,8 @@ export interface CommandCenterState {
   onDismissAlert: (id: string) => void;
   onToggleWorkflow: (id: string) => void;
 }
-export function useCommandCenter(): CommandCenterState
-export function CommandCenter(): JSX.Element
+export function useCommandCenter(): CommandCenterState;
+export function CommandCenter(): JSX.Element;
 ```
 
 State dipisah ke hook karena `index.tsx` versi final (11 bagian + 4 memo filter + 7 handler) lewat 150 baris kalau state dan JSX tinggal di satu file. Memisahkannya membuat `index.tsx` murni susunan, dan hook bisa dibaca sendiri.
@@ -5610,7 +5921,9 @@ export function MissionLog({
                 </button>
               </div>
             ))}
-            {workflows.length === 0 && <p className="py-4 text-sm text-zinc-500">No workflows match.</p>}
+            {workflows.length === 0 && (
+              <p className="py-4 text-sm text-zinc-500">No workflows match.</p>
+            )}
           </div>
         </ZineCardRough>
 
@@ -5621,12 +5934,17 @@ export function MissionLog({
           <div className="divide-y divide-[var(--line)]">
             {feed.map((f) => (
               <div key={f.id} className="flex items-start gap-2 py-2">
-                <span className="mt-1 h-2 w-2 shrink-0 rounded-full" style={{ background: f.color }} />
+                <span
+                  className="mt-1 h-2 w-2 shrink-0 rounded-full"
+                  style={{ background: f.color }}
+                />
                 <p className="min-w-0 flex-1 text-xs leading-snug text-zinc-300">{f.text}</p>
                 <span className="shrink-0 text-[10px] text-zinc-600">{f.ago}</span>
               </div>
             ))}
-            {feed.length === 0 && <p className="py-4 text-sm text-zinc-500">No feed items match.</p>}
+            {feed.length === 0 && (
+              <p className="py-4 text-sm text-zinc-500">No feed items match.</p>
+            )}
           </div>
         </ZineCardRough>
 
@@ -5657,7 +5975,9 @@ export function MissionLog({
                 </button>
               </div>
             ))}
-            {alerts.length === 0 && <p className="py-2 text-xs text-zinc-500">All clear. The sky is quiet.</p>}
+            {alerts.length === 0 && (
+              <p className="py-2 text-xs text-zinc-500">All clear. The sky is quiet.</p>
+            )}
           </div>
         </ZineCardRough>
       </div>
@@ -5700,7 +6020,9 @@ export function ItemDrawer({ detail, onClose }: ItemDrawerProps) {
       <div className="zine-card-rough absolute inset-y-0 right-0 w-full max-w-md overflow-y-auto p-6">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[10px] tracking-wider text-zinc-500">{detail.subtitle.toUpperCase()}</p>
+            <p className="text-[10px] tracking-wider text-zinc-500">
+              {detail.subtitle.toUpperCase()}
+            </p>
             <h2 className="font-brush mt-1 text-3xl leading-tight text-white">{detail.title}</h2>
           </div>
           <button
@@ -5720,7 +6042,9 @@ export function ItemDrawer({ detail, onClose }: ItemDrawerProps) {
         <dl className="mt-5 divide-y divide-[var(--line)]">
           {detail.rows.map((row) => (
             <div key={row.label} className="flex items-center justify-between gap-3 py-2.5">
-              <dt className="text-[10px] tracking-wider text-zinc-500">{row.label.toUpperCase()}</dt>
+              <dt className="text-[10px] tracking-wider text-zinc-500">
+                {row.label.toUpperCase()}
+              </dt>
               <dd className="min-w-0 truncate text-right text-xs text-zinc-200">{row.value}</dd>
             </div>
           ))}
@@ -5986,7 +6310,11 @@ export function CommandCenter() {
         <Collections collections={cc.visible.collections} onOpenCollection={cc.onOpenCollection} />
         <ProjectUniverse projects={cc.visible.projects} />
         <Studios modules={modules} onOpen={cc.onOpenModule} />
-        <UniverseMap cities={mapCities} selectedId={cc.selectedCity} onSelect={cc.setSelectedCity} />
+        <UniverseMap
+          cities={mapCities}
+          selectedId={cc.selectedCity}
+          onSelect={cc.setSelectedCity}
+        />
         <CrewOrbit />
         <MissionLog
           feed={cc.visible.feed}
@@ -6064,6 +6392,7 @@ EOF
 Start produksi (`BUILD` lalu server di 4317), buka `/__cc-preview`, dan periksa 11 bagian §6 hadir berurutan: hero, UNIVERSE STATUS (4 angka + LIVE), QUICK ACTIONS (4 tombol), panel halftone, RECENT WORKSPACE ITEMS, EDITORIAL PIPELINE (4 kolom: 8/4/6/48 + "+N MORE"), COLLECTIONS (4 tile), PROJECT UNIVERSE, STORY STUDIO/POSTER FORGE (2 tile), UNIVERSE MAP (8 kota), CREW ORBIT, MISSION LOG (3 panel).
 
 Lalu klik dan catat:
+
 1. Quick Action "New Episode" → drawer modul terbuka, QUEUE NEW RUN → toast + baris baru di ACTIVE WORKFLOWS.
 2. Tile Story Studio → drawer modul yang sama.
 3. Kartu pipeline → `ItemDrawer` dengan gambar.
@@ -6102,11 +6431,13 @@ git commit -m "feat(command-center): bagian 6-11 + orkestrator final"
 Satu commit ini yang membuat halaman baru terlihat publik. Sebelum commit, route masih menunjuk halaman lama dan semua file baru tidak terjangkau — jadi tidak ada keadaan antara di mana `/mission-control` setengah jadi.
 
 **Files:**
+
 - Modify: `apps/web/src/app/mission-control/page.tsx`
 - Delete: `apps/web/src/components/mission-control.tsx`
 - Modify: `packages/ui/src/base.css` (hapus blok `orbit diagram`)
 
 **Interfaces:**
+
 - Consumes: `CommandCenter` (Task 26).
 - Produces: route `/mission-control` yang merender Shadow Command Center dengan metadata title baru.
 
@@ -6151,20 +6482,20 @@ Expected: grep 0 baris. Kalau masih ada yang mengimpor `MissionControl`, selesai
 §D7 menghapus `OrbitDiagram`, jadi CSS-nya ikut. Hapus **persis** blok ini (di dalam `@layer components`, hasil pemindahan `globals.css:293-306` di Task 4):
 
 ```css
-  /* ---- orbit diagram ---- */
-  @keyframes spin-slow {
-    to {
-      transform: rotate(360deg);
-    }
+/* ---- orbit diagram ---- */
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
   }
-  .orbit-ring {
-    transform-origin: center;
-    animation: spin-slow 60s linear infinite;
-  }
-  .orbit-ring-rev {
-    transform-origin: center;
-    animation: spin-slow 90s linear infinite reverse;
-  }
+}
+.orbit-ring {
+  transform-origin: center;
+  animation: spin-slow 60s linear infinite;
+}
+.orbit-ring-rev {
+  transform-origin: center;
+  animation: spin-slow 90s linear infinite reverse;
+}
 ```
 
 Dan hapus dua baris pemilih dari blok reduced-motion yang **tidak ber-layer** (hasil pemindahan `globals.css:396-398`):
@@ -6208,6 +6539,7 @@ VER
 Expected: hijau semua, termasuk 4 tes `@moonwitness/assets`.
 
 Start produksi di 4317, buka `/mission-control`, dan periksa:
+
 1. Tab browser berjudul "Shadow Command Center" (metadata).
 2. 11 bagian §6 hadir berurutan + PROJECT UNIVERSE.
 3. Sidebar: item **Dashboard** menyala saat halaman di bagian atas; scroll ke bawah → **Episodes**, lalu **Collections**, **Research**, **Crew**, **Mission Log** menyala bergantian (IntersectionObserver Task 21 baru punya elemen untuk diamati sekarang).
@@ -6221,6 +6553,7 @@ SHOT phase4
 ```
 
 Bandingkan `.verify/phase4/mission-control-*.png` dengan `.verify/phase0/mission-control-*.png`. **Perbedaan yang diniatkan** (catat di ledger, jangan diperbaiki):
+
 - judul hero "SHADOW COMMAND CENTER" dan artwork rooftop baru;
 - grid modul 3 kolom + OrbitDiagram hilang, diganti 11 bagian;
 - sidebar 10 item (sejak Task 21).
@@ -6252,11 +6585,13 @@ Rollback fase 4 = `git revert` commit ini plus commit Task 25, 26, 21, 20, 19 (u
 Gerbang spec §7 fase 4: "9 bagian §6 hadir semua; keyboard menjangkau sidebar, kanban, dan map; drawer modul terbuka dari Quick Actions; pipeline hijau; tidak ada overflow horizontal di 390/768/1440." Task ini juga menutup bagian 10-11 dan PROJECT UNIVERSE (R8), karena ketiganya sudah dirender sejak Task 26.
 
 **Files:**
+
 - Modify: `docs/superpowers/specs/2026-11-11-frontend-design-system-design.md` (catat hasil gerbang)
 - Create: `.verify/phase4/*` (tidak di-commit)
 - Modify: apa pun yang gagal di Step 2-7 (commit terpisah, sebelum commit dokumen)
 
 **Interfaces:**
+
 - Consumes: hasil Task 19-27.
 - Produces: bukti terukur bahwa §6 terpasang lengkap, dan baseline fidelity untuk fase 5.
 
@@ -6291,20 +6626,20 @@ Buka `/mission-control` di browser sungguhan (bukan hanya snapshot DOM).
 
 Scroll dari atas ke bawah dan centang urutan ini persis:
 
-| # | Bagian | Bukti yang harus terlihat |
-|---|---|---|
-| 1 | Hero | judul brush "SHADOW COMMAND CENTER", artwork rooftop, strip `PRIVATE // CREATE · CURATE · DEPLOY` |
-| 2 | Universe Status | 4 `StatBlock`: 12 / 48 / 6 / 3.2M, badge LIVE hijau |
-| 3 | Quick Actions | 4 tombol: New Episode, Create Poster, Write Story, Add to Collection |
-| 4 | Ideas…In Motion | panel hitam dengan halftone, kalimat "DIFFERENT PEOPLE. SAME SKY." |
-| 5 | Recent Workspace | 6 baris, tiap baris punya `StatusBadge` |
-| 6 | Editorial Pipeline | 4 kolom DRAFT 8 / IN REVIEW 4 / APPROVED 6 / PUBLISHED 48, border atas berwarna, footer `+N MORE` |
-| 7 | Collections | 4 tile, grayscale → warna saat hover |
-| — | Project Universe | tile proyek dengan progress bar, menaut ke `/dock?q=` |
-| 8 | Story Studio / Poster Forge | 2 `ModuleCard` |
-| 9 | Universe Map | 8 node kota + garis koneksi, daftar kota di samping, panel CITY DETAIL |
-| 10 | Crew Orbit | konstelasi + 3 angka CountUp (1324 / 87 / 6912) |
-| 11 | Mission Log | 3 panel: ACTIVE WORKFLOWS, COMMAND FEED, MISSION ALERTS |
+| #   | Bagian                      | Bukti yang harus terlihat                                                                         |
+| --- | --------------------------- | ------------------------------------------------------------------------------------------------- |
+| 1   | Hero                        | judul brush "SHADOW COMMAND CENTER", artwork rooftop, strip `PRIVATE // CREATE · CURATE · DEPLOY` |
+| 2   | Universe Status             | 4 `StatBlock`: 12 / 48 / 6 / 3.2M, badge LIVE hijau                                               |
+| 3   | Quick Actions               | 4 tombol: New Episode, Create Poster, Write Story, Add to Collection                              |
+| 4   | Ideas…In Motion             | panel hitam dengan halftone, kalimat "DIFFERENT PEOPLE. SAME SKY."                                |
+| 5   | Recent Workspace            | 6 baris, tiap baris punya `StatusBadge`                                                           |
+| 6   | Editorial Pipeline          | 4 kolom DRAFT 8 / IN REVIEW 4 / APPROVED 6 / PUBLISHED 48, border atas berwarna, footer `+N MORE` |
+| 7   | Collections                 | 4 tile, grayscale → warna saat hover                                                              |
+| —   | Project Universe            | tile proyek dengan progress bar, menaut ke `/dock?q=`                                             |
+| 8   | Story Studio / Poster Forge | 2 `ModuleCard`                                                                                    |
+| 9   | Universe Map                | 8 node kota + garis koneksi, daftar kota di samping, panel CITY DETAIL                            |
+| 10  | Crew Orbit                  | konstelasi + 3 angka CountUp (1324 / 87 / 6912)                                                   |
+| 11  | Mission Log                 | 3 panel: ACTIVE WORKFLOWS, COMMAND FEED, MISSION ALERTS                                           |
 
 - [ ] **Step 5: Drawer terbuka dari Quick Actions (dan dari mana saja)**
 
@@ -6320,6 +6655,7 @@ Scroll dari atas ke bawah dan centang urutan ini persis:
 - [ ] **Step 6: Keyboard menjangkau sidebar, kanban, dan map**
 
 Tanpa mouse, dari alamat `/mission-control`:
+
 1. `Tab` pertama mendarat di **skip link** (Task 15), `Enter` → lompat ke `#main`.
 2. `Tab` berikutnya masuk sidebar; tiap item punya cincin fokus kuning 3px yang terlihat; `Enter` pada **Collections** → halaman scroll ke §7 dan item itu menyala.
 3. `Tab` mencapai kartu kanban di keempat kolom; `Enter` → `ItemDrawer` terbuka; `Escape` → tertutup dan fokus **kembali** ke kartu yang membukanya. Kalau fokus tidak kembali, tambahkan di `item-drawer.tsx`: simpan `document.activeElement` saat mount di orkestrator dan panggil `.focus()` lagi di `closeOverlays`. Ini bug nyata, bukan catatan.
@@ -6332,7 +6668,7 @@ Tanpa mouse, dari alamat `/mission-control`:
 Di 390x844, 768x1024, dan 1440x900, jalankan di console:
 
 ```js
-({ scroll: document.documentElement.scrollWidth, inner: window.innerWidth })
+({ scroll: document.documentElement.scrollWidth, inner: window.innerWidth });
 ```
 
 Expected: `scroll <= inner` di ketiganya. Lalu jalankan snippet pengukuran 44px dari Task 16 Step 5 pada 390x844 di `/mission-control`. Expected: kosong, atau hanya sisa yang sudah dijelaskan di Task 16.
@@ -6346,6 +6682,7 @@ Buka `packages/assets/references/06-shadow-command-center.png` dan `.verify/phas
 **Harus cocok**: urutan bagian 1-9, judul brush per bagian, 4 angka Universe Status, 4 kolom pipeline dengan angka 8/4/6/48 dan warna border per stage, 4 tile koleksi, 8 kota di peta, palet (magenta/biru/kuning di atas hitam).
 
 **Boleh berbeda** (catat alasannya di ledger, jangan "diperbaiki" supaya mirip):
+
 - artwork hero adalah hasil generate Task 19, bukan bitmap dari referensi;
 - bagian 10, 11, dan PROJECT UNIVERSE tidak ada di referensi (R8);
 - teks body berbahasa Inggris sesuai isi repo sekarang, bukan teks contoh di mock;
@@ -6409,6 +6746,7 @@ Gerbang spec §7 fase 5: wordmark tajam di 1x/2x; heading memakai wajah baru; CL
 Spec §8 jujur soal batasannya: menggambar letterform sendiri adalah kerja desainer huruf. Yang bisa dikerjakan sebagai kode adalah **lockup SVG**: huruf dirender sebagai `<text>` di dalam SVG memakai `--font-brush`, lalu diberi tepi kasar lewat filter dan bayangan offset keras — bahasa visual yang sama dengan `drop-shadow-[4px_4px_0_rgba(0,0,0,0.8)]` yang sudah dipakai hero. Hasilnya tajam di semua ukuran, nol risiko lisensi, dan satu komponen untuk semua penempatan. Wajah yang dipakai saat task ini berjalan masih `Permanent_Marker`; Task 30 menggantinya dan lockup ini tidak perlu disentuh.
 
 **Files:**
+
 - Create: `apps/web/src/components/wordmark.tsx`
 - Modify: `apps/web/src/components/site-nav/index.tsx` (baris brand di dalam `<header>` — salinan `site-nav.tsx:51-53` yang dipindah Task 13b; cari dengan `grep -n "MOON" apps/web/src/components/site-nav/index.tsx`)
 - Modify: `apps/web/src/components/shell/index.tsx` (logo sidebar)
@@ -6416,6 +6754,7 @@ Spec §8 jujur soal batasannya: menggambar letterform sendiri adalah kerja desai
 - Modify: `apps/web/src/app/shadow/page.tsx:96-98` (h1)
 
 **Interfaces:**
+
 - Consumes: `--font-brush` dari `theme.css` (Task 4) dan `--pink`; `useId` dari React (didukung Server Component, jadi file ini **tidak** perlu `"use client"`).
 - Produces:
 
@@ -6426,7 +6765,7 @@ export interface WordmarkProps {
   /** Bila diisi, SVG dinamai untuk screen reader; bila kosong, SVG disembunyikan (aria-hidden). */
   label?: string;
 }
-export function Wordmark(props: WordmarkProps): JSX.Element
+export function Wordmark(props: WordmarkProps): JSX.Element;
 ```
 
 - [ ] **Step 1: Tulis `wordmark.tsx`**
@@ -6528,12 +6867,12 @@ File ini hanya boleh dipakai sebagai komponen React inline. **Jangan** pernah me
 
 - [ ] **Step 2: Pasang di empat tempat**
 
-| File | Sebelum | Sesudah |
-|---|---|---|
-| `site-nav/index.tsx` (brand, asalnya `site-nav.tsx:51-53`) | `<span className="font-brush text-xl tracking-wide text-white sm:text-2xl">MOON<span className="text-[var(--pink)]">WITNESS</span></span>` | `<Wordmark variant="moonwitness" className="h-6 w-auto sm:h-7" />` |
-| `shell/index.tsx` (logo sidebar) | `<span className="font-brush text-2xl leading-none text-white">MOON<span className="text-[var(--pink)]">WITNESS</span></span>` | `<Wordmark variant="moonwitness" className="h-7 w-auto" />` |
-| `landing/hero.tsx` (h1) | `<h1 className="font-brush relative text-[clamp(2.25rem,11vw,3.75rem)] …">MOON<span className="text-[var(--pink)]">WITNESS</span></h1>` | `<h1 className="relative"><Wordmark variant="moonwitness" label="Moonwitness" className="h-[clamp(2.25rem,11vw,3.75rem)] w-auto sm:h-24" /></h1>` |
-| `app/shadow/page.tsx:96-98` | `<h1 className="font-brush text-4xl …">ENTER <span className="text-[var(--pink)]">THE SHADOW</span></h1>` | `<h1 className="font-brush text-4xl leading-tight text-white sm:text-5xl">ENTER<Wordmark variant="shadow" label="the shadow" className="mt-1 block h-9 w-auto sm:h-12" /></h1>` |
+| File                                                       | Sebelum                                                                                                                                    | Sesudah                                                                                                                                                                         |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `site-nav/index.tsx` (brand, asalnya `site-nav.tsx:51-53`) | `<span className="font-brush text-xl tracking-wide text-white sm:text-2xl">MOON<span className="text-[var(--pink)]">WITNESS</span></span>` | `<Wordmark variant="moonwitness" className="h-6 w-auto sm:h-7" />`                                                                                                              |
+| `shell/index.tsx` (logo sidebar)                           | `<span className="font-brush text-2xl leading-none text-white">MOON<span className="text-[var(--pink)]">WITNESS</span></span>`             | `<Wordmark variant="moonwitness" className="h-7 w-auto" />`                                                                                                                     |
+| `landing/hero.tsx` (h1)                                    | `<h1 className="font-brush relative text-[clamp(2.25rem,11vw,3.75rem)] …">MOON<span className="text-[var(--pink)]">WITNESS</span></h1>`    | `<h1 className="relative"><Wordmark variant="moonwitness" label="Moonwitness" className="h-[clamp(2.25rem,11vw,3.75rem)] w-auto sm:h-24" /></h1>`                               |
+| `app/shadow/page.tsx:96-98`                                | `<h1 className="font-brush text-4xl …">ENTER <span className="text-[var(--pink)]">THE SHADOW</span></h1>`                                  | `<h1 className="font-brush text-4xl leading-tight text-white sm:text-5xl">ENTER<Wordmark variant="shadow" label="the shadow" className="mt-1 block h-9 w-auto sm:h-12" /></h1>` |
 
 `Crown` di samping brand nav dan sidebar **dipertahankan** — hanya span teksnya yang diganti. Di hero, `drop-shadow-[…]` pada `<h1>` dilepas karena bayangan sudah digambar di dalam SVG; kalau dilepas dan lockup terlihat tipis, naikkan `scale` filter ke 2.2, jangan kembalikan drop-shadow (dua bayangan = tepi ganda).
 
@@ -6546,6 +6885,7 @@ VER
 ```
 
 Start produksi di 4317, lalu periksa di browser:
+
 1. `/` — hero: wordmark MOON putih + WITNESS magenta, tepi huruf sedikit kasar, bayangan hitam offset ke kanan-bawah. `Crown` kuning tetap di posisi lamanya.
 2. `/` — nav sticky: tinggi header tetap `h-16`, wordmark tidak menyentuh batas atas/bawah, tidak menggeser menu.
 3. `/shadow` — h1 "ENTER" lalu lockup SHADOW di baris berikutnya.
@@ -6575,18 +6915,21 @@ git commit -m "feat(brand): wordmark SVG untuk MOONWITNESS dan SHADOW"
 `Permanent_Marker` hanya punya weight 400, jadi setiap heading yang ingin tebal mengandalkan faux-bold browser — itulah akar kesan lemah yang disebut §8. Task ini mengganti keluarganya; **satu titik perubahan** di `layout.tsx`, karena seluruh repo memakai `--font-brush` (janji §8c tetap berlaku untuk font kustom owner nanti).
 
 **Files:**
+
 - Create: `apps/web/src/fonts/<keluarga>/*.ttf` (file font, di-commit)
 - Create: `apps/web/src/fonts/<keluarga>/OFL.txt` (lisensi, wajib ikut)
 - Modify: `apps/web/src/app/layout.tsx`
 - Modify: `docs/superpowers/specs/2026-11-11-frontend-design-system-design.md` (catat keluarga terpilih di §8b)
 
 **Interfaces:**
+
 - Consumes: `next/font/local`, `--font-brush`.
 - Produces: `--font-brush` yang punya bobot 700 dan 900 nyata; tidak ada perubahan API untuk konsumen mana pun.
 
 - [ ] **Step 1: Kriteria (hard gate, jangan dilonggarkan)**
 
 Keluarga yang dipilih **harus** memenuhi semuanya:
+
 1. Lisensi **SIL Open Font License 1.1** — file `OFL.txt` ada di direktori familinya dan menyebut nama famili yang sama.
 2. Punya bobot **≥ 700**; idealnya 800/900 atau variable dengan rentang sampai 900.
 3. Berkarakter **display/poster**, bukan body text: kontras tinggi atau condensed atau keduanya, dan tetap terbaca pada 12 karakter uppercase.
@@ -6599,12 +6942,12 @@ Kalau satu kandidat gagal di nomor 1 atau 4, buang — jangan mencari jalan mema
 
 Periksa berurutan sampai satu lolos semua kriteria Step 1. Urutan ini adalah preferensi karakter, bukan tebakan ketersediaan — **ketersediaan diverifikasi di Step 3, bukan diasumsikan**:
 
-| Urutan | Keluarga | Karakter | Kenapa cocok dengan zine |
-|---|---|---|---|
-| 1 | `Big Shoulders Display` | condensed poster, variable 100-900 | poster punk/Screenprint; bobot 900 memberi "kental dan kuat" yang diminta §8 |
-| 2 | `Archivo` (variable 100-900, ada `Archivo Expanded`) | grotesque lebar | tebal tanpa jadi kartun; cocok bila owner ingin terasa lebih "koran tabloid" |
-| 3 | `Shantell Sans` (variable 300-800) | marker/ playful | paling dekat dengan karakter spidol `Permanent_Marker`, tapi punya bobot nyata |
-| 4 | `Kanit` (100-900) | condensed geometric | cadangan terakhir; netral |
+| Urutan | Keluarga                                             | Karakter                           | Kenapa cocok dengan zine                                                       |
+| ------ | ---------------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------ |
+| 1      | `Big Shoulders Display`                              | condensed poster, variable 100-900 | poster punk/Screenprint; bobot 900 memberi "kental dan kuat" yang diminta §8   |
+| 2      | `Archivo` (variable 100-900, ada `Archivo Expanded`) | grotesque lebar                    | tebal tanpa jadi kartun; cocok bila owner ingin terasa lebih "koran tabloid"   |
+| 3      | `Shantell Sans` (variable 300-800)                   | marker/ playful                    | paling dekat dengan karakter spidol `Permanent_Marker`, tapi punya bobot nyata |
+| 4      | `Kanit` (100-900)                                    | condensed geometric                | cadangan terakhir; netral                                                      |
 
 Jangan memakai famili yang sudah dipakai repo (`Caveat` untuk `--font-hand`, `Space_Mono` untuk `--font-mono`) — `--font-brush` harus tetap berbeda dari `--font-hand`, atau dua peran tipografi itu kolaps jadi satu.
 
@@ -6670,7 +7013,7 @@ Tiga hal yang harus dimengerti di sini:
 - `packages/ui/src/theme.css:1028` menyimpan salinan fallback untuk konteks non-Next. Ganti barisnya jadi keluarga baru dengan daftar fallback yang sama:
 
 ```css
-  --font-brush: "<keluarga>", Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+--font-brush: "<keluarga>", Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
 ```
 
 Nilai ini hanya berlaku bila class `next/font` tidak terpasang, tapi membiarkannya menyebut `Permanent Marker` berarti repo masih mengklaim bergantung pada wajah yang baru saja dibuang.
@@ -6682,6 +7025,7 @@ VER
 ```
 
 Start produksi, buka `/`, `/dock`, `/shadow`, `/mission-control` di 1440x900 dan 390x844:
+
 1. Semua heading `font-brush` terlihat jelas lebih tebal dari sebelumnya, dan **tidak** terlihat berbayang halus di tepi huruf (tanda faux-bold). Zoom 400% pada satu heading untuk memeriksa tepi.
 2. Wordmark Task 29 ikut memakai wajah baru dan **lebarnya tidak berubah** (karena `textLength`).
 3. Tidak ada teks yang terpotong atau melompat jadi dua baris di 390px — terutama judul kartu di dock, strip marquee, dan label sticker. Kalau ada yang meluber, perbaiki dengan `leading-*`/`text-*` di komponen itu, **jangan** dengan menurunkan bobot global.
@@ -6717,11 +7061,13 @@ git commit -m "feat(type): ganti Permanent Marker dengan <keluarga> OFL berbobot
 Gerbang spec §7 fase 5: "wordmark tajam di 1x/2x; heading memakai wajah baru; CLS < 0.1; pipeline hijau." Task ini juga yang membuktikan font baru benar-benar ter-load, bukan fallback yang kebetulan mirip.
 
 **Files:**
+
 - Modify: `docs/superpowers/specs/2026-11-11-frontend-design-system-design.md` (catat hasil gerbang fase 5)
 - Create: `.verify/phase5/*` (tidak di-commit)
 - Modify: apa pun yang gagal di Step 2-7 (commit terpisah, sebelum commit dokumen)
 
 **Interfaces:**
+
 - Consumes: hasil Task 29-30.
 - Produces: bukti terukur fase 5 selesai; baseline akhir untuk seluruh plan.
 
@@ -6743,10 +7089,11 @@ Start produksi di 4317, buka `/`, jalankan di console:
   families: [...document.fonts].map((f) => `${f.family} ${f.weight} ${f.status}`),
   brushOnText: getComputedStyle(document.querySelector("svg text")).fontFamily,
   heading: getComputedStyle(document.querySelector("h1, h2")).fontFamily,
-})
+});
 ```
 
 Expected:
+
 - `families` memuat `<keluarga>` dengan bobot `700` (dan `900` bila di-load) berstatus `loaded`.
 - `brushOnText` dan `heading` menyebut `<keluarga>` di posisi pertama — **bukan** `Permanent Marker`, `Impact`, atau `cursive`.
 - Tidak ada entri bernama `Permanent Marker` sama sekali. Kalau masih ada, `layout.tsx` masih mengimpornya; hapus.
@@ -6754,7 +7101,7 @@ Expected:
 Lalu pastikan tidak ada faux-bold:
 
 ```js
-[...document.fonts].filter((f) => f.family.includes("<keluarga>")).map((f) => f.weight)
+[...document.fonts].filter((f) => f.family.includes("<keluarga>")).map((f) => f.weight);
 ```
 
 Expected: `["700", "900"]` (atau rentang variable). Kalau hasilnya `["400"]`, yang ter-load bukan bobot yang diminta Task 30 dan heading masih disintesis browser.
@@ -6769,7 +7116,7 @@ Expected: tepi tetap tajam sebagai vektor — tidak ada pixelasi tangga, tidak a
 
 Bandingkan juga dengan `.verify/phase4/landing-1440x900.png`: brand lama adalah teks HTML, brand baru adalah SVG. Tinggi blok dan posisi `Crown` tidak boleh bergeser lebih dari 2px.
 
-Cek satu kegagalan khas: buka `/` dengan CSS dimatikan (DevTools → Rendered fonts, atau `document.querySelector("svg text")` → periksa `font-family` yang *dipakai*). Bila SVG jatuh ke font fallback, lockup tetap muat karena `textLength` — tapi karakternya salah. Itu harus diperbaiki di Task 29/30, bukan diterima.
+Cek satu kegagalan khas: buka `/` dengan CSS dimatikan (DevTools → Rendered fonts, atau `document.querySelector("svg text")` → periksa `font-family` yang _dipakai_). Bila SVG jatuh ke font fallback, lockup tetap muat karena `textLength` — tapi karakternya salah. Itu harus diperbaiki di Task 29/30, bukan diterima.
 
 - [ ] **Step 4: CLS < 0.1**
 
@@ -6789,6 +7136,7 @@ Ulangi sekali untuk memisahkan variasi mesin dari regresi nyata sebelum menyimpu
 - [ ] **Step 5: Tidak ada teks yang meluber**
 
 Buka keempat route di 390x844 dan periksa khusus tempat `font-brush` paling padat:
+
 1. strip marquee di `/` (6 frasa) — tidak terpotong vertikal.
 2. sticker "PEOPLE. PLACES. STORIES. …" di hero — tetap dalam bentuk sticker, tidak keluar dari rotasi.
 3. judul kartu timeline di `/dock` (`font-brush text-sm`) — maksimal 2 baris, tidak menimpa tanggal.
@@ -6796,7 +7144,7 @@ Buka keempat route di 390x844 dan periksa khusus tempat `font-brush` paling pada
 5. wordmark SHADOW di `/shadow` — tidak melebihi lebar layar.
 
 ```js
-({ scroll: document.documentElement.scrollWidth, inner: window.innerWidth })
+({ scroll: document.documentElement.scrollWidth, inner: window.innerWidth });
 ```
 
 Expected: `scroll <= inner` di 390, 768, 1440 untuk keempat route.

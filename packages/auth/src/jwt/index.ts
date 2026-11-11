@@ -26,7 +26,7 @@ export type JwtVerifyResult = {
 export async function verifyJwt(
   token: string,
   secret: string,
-  options?: JwtVerifyOptions
+  options?: JwtVerifyOptions,
 ): Promise<JwtVerifyResult> {
   try {
     const { payload } = await jwtVerify(token, new TextEncoder().encode(secret), {
@@ -41,7 +41,7 @@ export async function verifyJwt(
 export async function signJwt(
   payload: Payload,
   secret: string,
-  options?: { algorithm?: "HS256"; expiresIn?: string }
+  options?: { algorithm?: "HS256"; expiresIn?: string },
 ): Promise<string> {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: options?.algorithm ?? "HS256" })
@@ -57,7 +57,7 @@ export function createAuthPayload(
     role?: "user" | "admin";
     artworkId?: string;
     artworkKey?: ArtKey;
-  }
+  },
 ): Payload {
   return {
     userId,

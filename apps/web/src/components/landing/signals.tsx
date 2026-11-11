@@ -2,15 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { timelineEvents } from "@/lib/data";
 import { artSrc } from "@/lib/art";
 import { ArrowRight, Crown } from "@moonwitness/ui/icons";
 import { TransmissionCard } from "@moonwitness/ui";
-
-/** Kartu promosi meminjam copy event ini; artwork tetap terowongan merah sesuai acuan landing. */
-const transmissionEvent = timelineEvents.find((e) => e.id === "voices-in-the-fog");
+import { useTimelineEvent } from "@/lib/api/timeline";
 
 export function Signals() {
+  const { data } = useTimelineEvent("voices-in-the-fog");
+  const transmissionEvent = data?.data ?? null;
   return (
     <section id="signals" className="relative mx-auto max-w-7xl scroll-mt-20 px-4 py-20 sm:px-6">
       <div className="mb-8 flex items-end justify-between">
@@ -49,7 +48,10 @@ export function Signals() {
             <p className="mt-2 flex-1 text-sm leading-relaxed text-zinc-400">
               firsthand accounts, visual stories, and unfiltered perspectives from around the world.
             </p>
-            <Link href="/dock" className="btn-zine btn-blue mt-4 self-start px-5 py-2.5 text-sm max-lg:min-h-11">
+            <Link
+              href="/dock"
+              className="btn-zine btn-blue mt-4 self-start px-5 py-2.5 text-sm max-lg:min-h-11"
+            >
               EXPLORE STORIES <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -76,7 +78,10 @@ export function Signals() {
               A deeper layer of Moonwitness. Unexplained stories. Hidden connections, and what lives
               in the in-between.
             </p>
-            <Link href="/shadow" className="btn-zine btn-yellow mt-4 self-start px-5 py-2.5 text-sm max-lg:min-h-11">
+            <Link
+              href="/shadow"
+              className="btn-zine btn-yellow mt-4 self-start px-5 py-2.5 text-sm max-lg:min-h-11"
+            >
               ENTER THE SHADOW <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

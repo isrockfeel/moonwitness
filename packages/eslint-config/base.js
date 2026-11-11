@@ -43,7 +43,10 @@ function makeNode() {
         "no-console": "warn",
         "no-restricted-syntax": ["error", "LabeledStatement", "WithStatement", "DebuggerStatement"],
         "no-debugger": "error",
-        "no-unused-vars": "error",
+        "@typescript-eslint/no-unused-vars": [
+          "error",
+          { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+        ],
         "no-use-before-define": "error",
       },
     },
@@ -68,7 +71,7 @@ function makeApi() {
         "no-implicit-coercion": "error",
         "no-unused-expressions": "error",
         "no-extra-semi": "error",
-        "comma-dangle": "error",
+        // comma-dangle handled by prettier
         "eol-last": ["error", "always"],
         "no-trailing-spaces": "error",
         "spaced-comment": ["error", "always"],

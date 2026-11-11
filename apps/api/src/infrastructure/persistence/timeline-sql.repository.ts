@@ -85,7 +85,7 @@ export class SqlTimelineRepository implements ITimelineRepository {
     const limit = filters.limit ?? 100;
     const offset = filters.offset ?? 0;
 
-    const rows = getDb().all<Record<string, unknown>>(
+    const rows = await getDb().all<Record<string, unknown>>(
       `SELECT * FROM ${this.eventRepo.table}${where} ORDER BY date ASC, id ASC LIMIT ? OFFSET ?`,
       [...params, limit, offset],
     );
@@ -117,7 +117,7 @@ export class SqlTimelineRepository implements ITimelineRepository {
     }
 
     const where = clauses.length ? ` WHERE ${clauses.join(" AND ")}` : "";
-    const row = getDb().get<{ total: number }>(
+    const row = await getDb().get<{ total: number }>(
       `SELECT COUNT(*) AS total FROM ${this.eventRepo.table}${where}`,
       params,
     );
@@ -131,7 +131,7 @@ export class SqlTimelineRepository implements ITimelineRepository {
   }
 
   async getStats(): Promise<TimelineStats> {
-    const rows = getDb().all<Record<string, unknown>>(
+    const rows = await getDb().all<Record<string, unknown>>(
       `SELECT era, kind, COUNT(*) AS total FROM ${this.eventRepo.table}
        WHERE status != 'deleted' GROUP BY era, kind`,
     );

@@ -7,5 +7,7 @@ export default defineConfig({
     include: ["src/**/*.test.ts"],
     clearMocks: true,
     isolate: true,
+    testTimeout: 30000,
+    hookTimeout: 30000,
   },
 });

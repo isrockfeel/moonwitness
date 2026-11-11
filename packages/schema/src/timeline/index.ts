@@ -1,11 +1,5 @@
 import { z } from "zod";
-import type {
-  ArtKey,
-  Era,
-  EraId,
-  EventKind,
-  TimelineEvent,
-} from "@moonwitness/types";
+import type { ArtKey, Era, EraId, EventKind, TimelineEvent } from "@moonwitness/types";
 
 export const ArtKeySchema = z.enum([
   "hero-witness",

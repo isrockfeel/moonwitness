@@ -8,5 +8,7 @@ export type {
 export type { BaseMetadata, RecordStatus, RecordSource } from "./base-metadata.js";
 export { createActorContext, SYSTEM_ACTOR } from "./actor-context.js";
 export type { ActorContext, ActorSource } from "./actor-context.js";
+export { ConflictError } from "./errors.js";
 export { initDb, closeDb, getDb } from "./driver.js";
-export { BetterSqlite3Driver } from "./drivers/sqlite.driver.js";
+export { LibSqlDriver } from "./drivers/sqlite.driver.js";
+export type { LibSqlExecutor } from "./drivers/sqlite.driver.js";

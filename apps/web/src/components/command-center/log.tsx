@@ -80,7 +80,9 @@ export function MissionLog({
                 <span className="shrink-0 text-[10px] text-zinc-600">{f.ago}</span>
               </div>
             ))}
-            {feed.length === 0 && <p className="py-4 text-sm text-zinc-500">No feed items match.</p>}
+            {feed.length === 0 && (
+              <p className="py-4 text-sm text-zinc-500">No feed items match.</p>
+            )}
           </div>
         </ZineCardRough>
 

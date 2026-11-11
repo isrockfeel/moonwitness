@@ -1,4 +1,4 @@
-import type { BackgroundName, PaletteName } from "@moonwitness/avatars";
+import type { BackgroundName, PaletteName } from "./witness";
 
 /**
  * Kontrak avatar yang tersimpan per identitas.
@@ -9,7 +9,17 @@ import type { BackgroundName, PaletteName } from "@moonwitness/avatars";
  */
 export const AVATAR_STORAGE_VERSION = 1;
 
-export const DEFAULT_AVATAR_OPTIONS = {
+export interface SavedAvatarOptions {
+  palette: PaletteName;
+  background: BackgroundName;
+  radius: number;
+  halftone: boolean;
+  crown: boolean;
+  moon: boolean;
+  tape: boolean;
+}
+
+export const DEFAULT_AVATAR_OPTIONS: SavedAvatarOptions = {
   palette: "street",
   background: "ink",
   radius: 18,
@@ -17,34 +27,26 @@ export const DEFAULT_AVATAR_OPTIONS = {
   crown: true,
   moon: true,
   tape: false,
-} as const satisfies Record<string, string | number | boolean>;
+};
 
 export interface SavedAvatar {
   version: typeof AVATAR_STORAGE_VERSION;
   identity: string;
   seed: string;
-  options: {
-    palette: PaletteName;
-    background: BackgroundName;
-    radius: number;
-    halftone: boolean;
-    crown: boolean;
-    moon: boolean;
-    tape: boolean;
-  };
+  options: SavedAvatarOptions;
   updatedAt: string;
 }
 
-const PALETTES = ["street", "moon", "acid", "signal"] as const;
-const BACKGROUNDS = ["ink", "paper", "transparent"] as const;
+const PALETTES: readonly PaletteName[] = ["street", "moon", "acid", "signal"];
+const BACKGROUNDS: readonly BackgroundName[] = ["ink", "paper", "transparent"];
 
 export function normalizeSeed(seed: string): string {
   const s = seed.trim();
   return s === "" ? "WITNESS" : s;
 }
 
-function isStringList(value: unknown, list: readonly string[]): value is string {
-  return typeof value === "string" && list.includes(value);
+function isOneOf<T extends string>(value: unknown, list: readonly T[]): value is T {
+  return typeof value === "string" && (list as readonly string[]).includes(value);
 }
 
 export function validateSavedAvatar(raw: unknown): SavedAvatar | null {
@@ -56,8 +58,8 @@ export function validateSavedAvatar(raw: unknown): SavedAvatar | null {
   const o = r.options;
   if (!o || typeof o !== "object") return null;
   const op = o as Record<string, unknown>;
-  if (!isStringList(op.palette, PALETTES)) return null;
-  if (!isStringList(op.background, BACKGROUNDS)) return null;
+  if (!isOneOf(op.palette, PALETTES)) return null;
+  if (!isOneOf(op.background, BACKGROUNDS)) return null;
   if (typeof op.radius !== "number" || !Number.isFinite(op.radius)) return null;
   if (typeof op.halftone !== "boolean") return null;
   if (typeof op.crown !== "boolean") return null;
@@ -83,21 +85,18 @@ export function validateSavedAvatar(raw: unknown): SavedAvatar | null {
 export function buildSavedAvatar(
   identity: string,
   seed: string,
-  options: Omit<SavedAvatar["options"], "palette" | "background"> & {
-    palette?: string;
-    background?: string;
-  },
+  options: SavedAvatarOptions,
 ): SavedAvatar | null {
-  const palette = options.palette;
-  const background = options.background;
-  if (!isStringList(palette, PALETTES) || !isStringList(background, BACKGROUNDS)) return null;
+  if (!isOneOf(options.palette, PALETTES)) return null;
+  if (!isOneOf(options.background, BACKGROUNDS)) return null;
+  if (!Number.isFinite(options.radius)) return null;
   return {
     version: AVATAR_STORAGE_VERSION,
     identity,
     seed: normalizeSeed(seed),
     options: {
-      palette,
-      background,
+      palette: options.palette,
+      background: options.background,
       radius: options.radius,
       halftone: options.halftone,
       crown: options.crown,

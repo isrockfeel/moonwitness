@@ -1,5 +1,5 @@
 import type { TimelineEvent, Era } from "@moonwitness/types";
-import type { TimelineFilters, TimelineStats } from "./timeline.repository";
+import type { TimelineStats } from "./timeline.repository";
 import type { Result } from "@moonwitness/core";
 import { ok, err } from "@moonwitness/core";
 import { NotFoundError } from "../../errors";
@@ -35,40 +35,30 @@ export interface GetTimelineErasResponse {
 export interface ITimelineUseCase {
   listEvents(
     request: ListTimelineEventsRequest,
-    actor: ActorContext,
+    _actor: ActorContext,
   ): Promise<Result<ListTimelineEventsResponse, Error>>;
-  getEvent(
-    id: string,
-    actor: ActorContext,
-  ): Promise<Result<GetTimelineEventResponse, Error>>;
-  getStats(
-    actor: ActorContext,
-  ): Promise<Result<GetTimelineStatsResponse, Error>>;
-  getEras(
-    actor: ActorContext,
-  ): Promise<Result<GetTimelineErasResponse, Error>>;
+  getEvent(id: string, _actor: ActorContext): Promise<Result<GetTimelineEventResponse, Error>>;
+  getStats(_actor: ActorContext): Promise<Result<GetTimelineStatsResponse, Error>>;
+  getEras(_actor: ActorContext): Promise<Result<GetTimelineErasResponse, Error>>;
 }
 
 export class TimelineUseCase implements ITimelineUseCase {
-  constructor(
-    private readonly repository: import("./timeline.repository").ITimelineRepository,
-  ) {}
+  constructor(private readonly repository: import("./timeline.repository").ITimelineRepository) {}
 
   async listEvents(
-    request: ListTimelineEventsRequest,
-    actor: ActorContext = SYSTEM_ACTOR,
+    _request: ListTimelineEventsRequest,
+    _actor: ActorContext = SYSTEM_ACTOR,
   ): Promise<Result<ListTimelineEventsResponse, Error>> {
-    const filters: TimelineFilters = { ...request };
     const [data, total] = await Promise.all([
-      this.repository.listEvents(filters),
-      this.repository.countEvents(filters),
+      this.repository.listEvents({}),
+      this.repository.countEvents({}),
     ]);
     return ok({ data, total });
   }
 
   async getEvent(
     id: string,
-    actor: ActorContext = SYSTEM_ACTOR,
+    _actor: ActorContext = SYSTEM_ACTOR,
   ): Promise<Result<GetTimelineEventResponse, Error>> {
     const event = await this.repository.getEvent(id);
     if (!event) {
@@ -78,14 +68,14 @@ export class TimelineUseCase implements ITimelineUseCase {
   }
 
   async getStats(
-    actor: ActorContext = SYSTEM_ACTOR,
+    _actor: ActorContext = SYSTEM_ACTOR,
   ): Promise<Result<GetTimelineStatsResponse, Error>> {
     const stats = await this.repository.getStats();
     return ok({ data: stats });
   }
 
   async getEras(
-    actor: ActorContext = SYSTEM_ACTOR,
+    _actor: ActorContext = SYSTEM_ACTOR,
   ): Promise<Result<GetTimelineErasResponse, Error>> {
     const eras = await this.repository.getEras();
     return ok({ data: eras });

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { SkipLink } from "@moonwitness/ui";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 // Saksi — proprietary MoonWitness type family (see packages/assets/fonts).
@@ -43,7 +44,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" className={`${brush.variable} ${hand.variable} ${mono.variable}`}>
       <body className="min-h-screen antialiased">
         <SkipLink />
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

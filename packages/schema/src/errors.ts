@@ -16,9 +16,7 @@ export const TimelineEventListResponseSchema = z.object({
   total: z.number().int(),
 });
 
-export type TimelineEventListResponse = z.infer<
-  typeof TimelineEventListResponseSchema
->;
+export type TimelineEventListResponse = z.infer<typeof TimelineEventListResponseSchema>;
 
 export const TimelineEventResponseSchema = z.object({
   data: z.any(),
@@ -38,9 +36,7 @@ export const TimelineStatsResponseSchema = z.object({
   data: TimelineStatsSchema,
 });
 
-export type TimelineStatsResponse = z.infer<
-  typeof TimelineStatsResponseSchema
->;
+export type TimelineStatsResponse = z.infer<typeof TimelineStatsResponseSchema>;
 
 export const EraListResponseSchema = z.object({
   data: z.array(z.any()),

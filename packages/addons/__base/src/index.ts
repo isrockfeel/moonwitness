@@ -20,7 +20,7 @@ export async function registerBaseAddon(fastify: FastifyInstance): Promise<void>
   fastify.get("/_meta/models/:name", async (request, reply) => {
     const { name } = request.params as { name: string };
     const columns = getDb().all<Record<string, unknown>>(
-      "SELECT name, type, \"notnull\", dflt_value FROM pragma_table_info(?)",
+      'SELECT name, type, "notnull", dflt_value FROM pragma_table_info(?)',
       [name],
     );
     if (!columns.length) {

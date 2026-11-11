@@ -36,7 +36,9 @@ export function Crew() {
         <CrewConstellation
           witnesses={witnesses}
           stats={crewStats}
-          backdrop={<AtmosphereField variant="crew" className="inset-0 mix-blend-screen opacity-70" />}
+          backdrop={
+            <AtmosphereField variant="crew" className="inset-0 mix-blend-screen opacity-70" />
+          }
           cta={
             <Link href="/shadow" className="btn-zine btn-blue px-5 py-3 text-base">
               EXPLORE THE CREW <ArrowRight className="h-4 w-4" />

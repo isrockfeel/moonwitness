@@ -1,17 +1,21 @@
 import type { ITimelineRepository } from "../../domain/usecases/timeline/timeline.repository";
 import type { TimelineEvent, Era } from "@moonwitness/types";
-import type { TimelineFilters, TimelineStats } from "../../domain/usecases/timeline/timeline.repository";
+import type {
+  TimelineFilters,
+  TimelineStats,
+} from "../../domain/usecases/timeline/timeline.repository";
 
 export interface IEventDataSource {
-  listEvents(filters: TimelineFilters): Promise<TimelineEvent[]>;
-  countEvents(filters: TimelineFilters): Promise<number>;
-  getEvent(id: string): Promise<TimelineEvent | null>;
+  listEvents(_filters: TimelineFilters): Promise<TimelineEvent[]>;
+  countEvents(_filters: TimelineFilters): Promise<number>;
+  getEvent(_id: string): Promise<TimelineEvent | null>;
   getStats(): Promise<TimelineStats>;
   getEras(): Promise<Era[]>;
 }
 
 export class EventDataSource implements IEventDataSource {
-  constructor(private readonly repository: ITimelineRepository) {}
+  // eslint-disable-next-line no-unused-vars
+  constructor(private readonly _repository: ITimelineRepository) {}
 
   async listEvents(filters: TimelineFilters): Promise<TimelineEvent[]> {
     return this.repository.listEvents(filters);

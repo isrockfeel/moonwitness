@@ -3,8 +3,4 @@ export function registerBaseAddon(db: any): void {
   console.log("Base addon registered");
 }
 
-export const systemModels = [
-  "users",
-  "settings",
-  "health_check",
-];
+export const systemModels = ["users", "settings", "health_check"];

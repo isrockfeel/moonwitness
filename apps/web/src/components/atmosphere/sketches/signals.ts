@@ -48,7 +48,10 @@ export function signalsSketch(cities: MapCity[], opts: { density: number }) {
     };
 
     const seedMotes = () => {
-      const count = Math.max(16, Math.min(64, Math.round(((p.width * p.height) / 9000) * opts.density)));
+      const count = Math.max(
+        16,
+        Math.min(64, Math.round(((p.width * p.height) / 9000) * opts.density)),
+      );
       motes = [];
       for (let i = 0; i < count; i++) {
         motes.push({
@@ -65,7 +68,13 @@ export function signalsSketch(cities: MapCity[], opts: { density: number }) {
         const a = Math.floor(p.random(n));
         let b = Math.floor(p.random(n));
         if (b === a) b = (a + 1) % Math.max(1, n);
-        arcs.push({ a, b, t: p.random(), speed: 0.004 + p.random(0.006), c: i % Math.max(1, rgb.length) });
+        arcs.push({
+          a,
+          b,
+          t: p.random(),
+          speed: 0.004 + p.random(0.006),
+          c: i % Math.max(1, rgb.length),
+        });
       }
     };
 

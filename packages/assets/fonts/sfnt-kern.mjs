@@ -27,19 +27,31 @@ function buildKernTable(pairs) {
   const subLen = 14 + 6 * n;
   const buf = Buffer.alloc(pad4(4 + subLen));
   let o = 0;
-  buf.writeUInt16BE(0, o); o += 2; // version
-  buf.writeUInt16BE(1, o); o += 2; // nTables
-  buf.writeUInt16BE(0, o); o += 2; // subtable version
-  buf.writeUInt16BE(subLen, o); o += 2;
-  buf.writeUInt16BE(0x0001, o); o += 2; // coverage: horizontal, format 0
-  buf.writeUInt16BE(n, o); o += 2;
-  buf.writeUInt16BE(searchRange, o); o += 2;
-  buf.writeUInt16BE(pow, o); o += 2;
-  buf.writeUInt16BE(2 * n - searchRange, o); o += 2;
+  buf.writeUInt16BE(0, o);
+  o += 2; // version
+  buf.writeUInt16BE(1, o);
+  o += 2; // nTables
+  buf.writeUInt16BE(0, o);
+  o += 2; // subtable version
+  buf.writeUInt16BE(subLen, o);
+  o += 2;
+  buf.writeUInt16BE(0x0001, o);
+  o += 2; // coverage: horizontal, format 0
+  buf.writeUInt16BE(n, o);
+  o += 2;
+  buf.writeUInt16BE(searchRange, o);
+  o += 2;
+  buf.writeUInt16BE(pow, o);
+  o += 2;
+  buf.writeUInt16BE(2 * n - searchRange, o);
+  o += 2;
   for (const p of sorted) {
-    buf.writeUInt16BE(p.left, o); o += 2;
-    buf.writeUInt16BE(p.right, o); o += 2;
-    buf.writeInt16BE(p.value, o); o += 2;
+    buf.writeUInt16BE(p.left, o);
+    o += 2;
+    buf.writeUInt16BE(p.right, o);
+    o += 2;
+    buf.writeInt16BE(p.value, o);
+    o += 2;
   }
   return buf;
 }

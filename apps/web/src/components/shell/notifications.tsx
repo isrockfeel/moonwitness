@@ -32,14 +32,24 @@ export function Notifications({ open, onToggle }: NotificationsProps) {
         </span>
       </button>
       {open && (
-        <div className="zine-card absolute right-0 top-12 w-80 p-3" role="dialog" aria-label="Notifications">
+        <div
+          className="zine-card absolute right-0 top-12 w-80 p-3"
+          role="dialog"
+          aria-label="Notifications"
+        >
           <div className="mb-2 flex items-center justify-between px-1">
             <span className="font-brush text-sm text-[var(--yellow)]">COMMAND FEED</span>
             <span className="text-[10px] text-zinc-500">3 unread</span>
           </div>
           {feedItems.slice(0, 3).map((f) => (
-            <div key={f.id} className="flex items-start gap-2 border-t border-[var(--line)] px-1 py-2.5">
-              <span className="mt-1 h-2 w-2 shrink-0 rounded-full" style={{ background: f.color }} />
+            <div
+              key={f.id}
+              className="flex items-start gap-2 border-t border-[var(--line)] px-1 py-2.5"
+            >
+              <span
+                className="mt-1 h-2 w-2 shrink-0 rounded-full"
+                style={{ background: f.color }}
+              />
               <div>
                 <p className="text-xs leading-snug text-zinc-200">{f.text}</p>
                 <p className="mt-0.5 text-[10px] text-zinc-500">{f.ago}</p>
