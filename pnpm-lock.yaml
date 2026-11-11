@@ -316,6 +316,18 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  packages/addons/__base:
+    dependencies:
+      '@moonwitness/orm':
+        specifier: workspace:*
+        version: link:../../orm
+
+  packages/addons/timeline:
+    dependencies:
+      '@moonwitness/orm':
+        specifier: workspace:^
+        version: link:../../orm
+
   packages/assets:
     dependencies:
       '@moonwitness/types':
