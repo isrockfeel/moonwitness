@@ -1,7 +1,7 @@
 import { Suspense } from "react";
-import { MissionControl } from "@/components/mission-control";
+import { CommandCenter } from "@/components/command-center";
 
-export const metadata = { title: "Mission Control" };
+export const metadata = { title: "Shadow Command Center" };
 
 export default function MissionControlPage() {
   return (
@@ -12,7 +12,7 @@ export default function MissionControlPage() {
         </div>
       }
     >
-      <MissionControl />
+      <CommandCenter />
     </Suspense>
   );
 }

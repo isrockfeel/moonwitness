@@ -284,21 +284,6 @@ body {
     animation-play-state: paused;
   }
 
-  /* ---- orbit diagram ---- */
-  @keyframes spin-slow {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  .orbit-ring {
-    transform-origin: center;
-    animation: spin-slow 60s linear infinite;
-  }
-  .orbit-ring-rev {
-    transform-origin: center;
-    animation: spin-slow 90s linear infinite reverse;
-  }
-
   @keyframes pulse-dot {
     0%,
     100% {
@@ -424,8 +409,6 @@ body {
 /* Unlayered dengan sengaja: harus menang atas utility supaya animasi bisa dimatikan. */
 @media (prefers-reduced-motion: reduce) {
   .marquee-track,
-  .orbit-ring,
-  .orbit-ring-rev,
   .pulse-dot,
   .neon-flicker,
   .float-y,
