@@ -1,16 +1,13 @@
 # Auto-labeler configuration
 # Labels are applied based on file paths and PR content
 
-# Bug fixes
 bug:
-  - "*.bug.md"
   - "**/bug/**"
   - "**/fix*.ts"
   - "**/fix*.tsx"
   - "**/*bug*.ts"
   - "**/bug*.ts"
 
-# New features
 feature:
   - "**/features/**"
   - "**/feat*.ts"
@@ -18,14 +15,12 @@ feature:
   - "apps/**/features/**"
   - "packages/**/features/**"
 
-# Documentation
 documentation:
   - "*.md"
   - "docs/**"
   - "README*"
   - "CHANGELOG*"
 
-# Dependencies
 dependencies:
   - "package.json"
   - "pnpm-lock.yaml"
@@ -35,7 +30,6 @@ dependencies:
   - "Cargo.toml"
   - "Cargo.lock"
 
-# Configuration
 configuration:
   - ".github/**"
   - "*.config.*"
@@ -45,7 +39,6 @@ configuration:
   - "*.config.yaml"
   - "*.config.yml"
 
-# CI/CD
 ci-cd:
   - ".github/workflows/**"
   - ".github/actions/**"
@@ -54,7 +47,6 @@ ci-cd:
   - "docker-compose*.yaml"
   - "docker-compose.yml"
 
-# Testing
 test:
   - "*.test.ts"
   - "*.test.tsx"
@@ -65,13 +57,11 @@ test:
   - "*.test.go"
   - "**/*_test.go"
 
-# Refactoring
 refactor:
   - "**/*.ts"
   - "**/*.tsx"
   - "**/*.go"
 
-# Build
 build:
   - "turbo.json"
   - "pnpm-workspace.yaml"
@@ -82,26 +72,21 @@ build:
   - "vite.config.ts"
   - "next.config.*"
 
-# Security
 security:
   - ".github/workflows/codeql*.yml"
   - ".github/dependabot.yml"
-  - "*.sarif"
 
-# Documentation
 docs:
   - "docs/**"
   - "*.md"
   - "README*"
 
-# Database
 database:
   - "*.sql"
   - "migrations/**"
   - "prisma/**"
   - "schema.prisma"
 
-# Infrastructure
 infrastructure:
   - "terraform/**"
   - "*.tf"
@@ -110,14 +95,12 @@ infrastructure:
   - "*.yaml"
   - "*.yml"
 
-# Scripts
 scripts:
   - "scripts/**"
   - "*.sh"
   - "Makefile"
   - "makefile"
 
-# UI/UX
 ui:
   - "apps/web/src/components/**"
   - "apps/web/src/styles/**"
@@ -126,7 +109,6 @@ ui:
   - "*.sass"
   - "tailwind.config.*"
 
-# API
 api:
   - "apps/api/**"
   - "*.api.ts"
@@ -134,40 +116,34 @@ api:
   - "*.controller.ts"
   - "*.route.ts"
 
-# Database migrations
 migrations:
   - "migrations/**"
   - "*migration*.ts"
   - "*migration*.sql"
 
-# Types
 types:
   - "*.d.ts"
   - "types/**"
   - "types.d.ts"
   - "*.types.ts"
 
-# Linting/Formatting
 lint:
   - ".eslintrc*"
   - ".prettierrc*"
   - ".prettierignore"
   - "eslint.config.*"
 
-# Environment
 env:
   - ".env*"
   - "!.env.example"
   - "!.env.local"
   - ".envrc"
 
-# Docker
 docker:
   - "Dockerfile*"
   - "docker-compose*"
   - ".dockerignore"
 
-# Kubernetes
 kubernetes:
   - "k8s/**"
   - "kubernetes/**"
@@ -176,31 +152,26 @@ kubernetes:
   - "helm/**"
   - "*.helm.yaml"
 
-# Monitoring
 monitoring:
   - "prometheus/**"
   - "grafana/**"
   - "alerting/**"
   - "*.rules.yml"
 
-# Logging
 logging:
   - "logs/**"
   - "*.log"
   - "logger*"
 
-# Performance
 performance:
   - "*.bench.ts"
   - "*.bench.tsx"
   - "benchmark/**"
 
-# Accessibility
 accessibility:
   - "**/a11y/**"
   - "*a11y*"
 
-# Internationalization
 i18n:
   - "locales/**"
   - "i18n/**"
@@ -208,7 +179,6 @@ i18n:
   - "*.po"
   - "*.pot"
 
-# Data
 data:
   - "data/**"
   - "*.csv"
@@ -216,7 +186,6 @@ data:
   - "*.yaml"
   - "*.yml"
 
-# Assets
 assets:
   - "public/**"
   - "assets/**"
@@ -224,14 +193,12 @@ assets:
   - "images/**"
   - "fonts/**"
 
-# Vendor
 vendor:
   - "vendor/**"
   - "node_modules/**"
   - "vendor/**"
   - "third_party/**"
 
-# Generated
 generated:
   - "generated/**"
   - "dist/**"
@@ -241,7 +208,6 @@ generated:
   - ".turbo/**"
   - ".vercel/**"
 
-# Temporary
 temp:
   - "tmp/**"
   - "temp/**"
@@ -250,7 +216,6 @@ temp:
   - ".tmp/**"
   - "*.log"
 
-# IDE
 ide:
   - ".vscode/**"
   - ".idea/**"
@@ -258,7 +223,6 @@ ide:
   - "*.swo"
   - "*.sublime-*"
 
-# OS
 os:
   - ".DS_Store"
   - "Thumbs.db"
@@ -266,7 +230,6 @@ os:
   - "*.swo"
   - "~$*"
 
-# Misc
 misc:
   - "*.txt"
   - "*.rtf"
@@ -274,3 +237,65 @@ misc:
   - "*.xml"
   - "*.xsd"
   - "*.wsdl"
+
+accessibility:
+  - "**/a11y/**"
+  - "*a11y*"
+
+i18n:
+  - "locales/**"
+  - "i18n/**"
+  - "*.json"
+  - "*.po"
+  - "*.pot"
+
+data:
+  - "data/**"
+  - "*.csv"
+  - "*.json"
+  - "*.yaml"
+  - "*.yml"
+
+assets:
+  - "public/**"
+  - "assets/**"
+  - "static/**"
+  - "images/**"
+  - "fonts/**"
+
+vendor:
+  - "vendor/**"
+  - "node_modules/**"
+  - "vendor/**"
+  - "third_party/**"
+
+generated:
+  - "generated/**"
+  - "dist/**"
+  - "build/**"
+  - "out/**"
+  - ".next/**"
+  - ".turbo/**"
+  - ".vercel/**"
+
+temp:
+  - "tmp/**"
+  - "temp/**"
+  - "*.tmp"
+  - "*.temp"
+  - ".tmp/**"
+  - "*.log"
+
+ide:
+  - ".vscode/**"
+  - ".idea/**"
+  - "*.swp"
+  - "*.swo"
+  - "*.sublime-*"
+
+os:
+  - ".DS_Store"
+  - "Thumbs.db"
+  - "*.swp"
+  - "*.swo"
+  - "~$*"
