@@ -1,7 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import Fastify, { type FastifyInstance } from "fastify";
 
-// Rate limiting di control.routes dikonfigurasi dari env saat modul dimuat,
-// jadi modul harus di-import ulang per skenario dengan env berbeda.
 async function loadRoutes(max: string) {
   vi.resetModules();
   process.env.ARSY_AUTH_RATE_MAX = max;
@@ -9,107 +8,84 @@ async function loadRoutes(max: string) {
   return import("./control.routes");
 }
 
-// Fastify minimal stub: hanya merekam handler agar bisa dipanggil langsung.
-function makeStub() {
-  const handlers = new Map<string, (req: unknown, reply: unknown) => Promise<unknown>>();
-  const fastify = {
-    get: (path: string, handler: never) => handlers.set(`GET ${path}`, handler),
-    post: (path: string, handler: never) => handlers.set(`POST ${path}`, handler),
-    delete: (path: string, handler: never) => handlers.set(`DELETE ${path}`, handler),
-    put: (path: string, handler: never) => handlers.set(`PUT ${path}`, handler),
-  };
-  return { fastify, handlers };
-}
-
-function makeReply() {
-  const state: { code?: number; body?: unknown; headers: Record<string, unknown> } = {
-    headers: {},
-  };
-  const reply = {
-    code(n: number) {
-      state.code = n;
-      return reply;
-    },
-    header(k: string, v: unknown) {
-      state.headers[k] = v;
-      return reply;
-    },
-    send(body: unknown) {
-      state.body = body;
-      return reply;
-    },
-  };
-  return { reply, state };
-}
-
 describe("control routes auth rate limiting", () => {
   const envBackup = { ...process.env };
+  let app: FastifyInstance | null = null;
 
   beforeEach(() => {
     process.env = { ...envBackup };
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    if (app) {
+      await app.close();
+      app = null;
+    }
     process.env = { ...envBackup };
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
   it("menolak permintaan auth setelah batas per-IP terlampaui", async () => {
-    const { controlRoutes } = await loadRoutes("2");
-    const { fastify, handlers } = makeStub();
-    await controlRoutes(fastify as never);
-
-    const handler = handlers.get("POST /control/auth/:path");
-    expect(handler).toBeDefined();
-
-    // Upstream tidak tersedia -> forwardAuth mengembalikan 502, bukan 429.
-    const fetchMock = vi.fn().mockRejectedValue(new Error("offline"));
-    vi.stubGlobal("fetch", fetchMock);
-
-    const request = {
-      params: { path: "login" },
-      method: "POST",
-      url: "/api/v1/control/auth/login",
-      headers: {},
-      ip: "10.1.2.3",
-      protocol: "http",
-      log: { warn: vi.fn() },
-      body: { email: "a@b.c" },
-    };
-
-    for (const expected of [502, 502]) {
-      const { reply, state } = makeReply();
-      await handler!(request, reply);
-      expect(state.code).toBe(expected);
-    }
-
-    // Permintaan ketiga melewati kuota -> 429 dan tidak memanggil upstream lagi.
-    const { reply, state } = makeReply();
-    await handler!(request, reply);
-    expect(state.code).toBe(429);
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-  });
-
-  it("mengirim header x-ratelimit pada respons auth", async () => {
-    const { controlRoutes } = await loadRoutes("5");
-    const { fastify, handlers } = makeStub();
-    await controlRoutes(fastify as never);
-
+    // Upstream arsy tidak tersedia -> forwardAuth berakhir 502, bukan 429.
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
 
-    const handler = handlers.get("GET /control/auth/:path")!;
-    const request = {
-      params: { path: "me" },
+    const { controlRoutes } = await loadRoutes("2");
+    app = Fastify({ logger: false });
+    await app.register(controlRoutes);
+    await app.ready();
+
+    const inject = () =>
+      app!.inject({
+        method: "POST",
+        url: "/control/auth/login",
+        payload: { email: "a@b.c" },
+        remoteAddress: "10.1.2.3",
+      });
+
+    const first = await inject();
+    const second = await inject();
+    expect(first.statusCode).toBe(502);
+    expect(second.statusCode).toBe(502);
+
+    const third = await inject();
+    expect(third.statusCode).toBe(429);
+    expect(third.json().message).toContain("terlalu banyak");
+  });
+
+  it("mengirim header rate limit pada respons auth", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+
+    const { controlRoutes } = await loadRoutes("5");
+    app = Fastify({ logger: false });
+    await app.register(controlRoutes);
+    await app.ready();
+
+    const res = await app.inject({
       method: "GET",
-      url: "/api/v1/control/auth/me",
-      headers: {},
-      ip: "10.9.9.9",
-      protocol: "http",
-      log: { warn: vi.fn() },
-    };
-    const { reply, state } = makeReply();
-    await handler(request, reply);
-    expect(state.headers["x-ratelimit-limit"]).toBe(5);
-    expect(state.headers["x-ratelimit-remaining"]).toBe(4);
+      url: "/control/auth/me",
+      remoteAddress: "10.9.9.9",
+    });
+    expect(res.statusCode).toBe(502);
+    expect(res.headers["x-ratelimit-limit"]).toBe("5");
+    expect(res.headers["x-ratelimit-remaining"]).toBe("4");
+  });
+
+  it("tidak membatasi route baca non-auth secara berlebihan", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    const { controlRoutes } = await loadRoutes("1");
+    app = Fastify({ logger: false });
+    await app.register(controlRoutes);
+    await app.ready();
+
+    // Route di luar scope auth tetap dijangkau berulang tanpa 429.
+    for (let i = 0; i < 3; i += 1) {
+      const res = await app.inject({
+        method: "GET",
+        url: "/control/host",
+        remoteAddress: "10.5.5.5",
+      });
+      expect(res.statusCode).not.toBe(429);
+    }
   });
 });

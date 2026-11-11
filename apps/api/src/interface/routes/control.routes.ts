@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { createRateLimiter } from "../../infrastructure/rate-limit";
+import rateLimit from "@fastify/rate-limit";
 
 const ARSY_URL = process.env.ARSY_URL ?? "http://127.0.0.1:8787";
 const ARSY_TOKEN_READONLY = process.env.ARSY_TOKEN_READONLY ?? "";
@@ -152,58 +152,51 @@ async function forward(request: FastifyRequest, reply: FastifyReply, subPath: st
 }
 
 export async function controlRoutes(fastify: FastifyInstance) {
-  const authLimiter = createRateLimiter({ max: AUTH_RATE_MAX, windowMs: AUTH_RATE_WINDOW_MS });
+  // Endpoint auth/setup meneruskan kredensial ke control plane, jadi dipisah
+  // ke scope sendiri dengan @fastify/rate-limit per-IP (brute-force guard).
+  await fastify.register(async (authScope) => {
+    await authScope.register(rateLimit, {
+      max: AUTH_RATE_MAX,
+      timeWindow: AUTH_RATE_WINDOW_MS,
+      keyGenerator: (request) => clientIp(request as FastifyRequest),
+      errorResponseBuilder: () => ({
+        statusCode: 429,
+        error: "Too Many Requests",
+        message: "terlalu banyak percobaan; coba lagi nanti",
+      }),
+    });
 
-  // Nama fungsi sengaja memakai awalan "rateLimit" agar cocok dengan pola
-  // yang dikenali CodeQL (js/missing-rate-limiting) maupun reviewer manusia.
-  function rateLimitAuth(request: FastifyRequest, reply: FastifyReply): boolean {
-    const result = authLimiter.check(clientIp(request));
-    reply.header("x-ratelimit-limit", AUTH_RATE_MAX);
-    reply.header("x-ratelimit-remaining", result.remaining);
-    if (!result.allowed) {
-      reply
-        .code(429)
-        .header("retry-after", Math.ceil(result.retryAfterMs / 1000))
-        .send({ error: "terlalu banyak percobaan; coba lagi nanti" });
-      return false;
-    }
-    return true;
-  }
+    authScope.get<{ Params: { path: string } }>("/control/setup/:path", async (request, reply) => {
+      const { path } = request.params;
+      if (!SETUP_PATHS.has(path)) {
+        return reply.code(404).send({ error: `path setup tidak dikenal: ${path}` });
+      }
+      return forwardAuth(request, reply, `setup/${path}`);
+    });
 
-  fastify.get<{ Params: { path: string } }>("/control/setup/:path", async (request, reply) => {
-    if (!rateLimitAuth(request, reply)) return reply;
-    const { path } = request.params;
-    if (!SETUP_PATHS.has(path)) {
-      return reply.code(404).send({ error: `path setup tidak dikenal: ${path}` });
-    }
-    return forwardAuth(request, reply, `setup/${path}`);
-  });
+    authScope.post<{ Params: { path: string } }>("/control/setup/:path", async (request, reply) => {
+      const { path } = request.params;
+      if (!SETUP_PATHS.has(path)) {
+        return reply.code(404).send({ error: `path setup tidak dikenal: ${path}` });
+      }
+      return forwardAuth(request, reply, `setup/${path}`);
+    });
 
-  fastify.post<{ Params: { path: string } }>("/control/setup/:path", async (request, reply) => {
-    if (!rateLimitAuth(request, reply)) return reply;
-    const { path } = request.params;
-    if (!SETUP_PATHS.has(path)) {
-      return reply.code(404).send({ error: `path setup tidak dikenal: ${path}` });
-    }
-    return forwardAuth(request, reply, `setup/${path}`);
-  });
+    authScope.get<{ Params: { path: string } }>("/control/auth/:path", async (request, reply) => {
+      const { path } = request.params;
+      if (!AUTH_PATHS.has(path)) {
+        return reply.code(404).send({ error: `path auth tidak dikenal: ${path}` });
+      }
+      return forwardAuth(request, reply, `auth/${path}`);
+    });
 
-  fastify.get<{ Params: { path: string } }>("/control/auth/:path", async (request, reply) => {
-    if (!rateLimitAuth(request, reply)) return reply;
-    const { path } = request.params;
-    if (!AUTH_PATHS.has(path)) {
-      return reply.code(404).send({ error: `path auth tidak dikenal: ${path}` });
-    }
-    return forwardAuth(request, reply, `auth/${path}`);
-  });
-
-  fastify.post<{ Params: { path: string } }>("/control/auth/:path", async (request, reply) => {
-    if (!rateLimitAuth(request, reply)) return reply;
-    const { path } = request.params;
-    if (!AUTH_PATHS.has(path)) {
-      return reply.code(404).send({ error: `path auth tidak dikenal: ${path}` });
-    }
-    return forwardAuth(request, reply, `auth/${path}`);
+    authScope.post<{ Params: { path: string } }>("/control/auth/:path", async (request, reply) => {
+      const { path } = request.params;
+      if (!AUTH_PATHS.has(path)) {
+        return reply.code(404).send({ error: `path auth tidak dikenal: ${path}` });
+      }
+      return forwardAuth(request, reply, `auth/${path}`);
+    });
   });
 
   fastify.get("/control/status", async (request, reply) => {
