@@ -31,6 +31,20 @@ Actions are pinned to immutable commit SHAs with the resolved version in a trail
 Dependabot updates them weekly; review the diff before merging, because a pinned action cannot be
 retagged under you.
 
+## Automation
+
+- `allow_auto_merge` is enabled on the repository.
+- Release Please enables auto-merge on the release PR it creates.
+- `promote.yml` opens a promotion PR with auto-merge enabled.
+
+### Limitation (GitHub rule)
+
+Pull requests created with the default `GITHUB_TOKEN` do not trigger workflow runs, so required
+status checks would never appear and auto-merge would never fire. For a fully hands-off flow, store
+a PAT with `repo` scope as `AUTOMATION_TOKEN` and switch the workflows to use it. Until then, a
+human (or a local `gh` call with a PAT) must open the promotion PR; auto-merge still handles the
+merge once checks pass.
+
 ## Concurrency
 
 `ci.yml` and `codeql.yml` cancel superseded runs on the same ref. `release-please.yml` does not
