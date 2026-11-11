@@ -22,3 +22,7 @@ export { CrewConstellation, type CrewConstellationProps } from "./composites/cre
 export { MODULE_GLYPHS } from "./composites/module-glyphs";
 export { ModuleGlyph, type ModuleGlyphProps } from "./composites/module-glyph";
 export { ModuleCard, type ModuleCardProps } from "./composites/module-card";
+export { StatBlock } from "./composites/stat-block";
+export { StatusBadge } from "./composites/status-badge";
+export { QuickActionGrid, type QuickActionGridProps } from "./composites/quick-action-grid";
+export { WorkspaceList, type WorkspaceListProps } from "./composites/workspace-list";
