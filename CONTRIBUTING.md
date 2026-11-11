@@ -3,10 +3,10 @@
 ## Before you start
 
 ```sh
-corepack enable                 # or install pnpm 12.18.0
+corepack enable            # or install the pnpm version pinned in package.json
 pnpm install
-pnpm hooks:install              # optional: pre-push branch guard + gate
-pnpm gate:doctor                # confirms the toolchain
+pnpm hooks:install         # optional: pre-push branch guard + gate
+pnpm gate:doctor           # confirms toolchain, git identity, remote, branch
 ```
 
 Work happens on `dev`. Never commit directly to `main` or `master` — the remote rejects it and the
@@ -20,13 +20,12 @@ git pull --ff-only
 git switch -c feat/your-change
 
 # edit
-pnpm gate:quick                 # format, lint, typecheck — seconds
+pnpm gate:quick            # format, lint, typecheck — seconds
 
-# commit
 git add <specific files>
 git commit -m "feat(scope): short lowercase summary"
 
-pnpm gate:push                  # full verification before it leaves your machine
+pnpm gate:push             # full verification before it leaves your machine
 git push origin HEAD:refs/heads/dev
 ```
 
@@ -48,13 +47,13 @@ Allowed types: `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`
 
 - Subject lowercase, no trailing period, 72 characters or fewer.
 - `feat!:` or a `BREAKING CHANGE:` footer marks a breaking change.
-- One logical change per commit. Do not mix formatting-only churn with behaviour changes.
+- One logical change per commit. Do not mix formatting churn with behaviour changes.
 
 ## Pull requests
 
 - Target `dev`. Promotion PRs to `main` are opened by the owner.
 - Paste the gate output you actually ran. If you did not run `gate:local`, say so.
-- Keep the PR description focused on why, not what — the diff shows what.
+- Keep the description focused on why; the diff shows what.
 
 ## Code expectations
 
@@ -63,7 +62,7 @@ Allowed types: `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`
 - Tests: `vitest`. A behaviour change needs a test that fails without the change.
 - Formatting is Prettier's job; do not hand-format and do not fight it in review.
 
-## What the gates will reject
+## What the gates reject
 
 | Symptom                  | Gate                 | Fix                                                     |
 | ------------------------ | -------------------- | ------------------------------------------------------- |

@@ -147,13 +147,13 @@ function commitRange() {
 }
 
 function stepToolchain(gate) {
+  const before = gate.results.length;
   const major = Number(process.version.slice(1).split(".")[0]);
   gate.add(
     major >= 20 ? STATE.PASS : STATE.FAIL,
     "node-version",
     `${process.version} (requires >=20)`,
   );
-
   const pnpm = run("pnpm", ["--version"]);
   if (pnpm.code !== 0) {
     gate.add(STATE.FAIL, "pnpm", "pnpm is not resolvable on PATH");
@@ -180,6 +180,8 @@ function stepToolchain(gate) {
     "workspace",
     "pnpm-workspace.yaml",
   );
+
+  return gate.results.slice(before).every((r) => r.state === STATE.PASS || r.state === STATE.NA);
 }
 
 function stepCommand(gate, step, cmd, args, options = {}) {
@@ -306,16 +308,14 @@ function stepCommitMessages(gate) {
 }
 
 function quickSteps(gate) {
-  stepToolchain(gate);
-  if (!gate.passed()) return;
+  if (!stepToolchain(gate)) return;
   stepCommand(gate, "format", "pnpm", ["format:check"]);
   stepCommand(gate, "lint", "pnpm", ["lint", "--filter=@moonwitness/*"]);
   stepCommand(gate, "typecheck", "pnpm", ["typecheck", "--filter=@moonwitness/*"]);
 }
 
 function localSteps(gate) {
-  stepToolchain(gate);
-  if (!gate.passed()) return;
+  if (!stepToolchain(gate)) return;
   stepCommand(gate, "install", "pnpm", ["install", "--frozen-lockfile"]);
   stepCommand(gate, "format", "pnpm", ["format:check"]);
   stepCommand(gate, "lint", "pnpm", ["lint"]);
