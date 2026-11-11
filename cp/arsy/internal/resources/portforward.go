@@ -18,6 +18,7 @@ type PortForward struct {
 }
 
 const pfChain = "prerouting"
+const pfForwardChain = "forward"
 const pfTable = "arsy"
 const pfMarker = "arsy:pf:"
 
@@ -64,12 +65,48 @@ func (p *PortForward) Validate(r Resource) error {
 	return nil
 }
 
+// ensureChain menyiapkan chain DNAT dan chain forward.
+// DNAT saja tidak cukup: paket yang diteruskan tetap harus diizinkan di hook
+// forward, dan policy default di banyak host adalah drop.
 func (p *PortForward) ensureChain(ctx context.Context) error {
 	script := fmt.Sprintf(`add table ip %s 2>/dev/null || true
 add chain ip %s %s { type nat hook prerouting priority -100 ; } 2>/dev/null || true
-`, pfTable, pfTable, pfChain)
+add chain ip %s %s { type filter hook forward priority 0 ; policy accept ; } 2>/dev/null || true
+`, pfTable, pfTable, pfChain, pfTable, pfForwardChain)
 	_, err := p.Runner.Run(ctx, host.Command{Name: "nft", Args: []string{"-f", "-"}, Stdin: script})
 	return err
+}
+
+// ufwActive melaporkan apakah ufw terpasang dan sedang aktif.
+func (p *PortForward) ufwActive(ctx context.Context) bool {
+	if !p.Runner.LookPath("ufw") {
+		return false
+	}
+	res, err := p.Runner.Run(ctx, host.Command{Name: "ufw", Args: []string{"status"}})
+	if err != nil {
+		return false
+	}
+	return strings.Contains(strings.ToLower(res.Stdout), "status: active")
+}
+
+// allowThroughFirewall membuka port publik di ufw bila ufw aktif.
+// Tanpa ini, DNAT berhasil tetapi paket tetap di-drop oleh policy ufw.
+func (p *PortForward) allowThroughFirewall(ctx context.Context, r Resource) error {
+	if !p.ufwActive(ctx) {
+		return nil
+	}
+	proto := orDefault(r.Proto, "tcp")
+	if _, err := p.Runner.Run(ctx, host.Command{
+		Name: "ufw", Args: []string{"allow", fmt.Sprintf("%s/%s", r.Port, proto)},
+	}); err != nil {
+		return fmt.Errorf("ufw allow %s/%s: %w", r.Port, proto, err)
+	}
+	if _, err := p.Runner.Run(ctx, host.Command{
+		Name: "ufw", Args: []string{"route", "allow", proto, "to", r.To},
+	}); err != nil {
+		return fmt.Errorf("ufw route allow ke %s: %w", r.To, err)
+	}
+	return nil
 }
 
 type pfRule struct {
@@ -157,6 +194,9 @@ func (p *PortForward) Apply(ctx context.Context, r Resource) error {
 	}
 	if err := p.ensureChain(ctx); err != nil {
 		return fmt.Errorf("siapkan chain: %w", err)
+	}
+	if err := p.allowThroughFirewall(ctx, r); err != nil {
+		return err
 	}
 
 	// Hapus aturan lama dengan kunci sama supaya apply idempoten.

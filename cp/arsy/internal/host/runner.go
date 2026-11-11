@@ -91,6 +91,7 @@ func LookPath(name string) bool {
 // FakeRunner dipakai di test: mencatat argv dan mengembalikan hasil terprogram.
 type FakeRunner struct {
 	Calls   [][]string
+	Stdin   []string
 	Results map[string]Result
 	Default Result
 	FailOn  string
@@ -99,6 +100,7 @@ type FakeRunner struct {
 func (f *FakeRunner) Run(_ context.Context, cmd Command) (Result, error) {
 	argv := append([]string{cmd.Name}, cmd.Args...)
 	f.Calls = append(f.Calls, argv)
+	f.Stdin = append(f.Stdin, cmd.Stdin)
 	key := strings.Join(argv, " ")
 	if f.FailOn != "" && strings.Contains(key, f.FailOn) {
 		return Result{Stderr: "gagal disimulasikan", ExitCode: 1}, &CommandError{

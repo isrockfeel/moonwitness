@@ -328,3 +328,63 @@ func TestPortForwardDeleteWhenMissingIsNoop(t *testing.T) {
 		t.Fatalf("apply pada aturan yang tidak ada harus sukses, dapat %v", err)
 	}
 }
+
+func TestPortForwardCreatesForwardChain(t *testing.T) {
+	fake := &host.FakeRunner{}
+	p := &PortForward{Runner: fake}
+	r := Resource{Kind: "portforward", Port: "8080", Proto: "tcp", To: "10.66.0.2:80"}
+
+	if err := p.Apply(context.Background(), r); err != nil {
+		t.Fatal(err)
+	}
+
+	joined := ""
+	for _, call := range fake.Calls {
+		joined += strings.Join(call, " ") + "\n"
+	}
+	joined += strings.Join(fake.Stdin, "\n")
+	if !strings.Contains(joined, "hook forward") {
+		t.Fatalf("chain forward harus dibuat, kalau tidak paket DNAT tetap di-drop:\n%s", joined)
+	}
+}
+
+func TestPortForwardOpensUFWWhenActive(t *testing.T) {
+	fake := &host.FakeRunner{Results: map[string]host.Result{
+		"ufw status": {Stdout: "Status: active\n"},
+	}}
+	p := &PortForward{Runner: fake}
+	r := Resource{Kind: "portforward", Port: "8080", Proto: "tcp", To: "10.66.0.2:80"}
+
+	if err := p.Apply(context.Background(), r); err != nil {
+		t.Fatal(err)
+	}
+
+	joined := ""
+	for _, call := range fake.Calls {
+		joined += strings.Join(call, " ") + "\n"
+	}
+	if !strings.Contains(joined, "ufw allow 8080/tcp") {
+		t.Fatalf("port publik harus dibuka di ufw, calls:\n%s", joined)
+	}
+	if !strings.Contains(joined, "ufw route allow tcp to 10.66.0.2:80") {
+		t.Fatalf("trafik forward harus diizinkan di ufw, calls:\n%s", joined)
+	}
+}
+
+func TestPortForwardSkipsUFWWhenInactive(t *testing.T) {
+	fake := &host.FakeRunner{Results: map[string]host.Result{
+		"ufw status": {Stdout: "Status: inactive\n"},
+	}}
+	p := &PortForward{Runner: fake}
+	r := Resource{Kind: "portforward", Port: "8080", Proto: "tcp", To: "10.66.0.2:80"}
+
+	if err := p.Apply(context.Background(), r); err != nil {
+		t.Fatal(err)
+	}
+	for _, call := range fake.Calls {
+		joined := strings.Join(call, " ")
+		if strings.HasPrefix(joined, "ufw ") && joined != "ufw status" {
+			t.Fatalf("ufw tidak aktif, tidak boleh mengubah aturan: %v", call)
+		}
+	}
+}
