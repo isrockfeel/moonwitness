@@ -1,23 +1,48 @@
 "use client";
 
-import type { Witness } from "@moonwitness/types";
 import { useState, type ReactNode } from "react";
 import { Crown } from "../icons";
 import { Tape } from "../primitives/tape";
 import { WitnessAvatar } from "../primitives/witness-avatar";
 import { CountUp } from "./count-up";
 
-export interface CrewConstellationProps {
-  witnesses: Witness[];
-  stats: { label: string; target: number }[];
+export interface WitnessItem {
+  id: string;
+  name: string;
+  place: string;
+  x: number;
+  y: number;
+  quote: string;
+  signals: number;
+}
+
+export interface CrewStat {
+  label: string;
+  target: number;
+}
+
+export interface CrewConstellationProps<
+  W extends WitnessItem = WitnessItem,
+  S extends CrewStat = CrewStat,
+> {
+  witnesses: W[];
+  stats: S[];
   /** Slot R2: app yang menyuplai tombol tautan, jadi semantics link tetap milik app. */
   cta?: ReactNode;
   /** Slot latar dekoratif (mis. atmosfer p5 dari app); ui tetap bebas p5. */
   backdrop?: ReactNode;
+  /** Teks stiker kustom (default: REAL PEOPLE. REAL PLACES. SAME SKY.) */
+  stickerText?: string;
 }
 
 /** Peta saksi: pilihan titik tetap state internal, datanya milik app. */
-export function CrewConstellation({ witnesses, stats, cta, backdrop }: CrewConstellationProps) {
+export function CrewConstellation<W extends WitnessItem, S extends CrewStat>({
+  witnesses,
+  stats,
+  cta,
+  backdrop,
+  stickerText = "REAL PEOPLE. REAL PLACES. SAME SKY.",
+}: CrewConstellationProps<W, S>) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = witnesses.find((w) => w.id === selectedId) ?? witnesses[0];
   if (!selected) return null;
@@ -74,7 +99,7 @@ export function CrewConstellation({ witnesses, stats, cta, backdrop }: CrewConst
             </button>
           ))}
           <span className="sticker sticker-pink absolute bottom-3 left-3 -rotate-2 px-3 py-1 font-hand text-base font-bold">
-            REAL PEOPLE. REAL PLACES. SAME SKY.
+            {stickerText}
           </span>
         </div>
         <div className="mt-4 grid grid-cols-3 gap-3 text-center">

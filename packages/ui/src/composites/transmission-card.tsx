@@ -1,30 +1,28 @@
 "use client";
 
-import type { ArtKey, TimelineEvent } from "@moonwitness/types";
 import { useEffect, useState } from "react";
 import { PauseIcon, PlayIcon } from "../icons";
 import { ZineImage } from "../primitives/zine-image";
 
 export interface TransmissionCardProps {
-  event: TimelineEvent;
-  /** Kartu promosi bisa memakai artwork lain daripada image event-nya. */
-  art?: ArtKey;
-  durationSeconds?: number;
-  /** Teks stiker; angka "001" adalah copy tampilan, bukan turunan `event.id`. */
-  label?: string;
-  /** Kartu promosi bisa memakai copy sendiri yang tidak dimiliki event mana pun. */
-  title?: string;
+  /** Artwork key for the image */
+  image?: string;
+  /** Title displayed on the card */
+  title: string;
+  /** Excerpt text */
   excerpt?: string;
+  durationSeconds?: number;
+  /** Sticker label */
+  label?: string;
 }
 
-/** Kartu transmisi berdurasi: timer dan state putar/jeda murni internal (§3.2). */
+/** Kartu transmisi berdurasi: timer dan state putar/jeda murni internal. */
 export function TransmissionCard({
-  event,
-  art,
-  durationSeconds = 204,
-  label = "TRANSMISSION 001",
+  image,
   title,
   excerpt,
+  durationSeconds = 204,
+  label = "TRANSMISSION 001",
 }: TransmissionCardProps) {
   const [playing, setPlaying] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -49,11 +47,13 @@ export function TransmissionCard({
   return (
     <article className="zine-card-rough group relative flex flex-col overflow-hidden">
       <div className="relative h-44 overflow-hidden">
-        <ZineImage
-          art={art ?? event.image}
-          sizes="(max-width: 768px) 100vw, 33vw"
-          className="duo-img transition-transform duration-500 group-hover:scale-105"
-        />
+        {image && (
+          <ZineImage
+            art={image}
+            sizes="(max-width: 768px) 100vw, 33vw"
+            className="duo-img transition-transform duration-500 group-hover:scale-105"
+          />
+        )}
         <span className="duo-tint" />
         <span className="sticker sticker-yellow absolute left-3 top-3 px-3 py-1 font-brush text-xs">
           {label}
@@ -67,12 +67,8 @@ export function TransmissionCard({
         </button>
       </div>
       <div className="flex flex-1 flex-col p-5">
-        <h3 className="font-brush text-2xl leading-tight text-white">
-          {(title ?? event.title).toUpperCase()}
-        </h3>
-        <p className="mt-2 flex-1 text-sm leading-relaxed text-zinc-400">
-          {excerpt ?? event.excerpt}
-        </p>
+        <h3 className="font-brush text-2xl leading-tight text-white">{title.toUpperCase()}</h3>
+        {excerpt && <p className="mt-2 flex-1 text-sm leading-relaxed text-zinc-400">{excerpt}</p>}
         <div className="mt-4">
           <div
             className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--line)]"

@@ -1,13 +1,27 @@
-import type { Module } from "@moonwitness/types";
 import { ArrowRight, Crown } from "../icons";
 import { ModuleGlyph } from "./module-glyph";
 
-export interface ModuleCardProps {
-  module: Module;
-  onOpen: (m: Module) => void;
+export interface ModuleStat {
+  label: string;
+  value: string | number;
+  color: string;
 }
 
-export function ModuleCard({ module, onOpen }: ModuleCardProps) {
+export interface ModuleItem {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  description: string;
+  stats: ModuleStat[];
+}
+
+export interface ModuleCardProps<T extends ModuleItem = ModuleItem> {
+  module: T;
+  onOpen: (m: T) => void;
+}
+
+export function ModuleCard<T extends ModuleItem>({ module, onOpen }: ModuleCardProps<T>) {
   return (
     <button
       onClick={() => onOpen(module)}

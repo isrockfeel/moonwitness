@@ -1,16 +1,26 @@
 "use client";
 
-import type { WorkspaceItem } from "@moonwitness/types";
 import { ZineCard } from "../primitives/zine-card";
 import { StatusBadge } from "./status-badge";
-import { kindColors } from "./kind-colors";
+import { defaultKindColors } from "./kind-colors";
 
-export interface WorkspaceListProps {
-  items: WorkspaceItem[];
+export interface WorkspaceItem {
+  id: string;
+  title: string;
+  kind: string;
+  updatedAt: string;
+  status: string;
+}
+
+export interface WorkspaceListProps<T extends WorkspaceItem = WorkspaceItem> {
+  items: T[];
   onOpenItem: (id: string) => void;
 }
 
-export function WorkspaceList({ items, onOpenItem }: WorkspaceListProps) {
+export function WorkspaceList<T extends WorkspaceItem>({
+  items,
+  onOpenItem,
+}: WorkspaceListProps<T>) {
   return (
     <ZineCard className="divide-y-2 divide-[var(--line)] overflow-hidden">
       {items.map((item) => (
@@ -23,7 +33,7 @@ export function WorkspaceList({ items, onOpenItem }: WorkspaceListProps) {
           <span
             aria-hidden
             className="h-2 w-2 shrink-0 rounded-full"
-            style={{ background: kindColors[item.kind] }}
+            style={{ background: defaultKindColors[item.kind] ?? "#9ca3af" }}
           />
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm text-zinc-200">{item.title}</span>

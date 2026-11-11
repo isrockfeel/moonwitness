@@ -106,7 +106,7 @@ export function Dock() {
           onViewChange={setView}
         />
 
-        <EraBand eras={eras} active={era} onSelect={setEra} />
+        <EraBand eras={eras} active={era} onSelect={(e) => setEra(e as EraId | "all")} />
 
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
           <EventList

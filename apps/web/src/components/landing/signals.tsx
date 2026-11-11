@@ -21,8 +21,7 @@ export function Signals() {
       <div className="grid gap-6 md:grid-cols-3">
         {transmissionEvent ? (
           <TransmissionCard
-            event={transmissionEvent}
-            art="signal-tunnel"
+            image="signal-tunnel"
             title="A SIGNAL FROM BELOW"
             excerpt="Strange sounds. A deeper current. What are we really hearing?"
           />

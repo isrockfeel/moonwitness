@@ -1,24 +1,39 @@
 "use client";
 
-import type { PipelineCard, PipelineColumn, PipelineStage } from "@moonwitness/types";
 import { ZineImage } from "../primitives/zine-image";
-import { kindColors } from "./kind-colors";
+import { defaultKindColors } from "./kind-colors";
 
-/** Border berwarna per stage, sama seperti referensi 06-shadow-command-center.png. */
-export const STAGE_COLOR: Record<PipelineStage, string> = {
+export interface KanbanCard {
+  id: string;
+  title: string;
+  type: string;
+  thumb: string;
+}
+
+export interface KanbanColumnData<C extends KanbanCard = KanbanCard> {
+  stage: string;
+  count: number;
+  more: number;
+  items: C[];
+  color?: string;
+}
+
+export interface KanbanColumnProps<C extends KanbanCard = KanbanCard> {
+  column: KanbanColumnData<C>;
+  onOpenItem: (card: C) => void;
+}
+
+const DEFAULT_STAGE_COLOR: Record<string, string> = {
   DRAFT: "#9ca3af",
   "IN REVIEW": "#ff2d78",
   APPROVED: "#ffd21f",
   PUBLISHED: "#3b82f6",
 };
 
-export interface KanbanColumnProps {
-  column: PipelineColumn;
-  onOpenItem: (card: PipelineCard) => void;
-}
+export const STAGE_COLOR = DEFAULT_STAGE_COLOR;
 
-export function KanbanColumn({ column, onOpenItem }: KanbanColumnProps) {
-  const color = STAGE_COLOR[column.stage];
+export function KanbanColumn<C extends KanbanCard>({ column, onOpenItem }: KanbanColumnProps<C>) {
+  const color = column.color ?? DEFAULT_STAGE_COLOR[column.stage] ?? "#9ca3af";
   return (
     <section
       aria-label={`${column.stage}, ${column.count} item`}
@@ -46,7 +61,7 @@ export function KanbanColumn({ column, onOpenItem }: KanbanColumnProps) {
               <span className="block truncate text-xs text-zinc-200">{card.title}</span>
               <span
                 className="mt-1 block text-[10px] tracking-widest"
-                style={{ color: kindColors[card.type] }}
+                style={{ color: defaultKindColors[card.type] ?? "#9ca3af" }}
               >
                 {card.type}
               </span>

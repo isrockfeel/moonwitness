@@ -1,17 +1,28 @@
 "use client";
 
-import type { MapCity } from "@moonwitness/types";
 import { Halftone } from "../primitives/texture";
 import { ZineCardRough } from "../primitives/zine-card";
 
-export interface WorldMapProps {
-  cities: MapCity[];
+export interface MapCityItem {
+  id: string;
+  city: string;
+  x: number;
+  y: number;
+  signals: number;
+}
+
+export interface WorldMapProps<T extends MapCityItem = MapCityItem> {
+  cities: T[];
   selectedId: string | null;
   onSelect: (id: string) => void;
 }
 
 /** Peta sinyal stylized: bukan proyeksi geografis, hanya posisi relatif dari data. */
-export function WorldMap({ cities, selectedId, onSelect }: WorldMapProps) {
+export function WorldMap<T extends MapCityItem>({
+  cities,
+  selectedId,
+  onSelect,
+}: WorldMapProps<T>) {
   return (
     <ZineCardRough className="relative overflow-hidden p-4">
       <Halftone className="absolute inset-0 opacity-30" />

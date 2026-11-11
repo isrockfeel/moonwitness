@@ -3,7 +3,7 @@ import type { ArtKey } from "@moonwitness/types";
 import { cn } from "../cn";
 
 export interface ZineImageProps {
-  art: ArtKey;
+  art: ArtKey | string;
   /** Menggantikan alt dari manifest bila penempatannya butuh teks lain. */
   alt?: string;
   className?: string;
@@ -23,7 +23,8 @@ export function ZineImage({
   position,
   eager = false,
 }: ZineImageProps) {
-  const entry = ARTWORK[art];
+  const entry = ARTWORK[art as ArtKey] ?? Object.values(ARTWORK)[0];
+  if (!entry) return null;
   return (
     <picture>
       <source type="image/avif" srcSet={entry.srcSet} sizes={sizes} />

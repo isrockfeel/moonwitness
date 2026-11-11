@@ -1,25 +1,42 @@
-import type { EventKind, TimelineEvent } from "@moonwitness/types";
 import { ArrowRight } from "../icons";
 import { ZineBadge } from "../primitives/zine-badge";
 import { ZineImage } from "../primitives/zine-image";
-import { kindColors } from "./kind-colors";
+import { defaultKindColors } from "./kind-colors";
 
-function KindBadge({ kind }: { kind: EventKind }) {
+export interface EventCardData {
+  id: string;
+  kind: string;
+  title: string;
+  excerpt: string;
+  date: string;
+  image: string;
+  imagePosition?: string;
+  sources?: number;
+  notes?: number;
+}
+
+export function KindBadge({ kind, color }: { kind: string; color?: string }) {
+  const c = color ?? defaultKindColors[kind] ?? "#9ca3af";
   return (
-    <ZineBadge color={kindColors[kind]} dark={kind === "SIGNAL"}>
+    <ZineBadge color={c} dark={kind === "SIGNAL"}>
       {kind}
     </ZineBadge>
   );
 }
 
-export interface EventCardProps {
-  event: TimelineEvent;
+export interface EventCardProps<T extends EventCardData = EventCardData> {
+  event: T;
   selected: boolean;
   list: boolean;
   onOpen: () => void;
 }
 
-export function EventCard({ event, selected, list, onOpen }: EventCardProps) {
+export function EventCard<T extends EventCardData>({
+  event,
+  selected,
+  list,
+  onOpen,
+}: EventCardProps<T>) {
   if (list) {
     return (
       <button
@@ -70,7 +87,7 @@ export function EventCard({ event, selected, list, onOpen }: EventCardProps) {
         <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-zinc-400">{event.excerpt}</p>
         <div className="mt-3 flex items-center justify-between text-[10px] text-zinc-500">
           <span>
-            {event.sources} sources · {event.notes} notes
+            {event.sources ?? 0} sources · {event.notes ?? 0} notes
           </span>
           <span className="flex h-7 w-7 items-center justify-center border border-[var(--line)] text-zinc-400 group-hover:border-[var(--pink)] group-hover:text-[var(--pink)]">
             <ArrowRight className="h-3.5 w-3.5" />
@@ -80,5 +97,3 @@ export function EventCard({ event, selected, list, onOpen }: EventCardProps) {
     </button>
   );
 }
-
-export { KindBadge };
