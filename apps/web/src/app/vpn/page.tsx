@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { NetworkCenter } from "@/components/network";
+import { VpnView } from "@/views/vpn";
 
 export const metadata = {
   title: "VPN & Mesh Tunnel — MoonWitness Underground",
@@ -15,7 +15,7 @@ export default function VpnPage() {
         </div>
       }
     >
-      <NetworkCenter />
+      <VpnView />
     </Suspense>
   );
 }

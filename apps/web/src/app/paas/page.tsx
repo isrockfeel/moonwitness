@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { ControlCenter } from "@/components/control";
+import { PaasView } from "@/views/paas";
 
 export const metadata = {
   title: "PaaS Command Plane — MoonWitness Arsy",
@@ -15,7 +15,7 @@ export default function PaasPage() {
         </div>
       }
     >
-      <ControlCenter />
+      <PaasView />
     </Suspense>
   );
 }

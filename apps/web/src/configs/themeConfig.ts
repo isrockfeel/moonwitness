@@ -43,3 +43,4 @@ export const themeConfig: ThemeConfig = {
     vpnPath: "/vpn",
   },
 };
+
