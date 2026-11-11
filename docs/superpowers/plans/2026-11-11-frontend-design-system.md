@@ -3629,14 +3629,14 @@ git commit -m "perf(web): path artwork lewat manifest + tuning optimizer gambar"
 - Consumes: hasil Task 15-17.
 - Produces: angka terukur yang jadi pembanding fase 4 dan 5.
 
-- [ ] **Step 1: Build + start produksi**
+- [x] **Step 1: Build + start produksi** — `next build` langsung di apps/web EXIT=0 (`turbo build` gagal EXIT=1 murni karena `packages/orm/package.json` tim lain jadi UTF-8 tidak valid; `next build` melewati graf workspace itu). Server `next start -p 4317`.
 
 ```bash
 pnpm --filter @moonwitness/web build
 pnpm --filter @moonwitness/web start -p 4317 &
 ```
 
-- [ ] **Step 2: Lighthouse untuk `/` dan `/mission-control`**
+- [x] **Step 2: Lighthouse untuk `/` dan `/mission-control`** — Lighthouse 12 jalan (headless=new). landing perf **89**, mc perf **95** (≥85 ✓); total byte 579 KiB / 328 KiB (<1 MB ✓); elemen LCP `hero-witness` w=1440 = 93 KB (<400 KB ✓).
 
 ```bash
 mkdir -p .verify/phase3
@@ -3658,11 +3658,11 @@ Bila `lighthouse` tidak bisa dijalankan di lingkungan ini, ganti dengan pengukur
 new PerformanceObserver((l) => console.log(JSON.stringify(l.getEntries().map((e) => ({ lcp: e.startTime, el: e.element?.tagName, url: e.url }))))).observe({ type: "largest-contentful-paint", buffered: true });
 ```
 
-- [ ] **Step 3: Console bersih**
+- [x] **Step 3: Console bersih** — 0 error, 0 warning di keempat route. Peringatan tunggal yang tampak di footer hasil Playwright adalah internal tooling, bukan console halaman (collector `page.on('console')` = kosong).
 
 Untuk keempat route, buka dengan console terbuka dan reload. Expected: **0 error, 0 warning**. Yang masih boleh: log Next.js produksi standar. Segala `Warning: Each child in a list should have a unique "key"`, `Invalid DOM nesting`, `Hydration failed`, atau `Image with src ... has invalid sizes` **harus diperbaiki sekarang**, bukan dicatat.
 
-- [ ] **Step 4: `prefers-reduced-motion` masih berfungsi**
+- [x] **Step 4: `prefers-reduced-motion` masih berfungsi** — dengan reduce: `marquee-track`/`float-y` = `animationName:none`, `scroll-behavior:auto`, `neon-flicker` tak ada di `/`. `CountUp` (rAF) masih meramp → **guard `matchMedia` ditambahkan** di `count-up.tsx` (lompat ke `target` saat reduce). Terverifikasi: nilai akhir 1.324/87/6.912 sudah tampil di t=120ms dan identik di t=2.120ms (tidak ramp).
 
 DevTools → Rendering → Emulate `prefers-reduced-motion: reduce`, reload `/`:
 - marquee berhenti (tidak ada animasi geser)
@@ -3680,11 +3680,11 @@ if (reduce) { setValue(target); return; }
 
 Taruh di dalam callback IntersectionObserver sebelum `requestAnimationFrame` pertama, dan uji ulang.
 
-- [ ] **Step 5: Target sentuh (ulangi pengukuran Task 16 setelah semua perubahan)**
+- [x] **Step 5: Target sentuh (ulangi pengukuran Task 16 setelah semua perubahan)** — snippet 44px di 390×844, 4 route. **Diperbaiki (in-scope):** era dot `EraBand` `::after:-inset-4` (box 46px, probe `elementFromPoint` hit ±18px dua sumbu); CTA signals (EXPLORE STORIES/ENTER THE SHADOW) + BROWSE ARCHIVE + link footer landing/shadow + brand site-nav/shadow → `max-lg:min-h-11` (footer shadow +`min-w-11`). **Sisa dijelaskan:** skip-link (keyboard-only), witness dot (`::after` 44 efektif), semua kontrol `/mission-control` (diganti Task 27), kontrol login `/shadow` (tim auth).
 
 Jalankan snippet pengukuran 44px dari Task 16 Step 5 pada 390x844 untuk keempat route. Expected: kosong atau hanya sisa yang sudah dijelaskan.
 
-- [ ] **Step 6: Matikan server + catat gerbang**
+- [x] **Step 6: Matikan server + catat gerbang** — port 4317 closed (taskkill tree). Catatan gerbang Fase 3 ditambahkan di §7 spec dengan angka nyata (Lighthouse 89/95, byte 579/328 KiB, LCP image 93 KB, 0 error/warning, target sentuh + sisa dijelaskan, guard reduced-motion, catatan blocker orm + `next build`).
 
 ```bash
 netstat -ano | grep :4317
@@ -3699,7 +3699,7 @@ Tambah setelah baris `**Fase 3** — ...` di §7, isi dengan angka nyata:
 > semua target sentuh >= 44px pada 390px, reduced-motion mematikan marquee/flicker/float/smooth-scroll.
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit** — perbaikan kode Step 4-5 di commit terpisah `43da658` (`fix(ui): guard reduced-motion CountUp + target sentuh >=44px pada mobile`, 7 file); commit dokumen gerbang ini menyusul.
 
 ```bash
 git add docs/superpowers/specs/2026-11-11-frontend-design-system-design.md
