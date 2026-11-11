@@ -87,7 +87,9 @@ export function EventCard<T extends EventCardData>({
         <h3 className="cmyk-slip font-brush text-lg leading-snug text-white group-hover:text-[var(--pink)]">
           {event.title.toUpperCase()}
         </h3>
-        <p className="mt-1.5 line-clamp-2 font-mono text-xs leading-relaxed text-zinc-400">{event.excerpt}</p>
+        <p className="mt-1.5 line-clamp-2 font-mono text-xs leading-relaxed text-zinc-400">
+          {event.excerpt}
+        </p>
         <div className="mt-3 flex items-center justify-between border-t border-[var(--line)] pt-2 font-mono text-[10px] text-zinc-400">
           <span className="flex items-center gap-1.5">
             <TornTicket className="h-3.5 w-3.5 text-[var(--yellow)]" />

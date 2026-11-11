@@ -1,5 +1,11 @@
 import Image from "next/image";
-import { CassetteTape, Crown, SkullCrossbonesFunky, Splatter, SprayCan } from "@moonwitness/ui/icons";
+import {
+  CassetteTape,
+  Crown,
+  SkullCrossbonesFunky,
+  Splatter,
+  SprayCan,
+} from "@moonwitness/ui/icons";
 import { DistressedSticker, RansomText, Staple, TactileTape } from "@moonwitness/ui";
 import { artSrc } from "@/lib/art";
 import { AtmosphereField } from "@/components/atmosphere";
@@ -31,7 +37,12 @@ export function CommandHero() {
       <Splatter className="absolute -left-6 top-6 h-40 w-40 text-[var(--pink)] opacity-70" />
 
       {/* Tactile tape accents on hero boundary */}
-      <TactileTape variant="yellow" label="AUTHORIZED OPERATIVES ONLY" width={220} className="-top-1 right-12 rotate-2 text-[10px]" />
+      <TactileTape
+        variant="yellow"
+        label="AUTHORIZED OPERATIVES ONLY"
+        width={220}
+        className="-top-1 right-12 rotate-2 text-[10px]"
+      />
       <Staple className="top-3 left-4 -rotate-45" />
 
       <div className="relative z-10 px-4 py-12 sm:px-8">
@@ -51,8 +62,8 @@ export function CommandHero() {
         </div>
 
         <p className="mt-4 max-w-xl font-mono text-xs leading-relaxed text-zinc-300">
-          Coordinate pirate stories, field surveillance, clandestine audio feeds, and automated leak workflows.
-          Broadcast unfiltered perspectives directly to the nocturnal mesh.
+          Coordinate pirate stories, field surveillance, clandestine audio feeds, and automated leak
+          workflows. Broadcast unfiltered perspectives directly to the nocturnal mesh.
         </p>
 
         <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-[var(--yellow)] font-bold">

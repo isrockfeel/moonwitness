@@ -44,7 +44,12 @@ export function Signals() {
 
         <article className="zine-card-rough photocopy-grit group relative flex flex-col overflow-hidden transition-all duration-300 md:rotate-1 hover:rotate-0 hover:-translate-y-2">
           <Staple className="top-2 left-3 -rotate-12" />
-          <TactileTape variant="yellow" label="COLLAB_WALL" width={95} className="-top-1 -right-3 rotate-12 text-[9px]" />
+          <TactileTape
+            variant="yellow"
+            label="COLLAB_WALL"
+            width={95}
+            className="-top-1 -right-3 rotate-12 text-[9px]"
+          />
 
           <div className="relative h-48 overflow-hidden bg-black/60">
             <Image
@@ -80,7 +85,12 @@ export function Signals() {
 
         <article className="zine-card-rough photocopy-grit group relative flex flex-col overflow-hidden transition-all duration-300 md:-rotate-1 hover:rotate-0 hover:-translate-y-2">
           <Staple className="top-2 right-3 rotate-45" />
-          <TactileTape variant="black" label="SEALED" width={80} className="-top-1 -left-3 -rotate-12 text-[9px]" />
+          <TactileTape
+            variant="black"
+            label="SEALED"
+            width={80}
+            className="-top-1 -left-3 -rotate-12 text-[9px]"
+          />
 
           <div className="relative h-48 overflow-hidden bg-black/60">
             <Image
@@ -109,7 +119,9 @@ export function Signals() {
               >
                 ACCESS ARCHIVE <ArrowRight className="h-4 w-4" />
               </Link>
-              <span className="font-mono text-[10px] text-[var(--red)] font-bold">LVL 4 CLEARANCE</span>
+              <span className="font-mono text-[10px] text-[var(--red)] font-bold">
+                LVL 4 CLEARANCE
+              </span>
             </div>
           </div>
         </article>

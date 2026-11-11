@@ -49,7 +49,12 @@ export function TransmissionCard({
     <article className="zine-card-rough photocopy-grit group relative flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:rotate-[-0.5deg]">
       {/* Tactile hardware: staple on top left & yellow duct tape on top right */}
       <Staple className="top-2 left-3 -rotate-12" />
-      <TactileTape variant="yellow" label="LEAKED AUDIO" width={90} className="-top-1 -right-4 rotate-12 text-[9px]" />
+      <TactileTape
+        variant="yellow"
+        label="LEAKED AUDIO"
+        width={90}
+        className="-top-1 -right-4 rotate-12 text-[9px]"
+      />
 
       <div className="relative h-48 overflow-hidden bg-black/60">
         {image && (
@@ -76,8 +81,12 @@ export function TransmissionCard({
         </button>
       </div>
       <div className="flex flex-1 flex-col p-5 bg-gradient-to-b from-[var(--panel)] to-[#0e0e15]">
-        <h3 className="cmyk-slip font-brush text-2xl leading-tight text-white tracking-wide">{title.toUpperCase()}</h3>
-        {excerpt && <p className="mt-2 flex-1 font-mono text-xs leading-relaxed text-zinc-300">{excerpt}</p>}
+        <h3 className="cmyk-slip font-brush text-2xl leading-tight text-white tracking-wide">
+          {title.toUpperCase()}
+        </h3>
+        {excerpt && (
+          <p className="mt-2 flex-1 font-mono text-xs leading-relaxed text-zinc-300">{excerpt}</p>
+        )}
         <div className="mt-4 border-t border-[var(--line)] pt-3">
           <div
             className="h-2 w-full overflow-hidden bg-black/80 border border-zinc-700"

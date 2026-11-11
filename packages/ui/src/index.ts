@@ -13,8 +13,17 @@ export { Halftone, Grain, type HalftoneProps } from "./primitives/texture";
 export { SkipLink, type SkipLinkProps } from "./primitives/skip-link";
 export { WitnessAvatar, type WitnessAvatarProps } from "./primitives/witness-avatar";
 export { RansomText, type RansomTextProps } from "./primitives/ransom-text";
-export { TactileTape, Staple, type TactileTapeProps, type StapleProps } from "./primitives/tactile-hardware";
-export { DistressedSticker, type DistressedStickerProps, type DistressedStickerVariant } from "./primitives/distressed-sticker";
+export {
+  TactileTape,
+  Staple,
+  type TactileTapeProps,
+  type StapleProps,
+} from "./primitives/tactile-hardware";
+export {
+  DistressedSticker,
+  type DistressedStickerProps,
+  type DistressedStickerVariant,
+} from "./primitives/distressed-sticker";
 
 export { kindColors, defaultKindColors } from "./composites/kind-colors";
 export {
