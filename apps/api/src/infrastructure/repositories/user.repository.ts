@@ -61,7 +61,7 @@ export class SqlUserRepository {
   async deleteSessionByToken(token: string, actor: ActorContext = SYSTEM_ACTOR): Promise<boolean> {
     const session = await this.findSessionByToken(token);
     if (!session) return false;
-    const deleted = await this.sessionRepo.delete(session.id, actor);
+    const deleted = await this.sessionRepo.delete((session as unknown as { id: string }).id, actor);
     return deleted !== null;
   }
 }

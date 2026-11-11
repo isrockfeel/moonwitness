@@ -107,6 +107,14 @@ export const verticalNavigation: VerticalNavItems = [
         badge: "WIREGUARD",
         badgeTone: "pink",
       },
+      {
+        id: "radius",
+        title: "RADIUS Access",
+        path: "/radius",
+        icon: "M12 3 A9 9 0 1 0 12 21 A9 9 0 1 0 12 3 M12 7 A5 5 0 1 0 12 17 A5 5 0 1 0 12 7 M12 12 L12 12.01",
+        badge: "PPPoE",
+        badgeTone: "cyan",
+      },
     ],
   },
   {

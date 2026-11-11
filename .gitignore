@@ -53,3 +53,6 @@ yarn-error.log*
 
 # verification artifacts (screenshot pembanding antar fase)
 .verify/
+
+# generated code
+packages/addons/**/src/generated/
