@@ -65,7 +65,14 @@ describe("addon registry wiring", () => {
 
     const models = await app.inject({ method: "GET", url: "/_meta/models" });
     expect(models.statusCode).toBe(200);
-    expect(Array.isArray(models.json().models)).toBe(true);
+    expect(models.json().models).toContain("timeline.event");
+
+    const one = await app.inject({ method: "GET", url: "/_meta/models/timeline.event" });
+    expect(one.statusCode).toBe(200);
+    expect(one.json().fields.map((f: { name: string }) => f.name)).toContain("title");
+
+    const missing = await app.inject({ method: "GET", url: "/_meta/models/does-not-exist" });
+    expect(missing.statusCode).toBe(404);
   });
 });
 
