@@ -3843,11 +3843,11 @@ export const collections: Collection[];
 export const mapCities: MapCity[];
 ```
 
-- [ ] **Step 1: Tambah tipe ke `packages/types/src/index.ts`**
+- [x] **Step 1: Tambah tipe ke `packages/types/src/index.ts`**
 
 Tulis persis blok `// @moonwitness/types` di atas, di akhir file. `StatTone` dipisah dari `UniverseStat` supaya Task 22 bisa memakai nama itu di signature `StatBlock`.
 
-- [ ] **Step 2: Tambah data ke `apps/web/src/lib/data.ts`**
+- [x] **Step 2: Tambah data ke `apps/web/src/lib/data.ts`**
 
 Angka-angka ini berasal dari referensi `06-shadow-command-center.png` (§6.2, §6.6, §6.7) — jangan dikarang ulang:
 
@@ -3957,7 +3957,7 @@ import type {
 } from "@moonwitness/types";
 ```
 
-- [ ] **Step 3: Pipeline**
+- [x] **Step 3: Pipeline**
 
 ```bash
 pnpm turbo run lint typecheck build
@@ -3965,12 +3965,16 @@ pnpm turbo run lint typecheck build
 
 Expected: hijau. Data baru belum punya pemakai, jadi tidak ada perubahan visual — **jangan** menjalankan screenshot di task ini.
 
-- [ ] **Step 4: Commit**
+> **Bukti (2026-11-11):** `pnpm turbo`/`pnpm --filter` tidak bisa jalan sama sekali — `ERR_PNPM_PACKAGE_MANIFEST_IO_ERROR` karena `packages/orm/package.json` (milik tim lain) rusak UTF-8, dan pnpm memindai SEMUA manifest workspace sebelum apa pun. Bukan file kita, tidak disentuh. Di-sikapi dengan menjalankan alat per-paket langsung: `tsc --noEmit` di `packages/types` **EXIT=0**, `tsc --noEmit` di `apps/web` **EXIT=0**, lalu `next build` langsung **EXIT=0** (9 route ter-generate). Baris `⨯ ESLint: tseslintPluginReact is not defined` di dalam build adalah cacat `packages/eslint-config` asing yang sudah tercatat sejak Fase 2 — tidak menggagalkan build. Gerbang typecheck+build terpenuhi; `lint` tetap terblokir cacat asing di luar scope.
+
+- [x] **Step 4: Commit**
 
 ```bash
 git add packages/types/src/index.ts apps/web/src/lib/data.ts
 git commit -m "feat(data): tipe + data dashboard Shadow Command Center"
 ```
+
+> **Bukti:** commit `1d529e8` (2 file, +189). Index hanya berisi dua file task; WIP asing (env.ts, package.json, eslint-config, pnpm-lock, turbo.json, orm) tidak di-stage.
 
 ### Task 21: Sidebar 10 item, satu item satu tujuan
 
