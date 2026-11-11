@@ -17,12 +17,18 @@ export function EmpireShell({
   children,
 }: {
   breadcrumb: string;
-  search: { value: string; onChange: (v: string) => void; placeholder: string };
+  search?: { value: string; onChange: (v: string) => void; placeholder: string };
   children: ReactNode;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const active = activeByPath(pathname);
+  const [internalSearch, setInternalSearch] = useState("");
+  const searchConfig = search ?? {
+    value: internalSearch,
+    onChange: setInternalSearch,
+    placeholder: "Search empire...",
+  };
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -116,7 +122,7 @@ export function EmpireShell({
       <div className="flex min-w-0 flex-1 flex-col lg:pl-60">
         <Topbar
           breadcrumb={breadcrumb}
-          search={search}
+          search={searchConfig}
           onOpenSidebar={() => setSidebarOpen(true)}
           containerRef={popRef}
           notifications={
