@@ -57,7 +57,7 @@ export function EraBand({ eras, active, onSelect }: EraBandProps) {
             key={e.id}
             onClick={() => onSelect(active === e.id ? "all" : e.id)}
             aria-label={`Filter ${e.name}`}
-            className={`absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--ink)] transition-transform hover:scale-125 ${active === e.id ? "scale-125" : ""}`}
+            className={`absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--ink)] transition-transform hover:scale-125 after:absolute after:-inset-4 after:content-[""] ${active === e.id ? "scale-125" : ""}`}
             style={{ left: `${10 + i * 20}%`, background: e.color }}
           />
         ))}

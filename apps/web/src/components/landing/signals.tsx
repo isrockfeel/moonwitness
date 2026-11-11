@@ -48,7 +48,7 @@ export function Signals() {
             <p className="mt-2 flex-1 text-sm leading-relaxed text-zinc-400">
               firsthand accounts, visual stories, and unfiltered perspectives from around the world.
             </p>
-            <Link href="/dock" className="btn-zine btn-blue mt-4 self-start px-5 py-2.5 text-sm">
+            <Link href="/dock" className="btn-zine btn-blue mt-4 self-start px-5 py-2.5 text-sm max-lg:min-h-11">
               EXPLORE STORIES <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -75,7 +75,7 @@ export function Signals() {
               A deeper layer of Moonwitness. Unexplained stories. Hidden connections, and what lives
               in the in-between.
             </p>
-            <Link href="/shadow" className="btn-zine btn-yellow mt-4 self-start px-5 py-2.5 text-sm">
+            <Link href="/shadow" className="btn-zine btn-yellow mt-4 self-start px-5 py-2.5 text-sm max-lg:min-h-11">
               ENTER THE SHADOW <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

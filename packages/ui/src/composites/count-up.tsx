@@ -14,6 +14,13 @@ export function CountUp({ target, suffix = "" }: { target: number; suffix?: stri
       ([entry]) => {
         if (!entry?.isIntersecting) return;
         observer.disconnect();
+        const reduce =
+          typeof window !== "undefined" &&
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduce) {
+          setValue(target);
+          return;
+        }
         const start = performance.now();
         const tick = (now: number) => {
           const p = Math.min((now - start) / 1400, 1);

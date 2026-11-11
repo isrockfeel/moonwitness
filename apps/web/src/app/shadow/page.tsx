@@ -70,7 +70,7 @@ export default function ShadowPage() {
 
       {/* top bar */}
       <header className="relative z-10 flex h-16 items-center justify-between border-b border-white/10 px-4 sm:px-8">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2 max-lg:min-h-11">
           <Crown className="h-5 w-8 text-[var(--yellow)]" />
           <span className="font-brush text-xl text-white sm:text-2xl">
             MOON<span className="text-[var(--pink)]">WITNESS</span>
@@ -251,13 +251,13 @@ export default function ShadowPage() {
           Moonwitness // Create · Curate · Publish
         </span>
         <nav className="flex gap-4">
-          <Link href="/" className="hover:text-[var(--pink)]">
+          <Link href="/" className="hover:text-[var(--pink)] max-lg:min-h-11 max-lg:min-w-11">
             Home
           </Link>
-          <Link href="/dock" className="hover:text-[var(--pink)]">
+          <Link href="/dock" className="hover:text-[var(--pink)] max-lg:min-h-11 max-lg:min-w-11">
             Archive
           </Link>
-          <Link href="/mission-control" className="hover:text-[var(--pink)]">
+          <Link href="/mission-control" className="hover:text-[var(--pink)] max-lg:min-h-11 max-lg:min-w-11">
             Mission Control
           </Link>
         </nav>

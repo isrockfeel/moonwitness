@@ -51,7 +51,7 @@ function ArchiveStrip() {
         ))}
       </div>
       <div className="mt-2 flex items-center justify-between">
-        <Link href="/dock" className="btn-zine btn-blue px-4 py-2 text-sm">
+        <Link href="/dock" className="btn-zine btn-blue px-4 py-2 text-sm max-lg:min-h-11">
           BROWSE ARCHIVE <ArrowRight className="h-4 w-4" />
         </Link>
         <div className="flex gap-2">

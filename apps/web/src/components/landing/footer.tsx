@@ -13,16 +13,16 @@ export function LandingFooter() {
           <span className="text-xs text-zinc-600">// Create · Curate · Publish</span>
         </div>
         <nav className="flex gap-5 text-xs text-zinc-500" aria-label="Footer">
-          <Link href="/dock" className="hover:text-[var(--pink)]">
+          <Link href="/dock" className="hover:text-[var(--pink)] max-lg:min-h-11">
             Archive
           </Link>
-          <Link href="/shadow" className="hover:text-[var(--pink)]">
+          <Link href="/shadow" className="hover:text-[var(--pink)] max-lg:min-h-11">
             The Shadow
           </Link>
-          <Link href="/mission-control" className="hover:text-[var(--pink)]">
+          <Link href="/mission-control" className="hover:text-[var(--pink)] max-lg:min-h-11">
             Mission Control
           </Link>
-          <a href="#home" className="hover:text-[var(--pink)]">
+          <a href="#home" className="hover:text-[var(--pink)] max-lg:min-h-11">
             Back to top ↑
           </a>
         </nav>
