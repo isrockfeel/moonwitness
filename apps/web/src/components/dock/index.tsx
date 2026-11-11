@@ -25,11 +25,21 @@ export function Dock() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [origin, setOrigin] = useState("");
 
-  const { data: eventsData, isLoading: eventsLoading } = useTimelineEvents({
+  const {
+    data: eventsData,
+    isLoading: eventsLoading,
+    isError: eventsError,
+    refetch: refetchEvents,
+  } = useTimelineEvents({
     era: era === "all" ? undefined : era,
     limit: 100,
   });
-  const { data: erasData, isLoading: erasLoading } = useTimelineEras();
+  const {
+    data: erasData,
+    isLoading: erasLoading,
+    isError: erasError,
+    refetch: refetchEras,
+  } = useTimelineEras();
 
   useEffect(() => setOrigin(window.location.origin), []);
 
@@ -74,6 +84,32 @@ export function Dock() {
   function resetFilters() {
     setQuery("");
     setEra("all");
+  }
+
+  if (eventsError || erasError) {
+    return (
+      <EmpireShell
+        breadcrumb="Dock / Lighthouse"
+        search={{ value: query, onChange: setQuery, placeholder: "Search timeline events…" }}
+      >
+        <div className="flex h-[60vh] flex-col items-center justify-center gap-4 text-center">
+          <p className="font-brush text-xl text-[var(--pink)]">THE ARCHIVE SIGNAL WAS LOST…</p>
+          <p className="text-sm text-zinc-400">
+            We couldn&apos;t load the timeline. Check your connection and try again.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              void refetchEvents();
+              void refetchEras();
+            }}
+            className="btn-zine btn-blue px-5 py-2 text-sm"
+          >
+            Retry
+          </button>
+        </div>
+      </EmpireShell>
+    );
   }
 
   if (eventsLoading || erasLoading) {
