@@ -1,0 +1,276 @@
+# Auto-labeler configuration
+# Labels are applied based on file paths and PR content
+
+# Bug fixes
+bug:
+  - "*.bug.md"
+  - "**/bug/**"
+  - "**/fix*.ts"
+  - "**/fix*.tsx"
+  - "**/*bug*.ts"
+  - "**/bug*.ts"
+
+# New features
+feature:
+  - "**/features/**"
+  - "**/feat*.ts"
+  - "**/feat*.tsx"
+  - "apps/**/features/**"
+  - "packages/**/features/**"
+
+# Documentation
+documentation:
+  - "*.md"
+  - "docs/**"
+  - "README*"
+  - "CHANGELOG*"
+
+# Dependencies
+dependencies:
+  - "package.json"
+  - "pnpm-lock.yaml"
+  - "pnpm-workspace.yaml"
+  - "go.mod"
+  - "go.sum"
+  - "Cargo.toml"
+  - "Cargo.lock"
+
+# Configuration
+configuration:
+  - ".github/**"
+  - "*.config.*"
+  - "tsconfig*.json"
+  - "*.config.ts"
+  - "*.config.js"
+  - "*.config.yaml"
+  - "*.config.yml"
+
+# CI/CD
+ci-cd:
+  - ".github/workflows/**"
+  - ".github/actions/**"
+  - "Dockerfile*"
+  - "docker-compose*.yml"
+  - "docker-compose*.yaml"
+  - "docker-compose.yml"
+
+# Testing
+test:
+  - "*.test.ts"
+  - "*.test.tsx"
+  - "*.spec.ts"
+  - "*.spec.tsx"
+  - "**/__tests__/**"
+  - "**/__mocks__/**"
+  - "*.test.go"
+  - "**/*_test.go"
+
+# Refactoring
+refactor:
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/*.go"
+
+# Build
+build:
+  - "turbo.json"
+  - "pnpm-workspace.yaml"
+  - "pnpm-lock.yaml"
+  - "package.json"
+  - "tsconfig*.json"
+  - "tsup.config.ts"
+  - "vite.config.ts"
+  - "next.config.*"
+
+# Security
+security:
+  - ".github/workflows/codeql*.yml"
+  - ".github/dependabot.yml"
+  - "*.sarif"
+
+# Documentation
+docs:
+  - "docs/**"
+  - "*.md"
+  - "README*"
+
+# Database
+database:
+  - "*.sql"
+  - "migrations/**"
+  - "prisma/**"
+  - "schema.prisma"
+
+# Infrastructure
+infrastructure:
+  - "terraform/**"
+  - "*.tf"
+  - "*.tfvars"
+  - "ansible/**"
+  - "*.yaml"
+  - "*.yml"
+
+# Scripts
+scripts:
+  - "scripts/**"
+  - "*.sh"
+  - "Makefile"
+  - "makefile"
+
+# UI/UX
+ui:
+  - "apps/web/src/components/**"
+  - "apps/web/src/styles/**"
+  - "*.css"
+  - "*.scss"
+  - "*.sass"
+  - "tailwind.config.*"
+
+# API
+api:
+  - "apps/api/**"
+  - "*.api.ts"
+  - "*.api.tsx"
+  - "*.controller.ts"
+  - "*.route.ts"
+
+# Database migrations
+migrations:
+  - "migrations/**"
+  - "*migration*.ts"
+  - "*migration*.sql"
+
+# Types
+types:
+  - "*.d.ts"
+  - "types/**"
+  - "types.d.ts"
+  - "*.types.ts"
+
+# Linting/Formatting
+lint:
+  - ".eslintrc*"
+  - ".prettierrc*"
+  - ".prettierignore"
+  - "eslint.config.*"
+
+# Environment
+env:
+  - ".env*"
+  - "!.env.example"
+  - "!.env.local"
+  - ".envrc"
+
+# Docker
+docker:
+  - "Dockerfile*"
+  - "docker-compose*"
+  - ".dockerignore"
+
+# Kubernetes
+kubernetes:
+  - "k8s/**"
+  - "kubernetes/**"
+  - "*.yaml"
+  - "*.yml"
+  - "helm/**"
+  - "*.helm.yaml"
+
+# Monitoring
+monitoring:
+  - "prometheus/**"
+  - "grafana/**"
+  - "alerting/**"
+  - "*.rules.yml"
+
+# Logging
+logging:
+  - "logs/**"
+  - "*.log"
+  - "logger*"
+
+# Performance
+performance:
+  - "*.bench.ts"
+  - "*.bench.tsx"
+  - "benchmark/**"
+
+# Accessibility
+accessibility:
+  - "**/a11y/**"
+  - "*a11y*"
+
+# Internationalization
+i18n:
+  - "locales/**"
+  - "i18n/**"
+  - "*.json"
+  - "*.po"
+  - "*.pot"
+
+# Data
+data:
+  - "data/**"
+  - "*.csv"
+  - "*.json"
+  - "*.yaml"
+  - "*.yml"
+
+# Assets
+assets:
+  - "public/**"
+  - "assets/**"
+  - "static/**"
+  - "images/**"
+  - "fonts/**"
+
+# Vendor
+vendor:
+  - "vendor/**"
+  - "node_modules/**"
+  - "vendor/**"
+  - "third_party/**"
+
+# Generated
+generated:
+  - "generated/**"
+  - "dist/**"
+  - "build/**"
+  - "out/**"
+  - ".next/**"
+  - ".turbo/**"
+  - ".vercel/**"
+
+# Temporary
+temp:
+  - "tmp/**"
+  - "temp/**"
+  - "*.tmp"
+  - "*.temp"
+  - ".tmp/**"
+  - "*.log"
+
+# IDE
+ide:
+  - ".vscode/**"
+  - ".idea/**"
+  - "*.swp"
+  - "*.swo"
+  - "*.sublime-*"
+
+# OS
+os:
+  - ".DS_Store"
+  - "Thumbs.db"
+  - "*.swp"
+  - "*.swo"
+  - "~$*"
+
+# Misc
+misc:
+  - "*.txt"
+  - "*.rtf"
+  - "*.pdf"
+  - "*.xml"
+  - "*.xsd"
+  - "*.wsdl"

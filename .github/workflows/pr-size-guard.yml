@@ -1,0 +1,109 @@
+name: PR Size Guard
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  size-check:
+    name: PR Size Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR info
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            })
+            return pr.data
+
+      - name: Get PR files
+        id: files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const files = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            })
+            return files.data
+
+      - name: Calculate size
+        id: size
+        run: |
+          # Parse the files JSON from previous step
+          echo "files_json=$(cat <<'EOF'
+          ${{ toJson(github.event.pull_request) }}
+          EOF
+          )" >> $GITHUB_OUTPUT
+
+      - name: Calculate PR size
+        id: size-calc
+        run: |
+          # Get PR files using gh CLI
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          FILES_JSON=$(gh api repos/${{ github.repository }}/pulls/${PR_NUMBER}/files --jq '.[] | {filename: .filename, additions: .additions, deletions: .deletions}')
+          
+          # Calculate totals
+          TOTAL=0
+          for file in $(echo "$FILES_JSON" | jq -c '.'); do
+            ADDITIONS=$(echo "$file" | jq '.additions')
+            DELETIONS=$(echo "$file" | jq '.deletions')
+            TOTAL=$((TOTAL + ADDITIONS + DELETIONS))
+          done
+          
+          echo "total_changes=$TOTAL" >> $GITHUB_OUTPUT
+          echo "PR has $TOTAL total changes (additions + deletions)"
+
+      - name: Check size limits
+        run: |
+          TOTAL="${{ steps.size-calc.outputs.total_changes }}"
+          echo "Total changes: $TOTAL"
+          
+          # Warn if > 400 lines
+          if [ "$TOTAL" -gt 400 ]; then
+            echo "::warning::PR is large (> 400 lines changed). Consider splitting into smaller PRs."
+          fi
+          
+          # Fail if > 800 lines
+          if [ "$TOTAL" -gt 800 ]; then
+            echo "::error::PR is too large (> 800 lines). Please split into smaller PRs."
+            exit 1
+          fi
+
+      - name: Post size comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const total = parseInt('${{ steps.size-calc.outputs.total_changes }}') || 0;
+            const prNumber = context.payload.pull_request.number;
+            
+            let message = `## 📏 PR Size Report\n\n`;
+            message += `**Total changes:** ${total} lines (additions + deletions)\n\n`;
+            
+            if (total > 800) {
+              message += `❌ **Too large** (> 800 lines). Please split into smaller PRs.\n`;
+            } else if (total > 400) {
+              message += `⚠️ **Large PR** (> 400 lines). Consider splitting.\n`;
+            } else if (total > 200) {
+              message += `ℹ️ **Medium PR** (${total} lines). Good size.\n`;
+            } else {
+              message += `✅ **Small PR** (${total} lines). Great!\n`;
+            }
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: message
+            });
