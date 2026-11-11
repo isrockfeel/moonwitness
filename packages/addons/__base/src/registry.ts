@@ -26,10 +26,12 @@ export const AddonManifestSchema = z.object({
 export type AddonManifest = z.infer<typeof AddonManifestSchema>;
 
 export interface RegisteredAddon {
-  manifest: AddonManifest;
+  manifest: AddonManifestInput;
   /** The addon's registration callback, invoked in dependency order. */
   register: (ctx: AddonContext) => Promise<void> | void;
 }
+
+export type AddonManifestInput = z.input<typeof AddonManifestSchema>;
 
 export interface AddonContext {
   /** Names of addons already registered before this one. */
@@ -70,7 +72,10 @@ function emptyState(): RegistryState {
  * addons; a collision fails startup with an actionable error.
  */
 export class AddonRegistry {
-  private readonly addons = new Map<string, RegisteredAddon>();
+  private readonly addons = new Map<
+    string,
+    { manifest: AddonManifest; register: RegisteredAddon["register"] }
+  >();
 
   add(addon: RegisteredAddon): this {
     const parsed = AddonManifestSchema.parse(addon.manifest);
