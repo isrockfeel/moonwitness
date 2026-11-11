@@ -7,6 +7,8 @@ import FastifySwaggerUi from "@fastify/swagger-ui";
 import { env, parseCorsOrigins } from "../../shared/env";
 import { createRateLimiter } from "../rate-limit";
 import { registerHealthRoutes } from "../../interface/routes/health.routes";
+import { controlRoutes } from "../../interface/routes/control.routes";
+import { radiusRoutes } from "../../interface/routes/radius.routes";
 
 export interface BootstrapOptions {
   prefix?: string;
@@ -112,6 +114,9 @@ export async function buildFastify(options: BootstrapOptions): Promise<FastifyIn
     await fastify.register(
       async (instance: FastifyInstance) => {
         await registerHealthRoutes(instance);
+        // Proxy aditif ke control plane arsy & layanan RADIUS.
+        await instance.register(controlRoutes);
+        await instance.register(radiusRoutes);
       },
       { prefix: options.prefix },
     );
