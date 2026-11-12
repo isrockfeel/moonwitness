@@ -1,9 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { registerTimelineRoutes } from "./routes.js";
-import { timelineManifest } from "./manifest.js";
-
-export { registerTimelineRoutes } from "./routes.js";
 export { timelineManifest } from "./manifest.js";
+export { registerTimelineRoutes } from "./routes.js";
 export { timelineDdl, timelineEventModel, timelineEraModel } from "./model.js";
 export { seedTimeline, eras, events } from "./seed.js";
 

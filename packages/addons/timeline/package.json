@@ -9,7 +9,7 @@
   "scripts": {
     "build": "echo \"addon-timeline: no build output\"",
     "typecheck": "tsc --noEmit",
-    "lint": "echo \"addon-timeline: no lint configured\"",
+    "lint": "eslint src",
     "test": "vitest run",
     "clean": "rm -rf .turbo dist node_modules"
   },
@@ -19,7 +19,9 @@
     "@moonwitness/types": "workspace:*"
   },
   "devDependencies": {
+    "@moonwitness/eslint-config": "workspace:*",
     "@moonwitness/typescript-config": "workspace:*",
+    "eslint": "^9.39.0",
     "fastify": "^5.1.0",
     "typescript": "^5.9.3",
     "vitest": "^3.2.7"
