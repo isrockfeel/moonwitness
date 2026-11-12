@@ -1,0 +1,53 @@
+name: Slack Notifications
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  notify:
+    name: Notify Slack
+    if: github.event.workflow_run.conclusion != 'skipped'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine status
+        id: status
+        run: |
+          conclusion="${{ github.event.workflow_run.conclusion }}"
+          if [ "$conclusion" = "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "emoji=:white_check_mark:" >> $GITHUB_OUTPUT
+            echo "color=good" >> $GITHUB_OUTPUT
+          elif [ "$conclusion" = "failure" ]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "emoji=:x:" >> $GITHUB_OUTPUT
+            echo "color=danger" >> $GITHUB_OUTPUT
+          else
+            echo "status=cancelled" >> $GITHUB_OUTPUT
+            echo "emoji=:warning:" >> $GITHUB_OUTPUT
+            echo "color=warning" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Post to Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{
+              \"attachments\": [{
+                \"color\": \"${{ steps.status.outputs.color }}\",
+                \"title\": \"${{ steps.status.outputs.emoji }} CI ${{ steps.status.outputs.status | upper }}\",
+                \"title_link\": \"${{ github.event.workflow_run.html_url }}\",
+                \"fields\": [
+                  {\"title\": \"Workflow\", \"value\": \"${{ github.event.workflow_run.workflow_name }}\", \"short\": true},
+                  {\"title\": \"Branch\", \"value\": \"${{ github.event.workflow_run.head_branch }}\", \"short\": true},
+                  {\"title\": \"Commit\", \"value\": \"${{ github.event.workflow_run.head_sha }}\", \"short\": true},
+                  {\"title\": \"Duration\", \"value\": \"${{ github.event.workflow_run.run_duration }}s\", \"short\": true}
+                ],
+                \"footer\": \"${{ github.repository }}\",
+                \"ts\": $(date +%s)
+              }]
+            }" \
+            $SLACK_WEBHOOK_URL
