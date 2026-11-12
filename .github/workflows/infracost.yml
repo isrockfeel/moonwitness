@@ -27,6 +27,7 @@ jobs:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Generate Infracost diff
+        if: env.INFRACOST_API_KEY != ''
         run: |
           infracost diff --path=. --show-skipped --format=json > infracost.json
 
