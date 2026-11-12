@@ -8,10 +8,14 @@ updates:
       time: "06:00"
       timezone: "Asia/Jakarta"
     groups:
-      all-deps:
+      dev-dependencies:
         patterns:
           - "*"
-        dependency-type: "all"
+        dependency-type: "development"
+      production:
+        patterns:
+          - "*"
+        dependency-type: "production"
     open-pull-requests-limit: 10
     allow:
       - dependency-type: "direct"
@@ -26,3 +30,13 @@ updates:
       - "The-Batteries"
     reviewers:
       - "The-Batteries"
+<<<<<<< HEAD
+=======
+    automerged_updates:
+      - match:
+          update_type: "version-update:semver-patch"
+        update_type: "all"
+      - match:
+          update_type: "version-update:semver-minor"
+        update_type: "all"
+>>>>>>> ab252fd (feat(ci): add P1 automation - dependabot, codeql-autofix, auto-labeler, pr-size-guard, security-scan (#40))
