@@ -45,8 +45,6 @@ jobs:
         with:
           command: pnpm exec percy exec -- pnpm exec playwright test --reporter=list
           working-directory: ./apps/web
-        env:
-          PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
 
       - name: Upload Percy artifacts
         if: always()

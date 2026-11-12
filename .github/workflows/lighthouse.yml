@@ -71,13 +71,12 @@ jobs:
           script: |
             const fs = require('fs');
             const path = require('path');
-            
+
             // Find the latest lighthouse report
-            const fs = require('fs');
             const reportPath = path.join('.lighthouseci', 'lhr-*.json');
             const files = fs.readdirSync('.lighthouseci');
             const reportFile = files.find(f => f.endsWith('.json'));
-            
+
             if (reportFile) {
               const report = JSON.parse(fs.readFileSync(path.join('.lighthouseci', reportFile), 'utf8'));
               const lhr = report.lhr || report;

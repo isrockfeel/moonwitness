@@ -39,6 +39,5 @@ jobs:
         with:
           path: .
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path: .
-          behavior: 'post-comment'
-          comment-behavior: 'update'
+          behavior: "post-comment"
+          comment-behavior: "update"
