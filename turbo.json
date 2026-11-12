@@ -29,6 +29,19 @@
     "api:build": {
       "dependsOn": ["^build"],
       "inputs": ["apps/api/**"]
+    },
+    "radio:dev": {
+      "cache": false,
+      "persistent": true,
+      "env": ["VITE_API_BASE_URL", "VITE_WS_URL"]
+    },
+    "radio:build": {
+      "dependsOn": ["^build"],
+      "inputs": ["apps/radio/**"]
+    },
+    "radio:deploy": {
+      "dependsOn": ["radio:build"],
+      "cache": false
     }
   }
 }
