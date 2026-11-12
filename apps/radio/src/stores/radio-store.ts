@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import type { Station, Track } from '../types/radio';
-import { audioEngine, type AudioEngineState } from '../services/audio-engine';
+import { create } from "zustand";
+import type { Station, Track } from "../types/radio";
+import { audioEngine, type AudioEngineState } from "../services/audio-engine";
 
 interface RadioState {
   // Station state
@@ -55,66 +55,65 @@ const initialAudioState: AudioEngineState = {
   isLoading: false,
 };
 
-export const useRadioStore = create<RadioState>()(
-  (set, get) => ({
-    // Initial state
-    stations: [],
-    currentStation: null,
-    favoriteStationIds: [],
-    searchQuery: '',
-    selectedGenre: null,
-    selectedCountry: null,
-    audioState: initialAudioState,
-    isPlayerExpanded: false,
-    isStationDrawerOpen: false,
-    isSettingsOpen: false,
+export const useRadioStore = create<RadioState>()((set, get) => ({
+  // Initial state
+  stations: [],
+  currentStation: null,
+  favoriteStationIds: [],
+  searchQuery: "",
+  selectedGenre: null,
+  selectedCountry: null,
+  audioState: initialAudioState,
+  isPlayerExpanded: false,
+  isStationDrawerOpen: false,
+  isSettingsOpen: false,
 
-    // Station actions
-    setStations: (stations) => set({ stations }),
-    setCurrentStation: (station) => set({ currentStation: station }),
-    toggleFavorite: (stationId) =>
-      set((state) => ({
-        favoriteStationIds: state.favoriteStationIds.includes(stationId)
-          ? state.favoriteStationIds.filter((id) => id !== stationId)
-          : [...state.favoriteStationIds, stationId],
-      })),
-    setSearchQuery: (query) => set({ searchQuery: query }),
-    setSelectedGenre: (genre) => set({ selectedGenre: genre }),
-    setSelectedCountry: (country) => set({ selectedCountry: country }),
+  // Station actions
+  setStations: (stations) => set({ stations }),
+  setCurrentStation: (station) => set({ currentStation: station }),
+  toggleFavorite: (stationId) =>
+    set((state) => ({
+      favoriteStationIds: state.favoriteStationIds.includes(stationId)
+        ? state.favoriteStationIds.filter((id) => id !== stationId)
+        : [...state.favoriteStationIds, stationId],
+    })),
+  setSearchQuery: (query) => set({ searchQuery: query }),
+  setSelectedGenre: (genre) => set({ selectedGenre: genre }),
+  setSelectedCountry: (country) => set({ selectedCountry: country }),
 
-    // UI actions
-    setPlayerExpanded: (expanded) => set({ isPlayerExpanded: expanded }),
-    setStationDrawerOpen: (open) => set({ isStationDrawerOpen: open }),
-    setSettingsOpen: (open) => set({ isSettingsOpen: open }),
+  // UI actions
+  setPlayerExpanded: (expanded) => set({ isPlayerExpanded: expanded }),
+  setStationDrawerOpen: (open) => set({ isStationDrawerOpen: open }),
+  setSettingsOpen: (open) => set({ isSettingsOpen: open }),
 
-    // Audio actions
-    play: async (station) => {
-      await audioEngine.play(station);
-      if (station) set({ currentStation: station });
-    },
-    pause: () => audioEngine.pause(),
-    togglePlay: () => audioEngine.toggle(),
-    setVolume: (volume) => audioEngine.setVolume(volume),
-    seek: (time) => audioEngine.seek(time),
-    updateTrack: (track) => audioEngine.updateTrack(track),
+  // Audio actions
+  play: async (station) => {
+    await audioEngine.play(station);
+    if (station) set({ currentStation: station });
+  },
+  pause: () => audioEngine.pause(),
+  togglePlay: () => audioEngine.toggle(),
+  setVolume: (volume) => audioEngine.setVolume(volume),
+  seek: (time) => audioEngine.seek(time),
+  updateTrack: (track) => audioEngine.updateTrack(track),
 
-    // Computed
-    getFilteredStations: () => {
-      const { stations, searchQuery, selectedGenre, selectedCountry } = get();
-      return stations.filter((station) => {
-        if (!station.isActive) return false;
-        if (searchQuery && !station.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-        if (selectedGenre && !station.genre.includes(selectedGenre)) return false;
-        if (selectedCountry && station.country !== selectedCountry) return false;
-        return true;
-      });
-    },
-    isFavorite: (stationId: string) => get().favoriteStationIds.includes(stationId),
-  })
-);
+  // Computed
+  getFilteredStations: () => {
+    const { stations, searchQuery, selectedGenre, selectedCountry } = get();
+    return stations.filter((station) => {
+      if (!station.isActive) return false;
+      if (searchQuery && !station.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        return false;
+      if (selectedGenre && !station.genre.includes(selectedGenre)) return false;
+      if (selectedCountry && station.country !== selectedCountry) return false;
+      return true;
+    });
+  },
+  isFavorite: (stationId: string) => get().favoriteStationIds.includes(stationId),
+}));
 
 // Subscribe to audio engine state changes - only on client side
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   // Use setTimeout to ensure DOM is ready and avoid SSR issues
   setTimeout(() => {
     audioEngine.subscribe((state) => {
