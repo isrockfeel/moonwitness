@@ -28,7 +28,7 @@ jobs:
 
       - name: Generate Infracost diff
         run: |
-          infracost diff --path=. --percentage-threshold=5% --show-skipped --format=json > infracost.json
+          infracost diff --path=. --show-skipped --format=json > infracost.json
 
       - name: Post Infracost comment
         if: github.event_name == 'pull_request' && env.INFRACOST_API_KEY != ''
