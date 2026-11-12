@@ -14,7 +14,7 @@
     "clean": "rm -rf .turbo node_modules"
   },
   "dependencies": {
-    "@libsql/client": "^0.15.15",
+    "@libsql/client": "^0.18.0",
     "@moonwitness/types": "workspace:*",
     "zod": "^3.25.76"
   },
