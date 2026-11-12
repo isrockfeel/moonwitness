@@ -1,20 +1,20 @@
 name: Security Scan (Trivy)
 on:
   schedule:
-    - cron: '0 6 * * 1'  # Weekly on Monday 06:00 UTC
+    - cron: "0 6 * * 1" # Weekly on Monday 06:00 UTC
   workflow_dispatch:
     inputs:
       severity:
-        description: 'Severity threshold'
-        description: 'Severity threshold for vulnerabilities'
+        description: "Severity threshold"
+        description: "Severity threshold for vulnerabilities"
         required: false
-        default: 'HIGH,CRITICAL'
+        default: "HIGH,CRITICAL"
         type: choice
         options:
-          - 'CRITICAL'
-          - 'HIGH,CRITICAL'
-          - 'MEDIUM,HIGH,CRITICAL'
-          - 'LOW,MEDIUM,HIGH,CRITICAL'
+          - "CRITICAL"
+          - "HIGH,CRITICAL"
+          - "MEDIUM,HIGH,CRITICAL"
+          - "LOW,MEDIUM,HIGH,CRITICAL"
 
 jobs:
   trivy:
@@ -32,22 +32,22 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
+          scan-type: "fs"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-results.sarif"
           severity: ${{ github.event.inputs.severity || 'HIGH,CRITICAL' }}
-          exit-code: '1'
+          exit-code: "1"
           ignore-unfixed: true
-          vuln-type: 'os,library'
+          vuln-type: "os,library"
           ignore-unfixed: true
 
       - name: Upload Trivy results to Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: 'trivy-results.sarif'
-          category: 'trivy'
+          sarif_file: "trivy-results.sarif"
+          category: "trivy"
 
       - name: Upload Trivy results as artifact
         uses: actions/upload-artifact@v4

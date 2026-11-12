@@ -1,192 +1,192 @@
 bug:
-- '**/bug/**'
-- '**/fix*.ts'
-- '**/fix*.tsx'
-- '**/*bug*.ts'
-- '**/bug*.ts'
+  - "**/bug/**"
+  - "**/fix*.ts"
+  - "**/fix*.tsx"
+  - "**/*bug*.ts"
+  - "**/bug*.ts"
 feature:
-- '**/features/**'
-- '**/feat*.ts'
-- '**/feat*.tsx'
-- apps/**/features/**
-- packages/**/features/**
+  - "**/features/**"
+  - "**/feat*.ts"
+  - "**/feat*.tsx"
+  - apps/**/features/**
+  - packages/**/features/**
 documentation:
-- '*.md'
-- docs/**
-- README*
-- CHANGELOG*
+  - "*.md"
+  - docs/**
+  - README*
+  - CHANGELOG*
 dependencies:
-- package.json
-- pnpm-lock.yaml
-- pnpm-workspace.yaml
-- go.mod
-- go.sum
-- Cargo.toml
-- Cargo.lock
+  - package.json
+  - pnpm-lock.yaml
+  - pnpm-workspace.yaml
+  - go.mod
+  - go.sum
+  - Cargo.toml
+  - Cargo.lock
 configuration:
-- .github/**
-- '*.config.*'
-- tsconfig*.json
-- '*.config.ts'
-- '*.config.js'
-- '*.config.yaml'
-- '*.config.yml'
+  - .github/**
+  - "*.config.*"
+  - tsconfig*.json
+  - "*.config.ts"
+  - "*.config.js"
+  - "*.config.yaml"
+  - "*.config.yml"
 ci-cd:
-- .github/workflows/**
-- .github/actions/**
-- Dockerfile*
-- docker-compose*.yml
-- docker-compose*.yaml
-- docker-compose.yml
+  - .github/workflows/**
+  - .github/actions/**
+  - Dockerfile*
+  - docker-compose*.yml
+  - docker-compose*.yaml
+  - docker-compose.yml
 test:
-- '*.test.ts'
-- '*.test.tsx'
-- '*.spec.ts'
-- '*.spec.tsx'
-- '**/__tests__/**'
-- '**/__mocks__/**'
-- '*.test.go'
-- '**/*_test.go'
+  - "*.test.ts"
+  - "*.test.tsx"
+  - "*.spec.ts"
+  - "*.spec.tsx"
+  - "**/__tests__/**"
+  - "**/__mocks__/**"
+  - "*.test.go"
+  - "**/*_test.go"
 refactor:
-- '**/*.ts'
-- '**/*.tsx'
-- '**/*.go'
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/*.go"
 build:
-- turbo.json
-- pnpm-workspace.yaml
-- pnpm-lock.yaml
-- package.json
-- tsconfig*.json
-- tsup.config.ts
-- vite.config.ts
-- next.config.*
+  - turbo.json
+  - pnpm-workspace.yaml
+  - pnpm-lock.yaml
+  - package.json
+  - tsconfig*.json
+  - tsup.config.ts
+  - vite.config.ts
+  - next.config.*
 security:
-- .github/workflows/codeql*.yml
-- .github/dependabot.yml
+  - .github/workflows/codeql*.yml
+  - .github/dependabot.yml
 docs:
-- docs/**
-- '*.md'
-- README*
+  - docs/**
+  - "*.md"
+  - README*
 database:
-- '*.sql'
-- migrations/**
-- prisma/**
-- schema.prisma
+  - "*.sql"
+  - migrations/**
+  - prisma/**
+  - schema.prisma
 infrastructure:
-- terraform/**
-- '*.tf'
-- '*.tfvars'
-- ansible/**
-- '*.yaml'
-- '*.yml'
+  - terraform/**
+  - "*.tf"
+  - "*.tfvars"
+  - ansible/**
+  - "*.yaml"
+  - "*.yml"
 scripts:
-- scripts/**
-- '*.sh'
-- Makefile
-- makefile
+  - scripts/**
+  - "*.sh"
+  - Makefile
+  - makefile
 ui:
-- apps/web/src/components/**
-- apps/web/src/styles/**
-- '*.css'
-- '*.scss'
-- '*.sass'
-- tailwind.config.*
+  - apps/web/src/components/**
+  - apps/web/src/styles/**
+  - "*.css"
+  - "*.scss"
+  - "*.sass"
+  - tailwind.config.*
 api:
-- apps/api/**
-- '*.api.ts'
-- '*.api.tsx'
-- '*.controller.ts'
-- '*.route.ts'
+  - apps/api/**
+  - "*.api.ts"
+  - "*.api.tsx"
+  - "*.controller.ts"
+  - "*.route.ts"
 migrations:
-- migrations/**
-- '*migration*.ts'
-- '*migration*.sql'
+  - migrations/**
+  - "*migration*.ts"
+  - "*migration*.sql"
 types:
-- '*.d.ts'
-- types/**
-- types.d.ts
-- '*.types.ts'
+  - "*.d.ts"
+  - types/**
+  - types.d.ts
+  - "*.types.ts"
 lint:
-- .eslintrc*
-- .prettierrc*
-- .prettierignore
-- eslint.config.*
+  - .eslintrc*
+  - .prettierrc*
+  - .prettierignore
+  - eslint.config.*
 env:
-- .env*
-- '!.env.example'
-- '!.env.local'
-- .envrc
+  - .env*
+  - "!.env.example"
+  - "!.env.local"
+  - .envrc
 docker:
-- Dockerfile*
-- docker-compose*
-- .dockerignore
+  - Dockerfile*
+  - docker-compose*
+  - .dockerignore
 kubernetes:
-- k8s/**
-- kubernetes/**
-- '*.yaml'
-- '*.yml'
-- helm/**
-- '*.helm.yaml'
+  - k8s/**
+  - kubernetes/**
+  - "*.yaml"
+  - "*.yml"
+  - helm/**
+  - "*.helm.yaml"
 monitoring:
-- prometheus/**
-- grafana/**
-- alerting/**
-- '*.rules.yml'
+  - prometheus/**
+  - grafana/**
+  - alerting/**
+  - "*.rules.yml"
 logging:
-- logs/**
-- '*.log'
-- logger*
+  - logs/**
+  - "*.log"
+  - logger*
 performance:
-- '*.bench.ts'
-- '*.bench.tsx'
-- benchmark/**
+  - "*.bench.ts"
+  - "*.bench.tsx"
+  - benchmark/**
 i18n:
-- locales/**
-- i18n/**
-- '*.json'
-- '*.po'
-- '*.pot'
+  - locales/**
+  - i18n/**
+  - "*.json"
+  - "*.po"
+  - "*.pot"
 data:
-- data/**
-- '*.csv'
-- '*.json'
-- '*.yaml'
-- '*.yml'
+  - data/**
+  - "*.csv"
+  - "*.json"
+  - "*.yaml"
+  - "*.yml"
 assets:
-- public/**
-- assets/**
-- static/**
-- images/**
-- fonts/**
+  - public/**
+  - assets/**
+  - static/**
+  - images/**
+  - fonts/**
 vendor:
-- vendor/**
-- node_modules/**
-- vendor/**
-- third_party/**
+  - vendor/**
+  - node_modules/**
+  - vendor/**
+  - third_party/**
 generated:
-- generated/**
-- dist/**
-- build/**
-- out/**
-- .next/**
-- .turbo/**
-- .vercel/**
+  - generated/**
+  - dist/**
+  - build/**
+  - out/**
+  - .next/**
+  - .turbo/**
+  - .vercel/**
 temp:
-- tmp/**
-- temp/**
-- '*.tmp'
-- '*.temp'
-- .tmp/**
-- '*.log'
+  - tmp/**
+  - temp/**
+  - "*.tmp"
+  - "*.temp"
+  - .tmp/**
+  - "*.log"
 ide:
-- .vscode/**
-- .idea/**
-- '*.swp'
-- '*.swo'
-- '*.sublime-*'
+  - .vscode/**
+  - .idea/**
+  - "*.swp"
+  - "*.swo"
+  - "*.sublime-*"
 os:
-- .DS_Store
-- Thumbs.db
-- '*.swp'
-- '*.swo'
-- ~$*
+  - .DS_Store
+  - Thumbs.db
+  - "*.swp"
+  - "*.swo"
+  - ~$*

@@ -46,7 +46,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            
+
             // Simple YAML parser for our specific format
             function parseYAML(content) {
               const result = {};
@@ -90,24 +90,24 @@ jobs:
               }
               return result;
             }
-            
+
             const configContent = fs.readFileSync('.github/assigner.yml', 'utf8');
             const config = parseYAML(configContent);
-            
+
             // Get PR files
             const files = await github.rest.pulls.listFiles({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.payload.pull_request.number
             });
-            
+
             // Collect all matching assignees
             const assignees = new Set();
-            
+
             // Filter out PR author (can't request review from author)
             const prAuthor = context.payload.pull_request.user.login;
             const filteredAssignees = Array.from(assignees).filter(a => a !== prAuthor);
-            
+
             // Assign reviewers
             if (filteredAssignees.length > 0) {
               await github.rest.pulls.requestReviewers({
