@@ -141,7 +141,9 @@ describe("AI Provider Errors", () => {
     });
 
     it("classifies MODEL_NOT_FOUND from message", () => {
-      const error = createProviderError(new Error("model 'xyz' not found"), "ollama", { modelId: "xyz" });
+      const error = createProviderError(new Error("model 'xyz' not found"), "ollama", {
+        modelId: "xyz",
+      });
       expect(error.code).toBe("MODEL_NOT_FOUND");
       expect(isModelNotFoundError(error)).toBe(true);
     });
@@ -169,7 +171,9 @@ describe("AI Provider Errors", () => {
     });
 
     it("classifies TIMEOUT from message", () => {
-      const error = createProviderError(new Error("request timed out"), "ollama", { timeoutMs: 5000 });
+      const error = createProviderError(new Error("request timed out"), "ollama", {
+        timeoutMs: 5000,
+      });
       expect(error.code).toBe("TIMEOUT");
       expect(isRetryableError(error)).toBe(true);
     });
@@ -199,7 +203,9 @@ describe("AI Provider Errors", () => {
     });
 
     it("handles plain objects with error field", () => {
-      const error = createProviderError({ error: "model not found" }, "ollama", { modelId: "test" });
+      const error = createProviderError({ error: "model not found" }, "ollama", {
+        modelId: "test",
+      });
       expect(error.code).toBe("MODEL_NOT_FOUND");
     });
   });
@@ -226,7 +232,9 @@ describe("AI Provider Errors", () => {
     });
 
     it("isContextLengthExceededError identifies context length errors", () => {
-      expect(isContextLengthExceededError(new ContextLengthExceededError(100, 50, "ollama"))).toBe(true);
+      expect(isContextLengthExceededError(new ContextLengthExceededError(100, 50, "ollama"))).toBe(
+        true,
+      );
       expect(isContextLengthExceededError(new ModelNotFoundError("m", "ollama"))).toBe(false);
     });
   });

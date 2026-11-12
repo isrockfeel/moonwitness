@@ -103,7 +103,8 @@ export interface ChatRequestOptions {
   /** Tool choice behavior. */
   toolChoice?: "none" | "auto" | "required" | { type: "function"; function: { name: string } };
   /** Response format for structured output. */
-  responseFormat?: { type: "json_object" } | { type: "json_schema"; jsonSchema: Record<string, unknown> };
+  responseFormat?:
+    { type: "json_object" } | { type: "json_schema"; jsonSchema: Record<string, unknown> };
   /** Random seed for reproducibility. */
   seed?: number;
   /** User identifier for tracking. */
@@ -122,13 +123,7 @@ export interface ChatRequest extends ChatRequestOptions {
 
 /** Finish reason for a chat completion. */
 export type FinishReason =
-  | "stop"
-  | "length"
-  | "tool_calls"
-  | "content_filter"
-  | "cancelled"
-  | "error"
-  | "unknown";
+  "stop" | "length" | "tool_calls" | "content_filter" | "cancelled" | "error" | "unknown";
 
 /** Choice in a chat completion response. */
 export interface ChatChoice {
@@ -190,7 +185,17 @@ export interface ToolCallDelta {
 export type StreamingEvent =
   | { type: "content"; delta: StreamingDelta; requestId: string }
   | { type: "done"; response: ChatResponse; requestId: string }
-  | { type: "error"; error: { code: string; message: string; provider: string; retryable: boolean; cause?: unknown }; requestId: string };
+  | {
+      type: "error";
+      error: {
+        code: string;
+        message: string;
+        provider: string;
+        retryable: boolean;
+        cause?: unknown;
+      };
+      requestId: string;
+    };
 
 /** Helper to check if streaming is done. */
 export function isStreamingDone(event: StreamingEvent): event is StreamingEvent & { type: "done" } {
@@ -198,12 +203,16 @@ export function isStreamingDone(event: StreamingEvent): event is StreamingEvent 
 }
 
 /** Helper to check if streaming error. */
-export function isStreamingError(event: StreamingEvent): event is StreamingEvent & { type: "error" } {
+export function isStreamingError(
+  event: StreamingEvent,
+): event is StreamingEvent & { type: "error" } {
   return event.type === "error";
 }
 
 /** Helper to check if streaming content. */
-export function isStreamingContent(event: StreamingEvent): event is StreamingEvent & { type: "content" } {
+export function isStreamingContent(
+  event: StreamingEvent,
+): event is StreamingEvent & { type: "content" } {
   return event.type === "content";
 }
 

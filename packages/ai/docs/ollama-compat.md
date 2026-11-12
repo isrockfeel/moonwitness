@@ -17,19 +17,19 @@ This document records the compatibility findings between Ollama's native API (`/
 
 ## Compatibility Matrix
 
-| Feature | Native API (`/api/*`) | OpenAI Compat (`/v1/*`) | Contract Support | Notes |
-|---------|----------------------|------------------------|------------------|-------|
-| **Chat Completion** | ✅ Supported | ✅ Supported | ✅ Full | Both endpoints work; native has more options |
-| **SSE Streaming** | ✅ Supported | ✅ Supported | ✅ Full | Native uses NDJSON; OpenAI uses SSE |
-| **Tool/Function Calling** | ❌ Unsupported | ❌ Unsupported | ⚠️ Partial | Not implemented in tested version |
-| **Structured Output (JSON)** | ✅ Supported (`format: "json"`) | ⚠️ Partial | ⚠️ Partial | Native supports `format: "json"`; OpenAI uses `response_format` |
-| **Usage Metadata** | ✅ Supported | ✅ Supported | ✅ Full | `prompt_eval_count`, `eval_count` in final chunk |
-| **Model Listing** | ✅ Supported (`/api/tags`) | ⚠️ Limited (`/v1/models`) | ✅ Full | Native returns richer metadata |
-| **Health Check** | ✅ Supported (`/api/tags`) | ✅ Supported | ✅ Full | Simple GET to tags endpoint |
-| **Cancellation** | ✅ Via AbortSignal | ✅ Via AbortSignal | ✅ Full | Both respect fetch abort |
-| **Timeouts** | ✅ Configurable | ✅ Configurable | ✅ Full | Client-side timeout |
-| **Vision/Multimodal** | ✅ Supported (llava, etc.) | ✅ Supported | ⚠️ Partial | Depends on loaded model |
-| **Embeddings** | ✅ Supported (`/api/embeddings`) | ✅ Supported (`/v1/embeddings`) | ✅ Full | |
+| Feature                      | Native API (`/api/*`)            | OpenAI Compat (`/v1/*`)         | Contract Support | Notes                                                           |
+| ---------------------------- | -------------------------------- | ------------------------------- | ---------------- | --------------------------------------------------------------- |
+| **Chat Completion**          | ✅ Supported                     | ✅ Supported                    | ✅ Full          | Both endpoints work; native has more options                    |
+| **SSE Streaming**            | ✅ Supported                     | ✅ Supported                    | ✅ Full          | Native uses NDJSON; OpenAI uses SSE                             |
+| **Tool/Function Calling**    | ❌ Unsupported                   | ❌ Unsupported                  | ⚠️ Partial       | Not implemented in tested version                               |
+| **Structured Output (JSON)** | ✅ Supported (`format: "json"`)  | ⚠️ Partial                      | ⚠️ Partial       | Native supports `format: "json"`; OpenAI uses `response_format` |
+| **Usage Metadata**           | ✅ Supported                     | ✅ Supported                    | ✅ Full          | `prompt_eval_count`, `eval_count` in final chunk                |
+| **Model Listing**            | ✅ Supported (`/api/tags`)       | ⚠️ Limited (`/v1/models`)       | ✅ Full          | Native returns richer metadata                                  |
+| **Health Check**             | ✅ Supported (`/api/tags`)       | ✅ Supported                    | ✅ Full          | Simple GET to tags endpoint                                     |
+| **Cancellation**             | ✅ Via AbortSignal               | ✅ Via AbortSignal              | ✅ Full          | Both respect fetch abort                                        |
+| **Timeouts**                 | ✅ Configurable                  | ✅ Configurable                 | ✅ Full          | Client-side timeout                                             |
+| **Vision/Multimodal**        | ✅ Supported (llava, etc.)       | ✅ Supported                    | ⚠️ Partial       | Depends on loaded model                                         |
+| **Embeddings**               | ✅ Supported (`/api/embeddings`) | ✅ Supported (`/v1/embeddings`) | ✅ Full          |                                                                 |
 
 ---
 
@@ -38,17 +38,19 @@ This document records the compatibility findings between Ollama's native API (`/
 ### Chat Completion (`/api/chat`)
 
 **Request Format**:
+
 ```json
 {
   "model": "llama3.1:8b",
   "messages": [{ "role": "user", "content": "Hello" }],
   "stream": false,
   "options": { "temperature": 0.7 },
-  "format": "json"  // Optional: forces JSON output
+  "format": "json" // Optional: forces JSON output
 }
 ```
 
 **Response Format (non-streaming)**:
+
 ```json
 {
   "model": "llama3.1:8b",
@@ -65,6 +67,7 @@ This document records the compatibility findings between Ollama's native API (`/
 ```
 
 **Mapping to Contract**:
+
 - `message.content` → `ChatChoice.message.content`
 - `prompt_eval_count` → `UsageMetadata.promptTokens`
 - `eval_count` → `UsageMetadata.completionTokens`
@@ -81,6 +84,7 @@ This document records the compatibility findings between Ollama's native API (`/
 ```
 
 **Contract Mapping**:
+
 - Each chunk → `StreamingEvent` with `type: "content"` and `delta.content`
 - Final chunk (`done: true`) → `StreamingEvent` with `type: "done"` and full `ChatResponse`
 - Usage only in final chunk
@@ -105,6 +109,7 @@ This document records the compatibility findings between Ollama's native API (`/
 ### Model Listing (`/api/tags`)
 
 **Response**:
+
 ```json
 {
   "models": [
@@ -127,6 +132,7 @@ This document records the compatibility findings between Ollama's native API (`/
 ```
 
 **Mapping to `ModelIdentity`**:
+
 - `name` → `id` and `name`
 - `details.family` → `provider` (with version)
 - `details.parameter_size` → `parameterCount`
@@ -135,13 +141,13 @@ This document records the compatibility findings between Ollama's native API (`/
 
 ### Error Responses
 
-| HTTP Status | Error Format | Contract Code |
-|-------------|--------------|---------------|
-| 404 | `{ "error": "model 'xyz' not found" }` | `MODEL_NOT_FOUND` |
-| 400 | `{ "error": "invalid request: ..." }` | `INVALID_REQUEST` |
-| 429 | `{ "error": "rate limit exceeded" }` | `RATE_LIMITED` |
-| 500 | `{ "error": "internal error" }` | `INTERNAL_ERROR` |
-| 503 | Connection refused | `PROVIDER_UNAVAILABLE` |
+| HTTP Status | Error Format                           | Contract Code          |
+| ----------- | -------------------------------------- | ---------------------- |
+| 404         | `{ "error": "model 'xyz' not found" }` | `MODEL_NOT_FOUND`      |
+| 400         | `{ "error": "invalid request: ..." }`  | `INVALID_REQUEST`      |
+| 429         | `{ "error": "rate limit exceeded" }`   | `RATE_LIMITED`         |
+| 500         | `{ "error": "internal error" }`        | `INTERNAL_ERROR`       |
+| 503         | Connection refused                     | `PROVIDER_UNAVAILABLE` |
 
 ### Cancellation & Timeouts
 
@@ -155,14 +161,14 @@ This document records the compatibility findings between Ollama's native API (`/
 
 ### Differences from Native API
 
-| Aspect | Native (`/api/*`) | OpenAI Compat (`/v1/*`) |
-|--------|-------------------|------------------------|
-| Streaming Format | NDJSON | SSE (`data: ...\n\n`) |
-| Tool Calling | ❌ | ❌ |
-| JSON Mode | `format: "json"` | `response_format: {type:"json_object"}` |
-| Model List | `/api/tags` (rich) | `/v1/models` (basic) |
-| Embeddings | `/api/embeddings` | `/v1/embeddings` |
-| Auth | None | Bearer token (ignored) |
+| Aspect           | Native (`/api/*`)  | OpenAI Compat (`/v1/*`)                 |
+| ---------------- | ------------------ | --------------------------------------- |
+| Streaming Format | NDJSON             | SSE (`data: ...\n\n`)                   |
+| Tool Calling     | ❌                 | ❌                                      |
+| JSON Mode        | `format: "json"`   | `response_format: {type:"json_object"}` |
+| Model List       | `/api/tags` (rich) | `/v1/models` (basic)                    |
+| Embeddings       | `/api/embeddings`  | `/v1/embeddings`                        |
+| Auth             | None               | Bearer token (ignored)                  |
 
 ### When to Use OpenAI Compat
 
@@ -203,6 +209,7 @@ Tests are skipped in CI by default. Set `OLLAMA_BASE_URL` to enable.
 **Selected**: Ollama Native API (`/api/*`)
 
 **Evidence**:
+
 1. ✅ Full chat + streaming support
 2. ✅ Rich model metadata via `/api/tags`
 3. ✅ Health check via same endpoint
@@ -213,6 +220,7 @@ Tests are skipped in CI by default. Set `OLLAMA_BASE_URL` to enable.
 8. ❌ Structured output limited to JSON (no schema validation)
 
 **Next Steps**:
+
 - Implement `OllamaAdapter` in `packages/ai/src/adapters/ollama/index.ts`
 - Map native API responses to provider-neutral contracts
 - Add integration tests with mocked responses

@@ -126,14 +126,21 @@ export class OllamaAdapter {
     // TODO: Implement based on protocol test findings
     throw new Error("Not implemented - pending protocol validation (Issue #30)");
     // Unreachable - satisfies generator return type (never executes)
-    yield { type: "error", error: { code: "UNKNOWN_ERROR", message: "", provider: "ollama", retryable: false, cause: undefined }, requestId: "" } as never;
+    yield {
+      type: "error",
+      error: {
+        code: "UNKNOWN_ERROR",
+        message: "",
+        provider: "ollama",
+        retryable: false,
+        cause: undefined,
+      },
+      requestId: "",
+    } as never;
   }
 
   /** Helper to fetch with timeout and abort support. */
-  private async fetchWithTimeout(
-    path: string,
-    init?: RequestInit,
-  ): Promise<Response> {
+  private async fetchWithTimeout(path: string, init?: RequestInit): Promise<Response> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
 

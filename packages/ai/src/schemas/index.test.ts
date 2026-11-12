@@ -50,7 +50,14 @@ describe("AI Contract Schemas", () => {
         ModelIdentitySchema.parse({
           name: "Test",
           provider: "ollama",
-          capabilities: { chat: true, streaming: true, tools: false, structuredOutput: false, vision: false, embeddings: false },
+          capabilities: {
+            chat: true,
+            streaming: true,
+            tools: false,
+            structuredOutput: false,
+            vision: false,
+            embeddings: false,
+          },
         }),
       ).toThrow();
 
@@ -58,7 +65,14 @@ describe("AI Contract Schemas", () => {
         ModelIdentitySchema.parse({
           id: "test",
           provider: "ollama",
-          capabilities: { chat: true, streaming: true, tools: false, structuredOutput: false, vision: false, embeddings: false },
+          capabilities: {
+            chat: true,
+            streaming: true,
+            tools: false,
+            structuredOutput: false,
+            vision: false,
+            embeddings: false,
+          },
         }),
       ).toThrow();
     });
@@ -69,7 +83,14 @@ describe("AI Contract Schemas", () => {
           id: "test",
           name: "Test",
           provider: "ollama",
-          capabilities: { chat: "yes", streaming: true, tools: false, structuredOutput: false, vision: false, embeddings: false },
+          capabilities: {
+            chat: "yes",
+            streaming: true,
+            tools: false,
+            structuredOutput: false,
+            vision: false,
+            embeddings: false,
+          },
         }),
       ).toThrow();
     });
@@ -88,7 +109,11 @@ describe("AI Contract Schemas", () => {
         role: "assistant",
         content: "",
         toolCalls: [
-          { id: "call-1", type: "function", function: { name: "get_weather", arguments: '{"location":"NYC"}' } },
+          {
+            id: "call-1",
+            type: "function",
+            function: { name: "get_weather", arguments: '{"location":"NYC"}' },
+          },
         ],
       };
       const parsed = ChatMessageSchema.parse(msg);
@@ -118,7 +143,11 @@ describe("AI Contract Schemas", () => {
         function: {
           name: "get_weather",
           description: "Get weather",
-          parameters: { type: "object", properties: { location: { type: "string" } }, required: ["location"] },
+          parameters: {
+            type: "object",
+            properties: { location: { type: "string" } },
+            required: ["location"],
+          },
         },
       };
       const parsed = ToolDefinitionSchema.parse(tool);
@@ -188,16 +217,26 @@ describe("AI Contract Schemas", () => {
     it("accepts toolChoice variants", () => {
       expect(() => ChatRequestSchema.parse({ ...validRequest, toolChoice: "none" })).not.toThrow();
       expect(() => ChatRequestSchema.parse({ ...validRequest, toolChoice: "auto" })).not.toThrow();
-      expect(() => ChatRequestSchema.parse({ ...validRequest, toolChoice: "required" })).not.toThrow();
       expect(() =>
-        ChatRequestSchema.parse({ ...validRequest, toolChoice: { type: "function", function: { name: "get_weather" } } }),
+        ChatRequestSchema.parse({ ...validRequest, toolChoice: "required" }),
+      ).not.toThrow();
+      expect(() =>
+        ChatRequestSchema.parse({
+          ...validRequest,
+          toolChoice: { type: "function", function: { name: "get_weather" } },
+        }),
       ).not.toThrow();
     });
 
     it("accepts responseFormat variants", () => {
-      expect(() => ChatRequestSchema.parse({ ...validRequest, responseFormat: { type: "json_object" } })).not.toThrow();
       expect(() =>
-        ChatRequestSchema.parse({ ...validRequest, responseFormat: { type: "json_schema", jsonSchema: {} } }),
+        ChatRequestSchema.parse({ ...validRequest, responseFormat: { type: "json_object" } }),
+      ).not.toThrow();
+      expect(() =>
+        ChatRequestSchema.parse({
+          ...validRequest,
+          responseFormat: { type: "json_schema", jsonSchema: {} },
+        }),
       ).not.toThrow();
     });
   });
@@ -231,7 +270,10 @@ describe("AI Contract Schemas", () => {
     });
 
     it("accepts null usage (unknown)", () => {
-      const parsed = ChatResponseSchema.parse({ ...validResponse, usage: { promptTokens: null, completionTokens: null, totalTokens: null } });
+      const parsed = ChatResponseSchema.parse({
+        ...validResponse,
+        usage: { promptTokens: null, completionTokens: null, totalTokens: null },
+      });
       expect(parsed.usage.promptTokens).toBeNull();
     });
 
@@ -252,7 +294,12 @@ describe("AI Contract Schemas", () => {
 
   describe("UsageMetadataSchema", () => {
     it("accepts complete usage", () => {
-      const usage = { promptTokens: 100, completionTokens: 50, totalTokens: 150, tokensPerSecond: 25 };
+      const usage = {
+        promptTokens: 100,
+        completionTokens: 50,
+        totalTokens: 150,
+        tokensPerSecond: 25,
+      };
       const parsed = UsageMetadataSchema.parse(usage);
       expect(parsed.totalTokens).toBe(150);
     });
@@ -264,7 +311,9 @@ describe("AI Contract Schemas", () => {
     });
 
     it("rejects negative tokens", () => {
-      expect(() => UsageMetadataSchema.parse({ promptTokens: -1, completionTokens: 0, totalTokens: 0 })).toThrow();
+      expect(() =>
+        UsageMetadataSchema.parse({ promptTokens: -1, completionTokens: 0, totalTokens: 0 }),
+      ).toThrow();
     });
   });
 
@@ -286,7 +335,9 @@ describe("AI Contract Schemas", () => {
           id: "resp-1",
           model: "llama3.1:8b",
           provider: "ollama",
-          choices: [{ index: 0, message: { role: "assistant", content: "Hello" }, finishReason: "stop" }],
+          choices: [
+            { index: 0, message: { role: "assistant", content: "Hello" }, finishReason: "stop" },
+          ],
           usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
           createdAt: Date.now(),
         },
@@ -299,7 +350,12 @@ describe("AI Contract Schemas", () => {
     it("accepts error event", () => {
       const event = {
         type: "error",
-        error: { code: "TIMEOUT", message: "Request timed out", provider: "ollama", retryable: true },
+        error: {
+          code: "TIMEOUT",
+          message: "Request timed out",
+          provider: "ollama",
+          retryable: true,
+        },
         requestId: "req-1",
       };
       const parsed = StreamingEventSchema.parse(event);
@@ -326,13 +382,25 @@ describe("AI Contract Schemas", () => {
 
     it("accepts all status variants", () => {
       for (const status of ["healthy", "degraded", "unhealthy", "unknown"] as const) {
-        const parsed = ProviderHealthSchema.parse({ provider: "ollama", status, lastCheckAt: null, latencyMs: null });
+        const parsed = ProviderHealthSchema.parse({
+          provider: "ollama",
+          status,
+          lastCheckAt: null,
+          latencyMs: null,
+        });
         expect(parsed.status).toBe(status);
       }
     });
 
     it("rejects invalid status", () => {
-      expect(() => ProviderHealthSchema.parse({ provider: "ollama", status: "down", lastCheckAt: null, latencyMs: null })).toThrow();
+      expect(() =>
+        ProviderHealthSchema.parse({
+          provider: "ollama",
+          status: "down",
+          lastCheckAt: null,
+          latencyMs: null,
+        }),
+      ).toThrow();
     });
   });
 
@@ -360,13 +428,28 @@ describe("AI Contract Schemas", () => {
     });
 
     it("rejects invalid error code", () => {
-      expect(() => ProviderErrorSchema.parse({ code: "INVALID_CODE", message: "test", provider: "ollama", retryable: false })).toThrow();
+      expect(() =>
+        ProviderErrorSchema.parse({
+          code: "INVALID_CODE",
+          message: "test",
+          provider: "ollama",
+          retryable: false,
+        }),
+      ).toThrow();
     });
   });
 
   describe("FinishReasonSchema", () => {
     it("accepts all finish reasons", () => {
-      const reasons = ["stop", "length", "tool_calls", "content_filter", "cancelled", "error", "unknown"] as const;
+      const reasons = [
+        "stop",
+        "length",
+        "tool_calls",
+        "content_filter",
+        "cancelled",
+        "error",
+        "unknown",
+      ] as const;
       for (const reason of reasons) {
         expect(() => FinishReasonSchema.parse(reason)).not.toThrow();
       }

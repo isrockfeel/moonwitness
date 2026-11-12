@@ -165,7 +165,9 @@ skipIfNoOllama("Ollama Protocol Validation (opt-in)", () => {
 
           const chunk = JSON.parse(line);
           // Validate streaming event schema
-          expect(() => StreamingEventSchema.parse({ type: "content", delta: chunk, requestId: "test" })).not.toThrow();
+          expect(() =>
+            StreamingEventSchema.parse({ type: "content", delta: chunk, requestId: "test" }),
+          ).not.toThrow();
 
           if (chunk.message?.content) {
             fullContent += chunk.message.content;
@@ -377,48 +379,35 @@ skipIfNoOllama("Ollama Protocol Validation (opt-in)", () => {
 // Additional test: Error normalization
 describe("Error Normalization (unit tests)", () => {
   it("should normalize MODEL_NOT_FOUND", () => {
-    const error = createProviderError(
-      { error: "model 'xyz' not found" },
-      "ollama",
-      { modelId: "xyz" },
-    );
+    const error = createProviderError({ error: "model 'xyz' not found" }, "ollama", {
+      modelId: "xyz",
+    });
     expect(error.code).toBe("MODEL_NOT_FOUND");
     expect(error.retryable).toBe(false);
   });
 
   it("should normalize RATE_LIMITED", () => {
-    const error = createProviderError(
-      { error: "rate limit exceeded" },
-      "ollama",
-    );
+    const error = createProviderError({ error: "rate limit exceeded" }, "ollama");
     expect(error.code).toBe("RATE_LIMITED");
     expect(error.retryable).toBe(true);
   });
 
   it("should normalize TIMEOUT", () => {
-    const error = createProviderError(
-      new Error("request timed out"),
-      "ollama",
-      { timeoutMs: 5000 },
-    );
+    const error = createProviderError(new Error("request timed out"), "ollama", {
+      timeoutMs: 5000,
+    });
     expect(error.code).toBe("TIMEOUT");
     expect(error.retryable).toBe(true);
   });
 
   it("should normalize CANCELLED", () => {
-    const error = createProviderError(
-      new DOMException("Aborted", "AbortError"),
-      "ollama",
-    );
+    const error = createProviderError(new DOMException("Aborted", "AbortError"), "ollama");
     expect(error.code).toBe("CANCELLED");
     expect(isCancellationError(error)).toBe(true);
   });
 
   it("should normalize CONTEXT_LENGTH_EXCEEDED", () => {
-    const error = createProviderError(
-      { error: "context length exceeded" },
-      "ollama",
-    );
+    const error = createProviderError({ error: "context length exceeded" }, "ollama");
     expect(error.code).toBe("CONTEXT_LENGTH_EXCEEDED");
     expect(error.retryable).toBe(false);
   });

@@ -226,12 +226,7 @@ export type StreamingEvent = z.infer<typeof StreamingEventSchema>;
 // Provider Health Schemas
 // ============================================================================
 
-export const ProviderHealthStatusSchema = z.enum([
-  "healthy",
-  "degraded",
-  "unhealthy",
-  "unknown",
-]);
+export const ProviderHealthStatusSchema = z.enum(["healthy", "degraded", "unhealthy", "unknown"]);
 
 export type ProviderHealthStatus = z.infer<typeof ProviderHealthStatusSchema>;
 
