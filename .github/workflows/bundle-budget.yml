@@ -1,0 +1,78 @@
+name: Bundle Size Budget
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  bundle-size:
+    name: Bundle Size Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      # pnpm via corepack: tidak butuh action pihak ketiga.
+      - name: Enable pnpm (corepack)
+        run: |
+          corepack enable
+          corepack prepare "$(node -p "require('./package.json').packageManager")" --activate
+          pnpm --version
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build web
+        run: pnpm --filter @moonwitness/web build
+
+      - name: Check bundle size
+        id: bundle-size
+        run: |
+          BUDGET_KB=200
+          TOTAL=0
+          COUNT=0
+          # Total JS yang dikirim ke browser (gzip), dari .next/static.
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            sz=$(gzip -c "$f" | wc -c)
+            TOTAL=$((TOTAL + sz))
+            COUNT=$((COUNT + 1))
+          done < <(find apps/web/.next/static -name "*.js" -type f 2>/dev/null)
+
+          SIZE_KB=$((TOTAL / 1024))
+          echo "JS files: ${COUNT}"
+          echo "Total JS (gzipped): ${SIZE_KB}KB"
+          echo "bundle_size_kb=${SIZE_KB}" >> "$GITHUB_OUTPUT"
+
+          if [ "$COUNT" -eq 0 ]; then
+            echo "::error::Tidak menemukan bundle JS di apps/web/.next/static (build gagal?)"
+            exit 1
+          fi
+          if [ "$SIZE_KB" -gt "$BUDGET_KB" ]; then
+            echo "::warning::Total JS ${SIZE_KB}KB melewati budget ${BUDGET_KB}KB"
+          fi
+
+      - name: Comment bundle size
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const size = parseInt('${{ steps.bundle-size.outputs.bundle_size_kb }}') || 0;
+            const budget = 200;
+            let message = `## Bundle Size Report\n\n`;
+            message += `**Total JS (gzipped):** ${size}KB / budget ${budget}KB\n\n`;
+            if (size === 0) message += `Could not measure the bundle.\n`;
+            else if (size > budget) message += `Over budget (${size}KB > ${budget}KB). Consider code splitting.\n`;
+            else message += `Within budget.\n`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: message,
+            });
