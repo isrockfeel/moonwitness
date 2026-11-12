@@ -190,7 +190,7 @@ export interface ToolCallDelta {
 export type StreamingEvent =
   | { type: "content"; delta: StreamingDelta; requestId: string }
   | { type: "done"; response: ChatResponse; requestId: string }
-  | { type: "error"; error: ProviderError; requestId: string };
+  | { type: "error"; error: { code: string; message: string; provider: string; retryable: boolean; cause?: unknown }; requestId: string };
 
 /** Helper to check if streaming is done. */
 export function isStreamingDone(event: StreamingEvent): event is StreamingEvent & { type: "done" } {

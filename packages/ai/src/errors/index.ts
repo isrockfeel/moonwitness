@@ -3,14 +3,8 @@
  * Extends the base DomainError from @moonwitness/errors.
  */
 
-import {
-  DomainError,
-  ValidationError,
-  NotFoundError,
-  TimeoutError,
-  isDomainError,
-} from "@moonwitness/errors";
 import type { ProviderErrorCode } from "../schemas";
+import { DomainError, isDomainError } from "@moonwitness/errors";
 
 // ============================================================================
 // Provider Error Base Class
@@ -21,10 +15,9 @@ import type { ProviderErrorCode } from "../schemas";
  * Provides structured error information for handling and retry logic.
  */
 export class ProviderError extends DomainError {
-  public readonly code: ProviderErrorCode;
-  public readonly provider: string;
+  public readonly providerId: string;
   public readonly retryable: boolean;
-  public readonly cause?: Error;
+  public override readonly cause?: Error;
 
   constructor(
     message: string,
@@ -35,13 +28,17 @@ export class ProviderError extends DomainError {
   ) {
     super(message, code);
     this.name = "ProviderError";
-    this.code = code;
-    this.provider = provider;
+    this.providerId = provider;
     this.retryable = retryable;
     this.cause = cause;
 
     // Maintains proper prototype chain for instanceof checks
     Object.setPrototypeOf(this, ProviderError.prototype);
+  }
+
+  /** Provider identifier (alias for providerId). */
+  get provider(): string {
+    return this.providerId;
   }
 
   /** Creates a ProviderError from a plain object (e.g., from schema parse). */
@@ -71,7 +68,7 @@ export class ModelNotFoundError extends ProviderError {
 
   constructor(modelId: string, provider: string, cause?: Error) {
     super(`Model '${modelId}' not found`, "MODEL_NOT_FOUND", provider, false, cause);
-    this.name = "ModelNotFoundError";
+    
     this.modelId = modelId;
     Object.setPrototypeOf(this, ModelNotFoundError.prototype);
   }
@@ -83,7 +80,7 @@ export class InvalidRequestError extends ProviderError {
 
   constructor(message: string, provider: string, details?: Record<string, unknown>, cause?: Error) {
     super(message, "INVALID_REQUEST", provider, false, cause);
-    this.name = "InvalidRequestError";
+    
     this.details = details;
     Object.setPrototypeOf(this, InvalidRequestError.prototype);
   }
@@ -107,7 +104,7 @@ export class ContextLengthExceededError extends ProviderError {
       false,
       cause,
     );
-    this.name = "ContextLengthExceededError";
+    
     this.requestedTokens = requestedTokens;
     this.maxTokens = maxTokens;
     Object.setPrototypeOf(this, ContextLengthExceededError.prototype);
@@ -120,7 +117,7 @@ export class RateLimitedError extends ProviderError {
 
   constructor(provider: string, retryAfterMs?: number, cause?: Error) {
     super("Rate limit exceeded", "RATE_LIMITED", provider, true, cause);
-    this.name = "RateLimitedError";
+    
     this.retryAfterMs = retryAfterMs;
     Object.setPrototypeOf(this, RateLimitedError.prototype);
   }
@@ -130,7 +127,7 @@ export class RateLimitedError extends ProviderError {
 export class UnauthorizedError extends ProviderError {
   constructor(provider: string, cause?: Error) {
     super("Authentication failed", "UNAUTHORIZED", provider, false, cause);
-    this.name = "UnauthorizedError";
+    
     Object.setPrototypeOf(this, UnauthorizedError.prototype);
   }
 }
@@ -139,7 +136,7 @@ export class UnauthorizedError extends ProviderError {
 export class ForbiddenError extends ProviderError {
   constructor(provider: string, cause?: Error) {
     super("Access forbidden", "FORBIDDEN", provider, false, cause);
-    this.name = "ForbiddenError";
+    
     Object.setPrototypeOf(this, ForbiddenError.prototype);
   }
 }
@@ -148,7 +145,7 @@ export class ForbiddenError extends ProviderError {
 export class ProviderUnavailableError extends ProviderError {
   constructor(provider: string, cause?: Error) {
     super("Provider unavailable", "PROVIDER_UNAVAILABLE", provider, true, cause);
-    this.name = "ProviderUnavailableError";
+    
     Object.setPrototypeOf(this, ProviderUnavailableError.prototype);
   }
 }
@@ -159,7 +156,7 @@ export class ProviderTimeoutError extends ProviderError {
 
   constructor(timeoutMs: number, provider: string, cause?: Error) {
     super(`Request timed out after ${timeoutMs}ms`, "TIMEOUT", provider, true, cause);
-    this.name = "ProviderTimeoutError";
+    
     this.timeoutMs = timeoutMs;
     Object.setPrototypeOf(this, ProviderTimeoutError.prototype);
   }
@@ -169,7 +166,7 @@ export class ProviderTimeoutError extends ProviderError {
 export class CancelledError extends ProviderError {
   constructor(provider: string, cause?: Error) {
     super("Request cancelled", "CANCELLED", provider, false, cause);
-    this.name = "CancelledError";
+    
     Object.setPrototypeOf(this, CancelledError.prototype);
   }
 }
@@ -178,7 +175,7 @@ export class CancelledError extends ProviderError {
 export class InternalProviderError extends ProviderError {
   constructor(message: string, provider: string, cause?: Error) {
     super(message, "INTERNAL_ERROR", provider, true, cause);
-    this.name = "InternalProviderError";
+    
     Object.setPrototypeOf(this, InternalProviderError.prototype);
   }
 }
@@ -187,7 +184,7 @@ export class InternalProviderError extends ProviderError {
 export class UnknownProviderError extends ProviderError {
   constructor(message: string, provider: string, cause?: Error) {
     super(message, "UNKNOWN_ERROR", provider, false, cause);
-    this.name = "UnknownProviderError";
+    
     Object.setPrototypeOf(this, UnknownProviderError.prototype);
   }
 }
@@ -195,21 +192,6 @@ export class UnknownProviderError extends ProviderError {
 // ============================================================================
 // Error Factory & Utilities
 // ============================================================================
-
-/** Maps error codes to error constructors. */
-const ERROR_CODE_MAP: Record<ProviderErrorCode, new (...args: unknown[]) => ProviderError> = {
-  MODEL_NOT_FOUND: ModelNotFoundError,
-  INVALID_REQUEST: InvalidRequestError,
-  CONTEXT_LENGTH_EXCEEDED: ContextLengthExceededError,
-  RATE_LIMITED: RateLimitedError,
-  UNAUTHORIZED: UnauthorizedError,
-  FORBIDDEN: ForbiddenError,
-  PROVIDER_UNAVAILABLE: ProviderUnavailableError,
-  TIMEOUT: ProviderTimeoutError,
-  CANCELLED: CancelledError,
-  INTERNAL_ERROR: InternalProviderError,
-  UNKNOWN_ERROR: UnknownProviderError,
-};
 
 /**
  * Creates a typed ProviderError from a generic error or provider response.
@@ -237,6 +219,39 @@ export function createProviderError(
       default:
         return new UnknownProviderError(error.message, provider, error);
     }
+  }
+
+  // Plain object with error field (e.g., from provider JSON response)
+  if (error && typeof error === "object" && "error" in error && typeof (error as Record<string, unknown>).error === "string") {
+    const message = String((error as Record<string, unknown>).error).toLowerCase();
+    if (message.includes("not found") || message.includes("model not found") || message.includes("no such model")) {
+      return new ModelNotFoundError(context?.modelId ?? "unknown", provider);
+    }
+    if (message.includes("context length") || message.includes("max tokens") || message.includes("token limit") || message.includes("too long")) {
+      return new ContextLengthExceededError(0, 0, provider);
+    }
+    if (message.includes("rate limit") || message.includes("too many requests") || message.includes("429")) {
+      return new RateLimitedError(provider, undefined);
+    }
+    if (message.includes("unauthorized") || message.includes("authentication") || message.includes("401")) {
+      return new UnauthorizedError(provider);
+    }
+    if (message.includes("forbidden") || message.includes("403")) {
+      return new ForbiddenError(provider);
+    }
+    if (message.includes("timeout") || message.includes("timed out") || message.includes("etimedout")) {
+      return new ProviderTimeoutError(context?.timeoutMs ?? 0, provider);
+    }
+    if (message.includes("cancelled") || message.includes("aborted") || message.includes("aborterror")) {
+      return new CancelledError(provider);
+    }
+    if (message.includes("unavailable") || message.includes("503") || message.includes("502") || message.includes("504") || message.includes("econnrefused")) {
+      return new ProviderUnavailableError(provider);
+    }
+    if (message.includes("500") || message.includes("internal server error")) {
+      return new InternalProviderError(String((error as Record<string, unknown>).error), provider);
+    }
+    return new UnknownProviderError(String((error as Record<string, unknown>).error), provider);
   }
 
   // Native Error
@@ -279,14 +294,14 @@ export function createProviderError(
     if (
       message.includes("timeout") ||
       message.includes("timed out") ||
-      message.includes("ETIMEDOUT")
+      message.includes("etimedout")
     ) {
       return new ProviderTimeoutError(context?.timeoutMs ?? 0, provider, error);
     }
     if (
       message.includes("cancelled") ||
       message.includes("aborted") ||
-      message.includes("AbortError")
+      message.includes("aborterror")
     ) {
       return new CancelledError(provider, error);
     }
@@ -295,7 +310,7 @@ export function createProviderError(
       message.includes("503") ||
       message.includes("502") ||
       message.includes("504") ||
-      message.includes("ECONNREFUSED")
+      message.includes("econnrefused")
     ) {
       return new ProviderUnavailableError(provider, error);
     }

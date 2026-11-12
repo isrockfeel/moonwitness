@@ -1,36 +1,22 @@
-import eslint from "@eslint/js";
-import tseslint from "typescript-eslint";
-import importPlugin from "eslint-plugin-import";
-import baseConfig from "@moonwitness/eslint-config/base.js";
+import baseConfig from "@moonwitness/eslint-config/base";
 
-export default tseslint.config(
-  baseConfig,
+export default [
+  ...baseConfig,
   {
-    files: ["**/*.ts"],
-    plugins: {
-      import: importPlugin,
-    },
-    rules: {
-      "import/order": [
-        "error",
-        {
-          groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
-          pathGroups: [
-            { pattern: "@moonwitness/**", group: "internal", position: "after" },
-          ],
-          pathGroupsExcludedImportTypes: ["builtin", "external"],
-          "newlines-between": "always",
-          alphabetize: { order: "asc", caseInsensitive: true },
-        },
-      ],
-      "import/no-unresolved": ["error", { ignore: ["^vitest"] }],
+    files: ["src/**/*.ts"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+      parserOptions: {
+        project: "./tsconfig.json",
+      },
     },
     settings: {
       "import/resolver": {
-        node: {
-          extensions: [".ts", ".js"],
+        typescript: {
+          project: "./tsconfig.json",
         },
       },
     },
   },
-);
+];

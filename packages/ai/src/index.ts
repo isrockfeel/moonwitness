@@ -8,8 +8,39 @@
 // Types
 export * from "./types";
 
-// Schemas (runtime validation)
-export * from "./schemas";
+// Schemas (runtime validation) - types are re-exported from types, so only export schema objects
+export {
+  // Model schemas
+  ModelCapabilitiesSchema,
+  ModelIdentitySchema,
+  // Message schemas
+  ChatRoleSchema,
+  ToolCallSchema,
+  ChatMessageSchema,
+  ToolDefinitionSchema,
+  // Request/Response schemas
+  ChatRequestOptionsSchema,
+  ChatRequestSchema,
+  FinishReasonSchema,
+  UsageMetadataSchema,
+  ChatChoiceSchema,
+  ChatResponseSchema,
+  // Streaming schemas
+  ToolCallDeltaSchema,
+  StreamingDeltaSchema,
+  StreamingContentEventSchema,
+  StreamingDoneEventSchema,
+  StreamingErrorEventSchema,
+  StreamingEventSchema,
+  // Provider schemas
+  ProviderHealthStatusSchema,
+  ProviderHealthSchema,
+  ProviderCapabilitiesSchema,
+  ProviderInfoSchema,
+  // Error schemas
+  ProviderErrorCodeSchema,
+  ProviderErrorSchema,
+} from "./schemas";
 
 // Errors
 export * from "./errors";

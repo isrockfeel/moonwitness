@@ -3,6 +3,7 @@
  * This is a stub that will be implemented based on protocol test findings.
  */
 
+import { createProviderError } from "../../errors";
 import type {
   ChatRequest,
   ChatResponse,
@@ -10,9 +11,8 @@ import type {
   ModelIdentity,
   ProviderHealth,
   ProviderInfo,
-} from "../types";
-import type { ProviderCapabilities } from "../types";
-import { createProviderError } from "../errors";
+} from "../../types";
+import type { ProviderCapabilities } from "../../types";
 
 export interface OllamaAdapterOptions {
   baseUrl: string;
@@ -116,15 +116,17 @@ export class OllamaAdapter {
   }
 
   /** Non-streaming chat completion. */
-  async chat(request: ChatRequest): Promise<ChatResponse> {
+  async chat(_request: ChatRequest): Promise<ChatResponse> {
     // TODO: Implement based on protocol test findings
     throw new Error("Not implemented - pending protocol validation (Issue #30)");
   }
 
   /** Streaming chat completion. */
-  async *chatStream(request: ChatRequest): AsyncGenerator<StreamingEvent> {
+  async *chatStream(_request: ChatRequest): AsyncGenerator<StreamingEvent> {
     // TODO: Implement based on protocol test findings
     throw new Error("Not implemented - pending protocol validation (Issue #30)");
+    // Unreachable - satisfies generator return type (never executes)
+    yield { type: "error", error: { code: "UNKNOWN_ERROR", message: "", provider: "ollama", retryable: false, cause: undefined }, requestId: "" } as never;
   }
 
   /** Helper to fetch with timeout and abort support. */
