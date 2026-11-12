@@ -1,0 +1,71 @@
+name: Security Scan (Trivy)
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Weekly on Monday 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      severity:
+        description: "Severity threshold"
+        description: "Severity threshold for vulnerabilities"
+        required: false
+        default: "HIGH,CRITICAL"
+        type: choice
+        options:
+          - "CRITICAL"
+          - "HIGH,CRITICAL"
+          - "MEDIUM,HIGH,CRITICAL"
+          - "LOW,MEDIUM,HIGH,CRITICAL"
+
+jobs:
+  trivy:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: ${{ github.event.inputs.severity || 'HIGH,CRITICAL' }}
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          ignore-unfixed: true
+
+      - name: Upload Trivy results to Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-results.sarif"
+          category: "trivy"
+
+      - name: Upload Trivy results as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-results
+          path: trivy-results.sarif
+          retention-days: 30
+
+      - name: Notify on critical findings
+        if: always()
+        run: |
+          if [ -f trivy-results.sarif ]; then
+            CRITICAL_COUNT=$(jq '.runs[0].results[] | select(.level == "error") | length' trivy-results.sarif 2>/dev/null || echo 0)
+            HIGH_COUNT=$(jq '.runs[0].results[] | select(.level == "warning" and .rule.id | contains("CRITICAL") or contains("HIGH")) | length' trivy-results.sarif 2>/dev/null || echo 0)
+            
+            if [ "$CRITICAL_COUNT" -gt 0 ] || [ "$HIGH_COUNT" -gt 0 ]; then
+              echo "::warning::Found $CRITICAL_COUNT critical and $HIGH_COUNT high severity vulnerabilities"
+              echo "::warning::Review Trivy results in Security tab"
+            fi
+          fi

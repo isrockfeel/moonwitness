@@ -11,3 +11,6 @@ allowBuilds:
   "@tailwindcss/oxide": true
   esbuild: true
   sharp: true
+  workerd@1.20250718.0: true
+  workerd@1.20261103.1: true
+  workerd@1.20261110.1: true

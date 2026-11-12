@@ -1,0 +1,60 @@
+name: PR Size Guard
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  size-check:
+    name: PR Size Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Calculate PR size
+        id: size
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          total=0
+          while IFS= read -r add del; do
+            total=$((total + add + del))
+          done < <(gh api "repos/${REPO}/pulls/${PR_NUMBER}/files?per_page=100" --paginate --jq '.[] | "\(.additions) \(.deletions)"')
+          echo "total_changes=${total}" >> "$GITHUB_OUTPUT"
+          echo "PR has ${total} total changes (additions + deletions)"
+
+      - name: Enforce size limits
+        run: |
+          total="${{ steps.size.outputs.total_changes }}"
+          echo "Total changes: ${total}"
+          if [ "$total" -gt 400 ]; then
+            echo "::warning::PR is large (> 400 lines changed). Consider splitting."
+          fi
+          if [ "$total" -gt 1200 ]; then
+            echo "::error::PR is too large (> 1200 lines). Please split into smaller PRs."
+            exit 1
+          fi
+          echo "PR size within limits."
+
+      - name: Comment size report
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const total = parseInt('${{ steps.size.outputs.total_changes }}') || 0;
+            const prNumber = context.payload.pull_request.number;
+            let message = `##  PR Size Report\n\n**Total changes:** ${total} lines\n\n`;
+            if (total > 1200) message += ' **Too large** (> 1200 lines).\n';
+            else if (total > 400) message += ' **Large PR** (> 400 lines). Consider splitting.\n';
+            else message += ' **Size OK**.\n';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: message,
+            });
