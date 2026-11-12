@@ -13,7 +13,9 @@ export function formatNumber(value: number, locale = "en-US"): string {
 export function slugify(value: string): string {
   return value
     .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
+    // Match only the specific combining diacritical marks range (U+0300-036F)
+    // instead of the broad range that caused ReDoS
+    .replace(/[\u0300-\u036F]/g, "")
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9\s-]/g, "")
