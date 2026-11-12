@@ -125,9 +125,7 @@ export class OllamaAdapter {
   async *chatStream(_request: ChatRequest): AsyncGenerator<StreamingEvent> {
     // TODO: Implement based on protocol test findings
     throw new Error("Not implemented - pending protocol validation (Issue #30)");
-    // Satisfy async generator return type - this line never executes
-    // but satisfies the TypeScript async generator return type requirement
-    // biome-ignore lint/suspicious/noExplicitAny: satisfies async generator type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- satisfies async generator type
     yield undefined as any;
   }
 
