@@ -8,14 +8,10 @@ updates:
       time: "06:00"
       timezone: "Asia/Jakarta"
     groups:
-      dev-dependencies:
+      all-deps:
         patterns:
           - "*"
-        dependency-type: "development"
-      production:
-        patterns:
-          - "*"
-        dependency-type: "production"
+        dependency-type: "all"
     open-pull-requests-limit: 10
     allow:
       - dependency-type: "direct"
@@ -30,10 +26,3 @@ updates:
       - "The-Batteries"
     reviewers:
       - "The-Batteries"
-    automerged_updates:
-      - match:
-          update_type: "version-update:semver-patch"
-        update_type: "all"
-      - match:
-          update_type: "version-update:semver-minor"
-        update_type: "all"
