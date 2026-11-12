@@ -8,6 +8,7 @@ updates:
       time: "06:00"
       timezone: "Asia/Jakarta"
     groups:
+<<<<<<< HEAD
       dev-dependencies:
         patterns:
           - "*"
@@ -16,6 +17,12 @@ updates:
         patterns:
           - "*"
         dependency-type: "production"
+=======
+      all-deps:
+        patterns:
+          - "*"
+        dependency-type: "all"
+>>>>>>> origin/main
     open-pull-requests-limit: 10
     allow:
       - dependency-type: "direct"
@@ -30,6 +37,7 @@ updates:
       - "The-Batteries"
     reviewers:
       - "The-Batteries"
+<<<<<<< HEAD
     automerged_updates:
       - match:
           update_type: "version-update:semver-patch"
@@ -37,3 +45,5 @@ updates:
       - match:
           update_type: "version-update:semver-minor"
         update_type: "all"
+=======
+>>>>>>> origin/main
