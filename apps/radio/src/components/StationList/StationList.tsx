@@ -13,7 +13,7 @@ export function StationList() {
       initialPageParam: 1,
     });
 
-  const { ref, inView } = useInView();
+  const { ref } = useInView();
 
   const stations = data?.pages.flatMap((page) => page.items) || [];
 
