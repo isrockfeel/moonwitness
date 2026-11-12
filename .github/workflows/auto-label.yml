@@ -26,7 +26,7 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           configuration-path: .github/labeler.yml
-          # sync-labels: true  # disabled to avoid cache issues
+          # # sync-labels: true  # disabled to clear cache  # disabled to avoid cache issues
 
   assign:
     name: Auto Assign
