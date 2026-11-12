@@ -54,7 +54,7 @@ jobs:
         # Promosi dev->main membawa seluruh histori dev yang sudah lolos gate
         # saat masuk dev; melint ulang di sini hanya menghasilkan kegagalan
         # karena commit lama. Gate ini berlaku untuk PR fitur (ke dev).
-        if: github.base_ref != 'main'
+        if: github.base_ref != 'main' && github.head_ref != 'dev'
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
