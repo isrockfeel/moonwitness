@@ -6,96 +6,96 @@ default:
   - The-Batteries
 
 # Assign based on file paths
-apps/api/**:
+"apps/api/**":
   - The-Batteries
 
-apps/web/**:
+"apps/web/**":
   - The-Batteries
 
-packages/**:
+"packages/**":
   - The-Batteries
 
-.github/workflows/**:
+".github/workflows/**":
   - The-Batteries
 
-docs/**:
+"docs/**":
   - The-Batteries
 
-scripts/**:
+"scripts/**":
   - The-Batteries
 
 # Specific file patterns
-**/Dockerfile*:
+"**/Dockerfile*":
   - The-Batteries
 
-*.md:
+"*.md":
   - The-Batteries
 
-*.mdx:
+"*.mdx":
   - The-Batteries
 
-*.yaml:
+"*.yaml":
   - The-Batteries
 
-*.yml:
+"*.yml":
   - The-Batteries
 
-*.toml:
+"*.toml":
   - The-Batteries
 
-*.json:
+"*.json":
   - The-Batteries
 
-*.ts:
+"*.ts":
   - The-Batteries
 
-*.tsx:
+"*.tsx":
   - The-Batteries
 
-*.js:
+"*.js":
   - The-Batteries
 
-*.mjs:
+"*.mjs":
   - The-Batteries
 
-*.cjs:
+"*.cjs":
   - The-Batteries
 
-*.go:
+"*.go":
   - The-Batteries
 
-*.rs:
+"*.rs":
   - The-Batteries
 
-*.py:
+"*.py":
   - The-Batteries
 
-*.sh:
+"*.sh":
   - The-Batteries
 
-*.sql:
+"*.sql":
   - The-Batteries
 
-*.graphql:
+"*.graphql":
   - The-Batteries
 
-*.graphqls:
+"*.graphqls":
   - The-Batteries
 
-*.proto:
+"*.proto":
   - The-Batteries
 
-*.proto:
+"*.proto":
   - The-Batteries
 
-*.proto:
+"*.proto":
   - The-Batteries
 
-*.proto:
+"*.proto":
   - The-Batteries
 
-*.proto:
+"*.proto":
   - The-Batteries
 
-*.proto:
+"*.proto":
   - The-Batteries

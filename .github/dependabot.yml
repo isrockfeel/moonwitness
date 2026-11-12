@@ -8,14 +8,9 @@ updates:
       time: "06:00"
       timezone: "Asia/Jakarta"
     groups:
-      dev-dependencies:
+      all-deps:
         patterns:
           - "*"
-        dependency-type: "development"
-      production:
-        patterns:
-          - "*"
-        dependency-type: "production"
     open-pull-requests-limit: 10
     allow:
       - dependency-type: "direct"
@@ -30,7 +25,3 @@ updates:
       - "The-Batteries"
     reviewers:
       - "The-Batteries"
-    automerged_updates:
-      - match:
-          dependency_type: "all"
-        update_type: "all"
