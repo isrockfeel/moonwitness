@@ -125,6 +125,8 @@ export class OllamaAdapter {
   async *chatStream(_request: ChatRequest): AsyncGenerator<StreamingEvent> {
     // TODO: Implement based on protocol test findings
     throw new Error("Not implemented - pending protocol validation (Issue #30)");
+    // This satisfies the generator return type requirement
+    yield;
   }
 
   /** Helper to fetch with timeout and abort support. */
