@@ -1,0 +1,101 @@
+# Auto-assigner configuration
+# Assigns reviewers based on file paths and PR characteristics
+
+# Default assignees (fallback)
+default:
+  - The-Batteries
+
+# Assign based on file paths
+"apps/api/**":
+  - The-Batteries
+
+"apps/web/**":
+  - The-Batteries
+
+"packages/**":
+  - The-Batteries
+
+".github/workflows/**":
+  - The-Batteries
+
+"docs/**":
+  - The-Batteries
+
+"scripts/**":
+  - The-Batteries
+
+# Specific file patterns
+"**/Dockerfile*":
+  - The-Batteries
+
+"*.md":
+  - The-Batteries
+
+"*.mdx":
+  - The-Batteries
+
+"*.yaml":
+  - The-Batteries
+
+"*.yml":
+  - The-Batteries
+
+"*.toml":
+  - The-Batteries
+
+"*.json":
+  - The-Batteries
+
+"*.ts":
+  - The-Batteries
+
+"*.tsx":
+  - The-Batteries
+
+"*.js":
+  - The-Batteries
+
+"*.mjs":
+  - The-Batteries
+
+"*.cjs":
+  - The-Batteries
+
+"*.go":
+  - The-Batteries
+
+"*.rs":
+  - The-Batteries
+
+"*.py":
+  - The-Batteries
+
+"*.sh":
+  - The-Batteries
+
+"*.sql":
+  - The-Batteries
+
+"*.graphql":
+  - The-Batteries
+
+"*.graphqls":
+  - The-Batteries
+
+"*.proto":
+  - The-Batteries
+
+"*.proto":
+  - The-Batteries
+
+"*.proto":
+  - The-Batteries
+
+"*.proto":
+  - The-Batteries
+
+"*.proto":
+  - The-Batteries
+
+"*.proto":
+  - The-Batteries
