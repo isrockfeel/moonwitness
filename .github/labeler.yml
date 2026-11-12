@@ -1,225 +1,192 @@
 bug:
-  any:
-  - '**/bug/**'
-  - '**/fix*.ts'
-  - '**/fix*.tsx'
-  - '**/*bug*.ts'
-  - '**/bug*.ts'
+- '**/bug/**'
+- '**/fix*.ts'
+- '**/fix*.tsx'
+- '**/*bug*.ts'
+- '**/bug*.ts'
 feature:
-  any:
-  - '**/features/**'
-  - '**/feat*.ts'
-  - '**/feat*.tsx'
-  - apps/**/features/**
-  - packages/**/features/**
+- '**/features/**'
+- '**/feat*.ts'
+- '**/feat*.tsx'
+- apps/**/features/**
+- packages/**/features/**
 documentation:
-  any:
-  - '*.md'
-  - docs/**
-  - README*
-  - CHANGELOG*
+- '*.md'
+- docs/**
+- README*
+- CHANGELOG*
 dependencies:
-  any:
-  - package.json
-  - pnpm-lock.yaml
-  - pnpm-workspace.yaml
-  - go.mod
-  - go.sum
-  - Cargo.toml
-  - Cargo.lock
+- package.json
+- pnpm-lock.yaml
+- pnpm-workspace.yaml
+- go.mod
+- go.sum
+- Cargo.toml
+- Cargo.lock
 configuration:
-  any:
-  - .github/**
-  - '*.config.*'
-  - tsconfig*.json
-  - '*.config.ts'
-  - '*.config.js'
-  - '*.config.yaml'
-  - '*.config.yml'
+- .github/**
+- '*.config.*'
+- tsconfig*.json
+- '*.config.ts'
+- '*.config.js'
+- '*.config.yaml'
+- '*.config.yml'
 ci-cd:
-  any:
-  - .github/workflows/**
-  - .github/actions/**
-  - Dockerfile*
-  - docker-compose*.yml
-  - docker-compose*.yaml
-  - docker-compose.yml
+- .github/workflows/**
+- .github/actions/**
+- Dockerfile*
+- docker-compose*.yml
+- docker-compose*.yaml
+- docker-compose.yml
 test:
-  any:
-  - '*.test.ts'
-  - '*.test.tsx'
-  - '*.spec.ts'
-  - '*.spec.tsx'
-  - '**/__tests__/**'
-  - '**/__mocks__/**'
-  - '*.test.go'
-  - '**/*_test.go'
+- '*.test.ts'
+- '*.test.tsx'
+- '*.spec.ts'
+- '*.spec.tsx'
+- '**/__tests__/**'
+- '**/__mocks__/**'
+- '*.test.go'
+- '**/*_test.go'
 refactor:
-  any:
-  - '**/*.ts'
-  - '**/*.tsx'
-  - '**/*.go'
+- '**/*.ts'
+- '**/*.tsx'
+- '**/*.go'
 build:
-  any:
-  - turbo.json
-  - pnpm-workspace.yaml
-  - pnpm-lock.yaml
-  - package.json
-  - tsconfig*.json
-  - tsup.config.ts
-  - vite.config.ts
-  - next.config.*
+- turbo.json
+- pnpm-workspace.yaml
+- pnpm-lock.yaml
+- package.json
+- tsconfig*.json
+- tsup.config.ts
+- vite.config.ts
+- next.config.*
 security:
-  any:
-  - .github/workflows/codeql*.yml
-  - .github/dependabot.yml
+- .github/workflows/codeql*.yml
+- .github/dependabot.yml
 docs:
-  any:
-  - docs/**
-  - '*.md'
-  - README*
+- docs/**
+- '*.md'
+- README*
 database:
-  any:
-  - '*.sql'
-  - migrations/**
-  - prisma/**
-  - schema.prisma
+- '*.sql'
+- migrations/**
+- prisma/**
+- schema.prisma
 infrastructure:
-  any:
-  - terraform/**
-  - '*.tf'
-  - '*.tfvars'
-  - ansible/**
-  - '*.yaml'
-  - '*.yml'
+- terraform/**
+- '*.tf'
+- '*.tfvars'
+- ansible/**
+- '*.yaml'
+- '*.yml'
 scripts:
-  any:
-  - scripts/**
-  - '*.sh'
-  - Makefile
-  - makefile
+- scripts/**
+- '*.sh'
+- Makefile
+- makefile
 ui:
-  any:
-  - apps/web/src/components/**
-  - apps/web/src/styles/**
-  - '*.css'
-  - '*.scss'
-  - '*.sass'
-  - tailwind.config.*
+- apps/web/src/components/**
+- apps/web/src/styles/**
+- '*.css'
+- '*.scss'
+- '*.sass'
+- tailwind.config.*
 api:
-  any:
-  - apps/api/**
-  - '*.api.ts'
-  - '*.api.tsx'
-  - '*.controller.ts'
-  - '*.route.ts'
+- apps/api/**
+- '*.api.ts'
+- '*.api.tsx'
+- '*.controller.ts'
+- '*.route.ts'
 migrations:
-  any:
-  - migrations/**
-  - '*migration*.ts'
-  - '*migration*.sql'
+- migrations/**
+- '*migration*.ts'
+- '*migration*.sql'
 types:
-  any:
-  - '*.d.ts'
-  - types/**
-  - types.d.ts
-  - '*.types.ts'
+- '*.d.ts'
+- types/**
+- types.d.ts
+- '*.types.ts'
 lint:
-  any:
-  - .eslintrc*
-  - .prettierrc*
-  - .prettierignore
-  - eslint.config.*
+- .eslintrc*
+- .prettierrc*
+- .prettierignore
+- eslint.config.*
 env:
-  any:
-  - .env*
-  - '!.env.example'
-  - '!.env.local'
-  - .envrc
+- .env*
+- '!.env.example'
+- '!.env.local'
+- .envrc
 docker:
-  any:
-  - Dockerfile*
-  - docker-compose*
-  - .dockerignore
+- Dockerfile*
+- docker-compose*
+- .dockerignore
 kubernetes:
-  any:
-  - k8s/**
-  - kubernetes/**
-  - '*.yaml'
-  - '*.yml'
-  - helm/**
-  - '*.helm.yaml'
+- k8s/**
+- kubernetes/**
+- '*.yaml'
+- '*.yml'
+- helm/**
+- '*.helm.yaml'
 monitoring:
-  any:
-  - prometheus/**
-  - grafana/**
-  - alerting/**
-  - '*.rules.yml'
+- prometheus/**
+- grafana/**
+- alerting/**
+- '*.rules.yml'
 logging:
-  any:
-  - logs/**
-  - '*.log'
-  - logger*
+- logs/**
+- '*.log'
+- logger*
 performance:
-  any:
-  - '*.bench.ts'
-  - '*.bench.tsx'
-  - benchmark/**
+- '*.bench.ts'
+- '*.bench.tsx'
+- benchmark/**
 i18n:
-  any:
-  - locales/**
-  - i18n/**
-  - '*.json'
-  - '*.po'
-  - '*.pot'
+- locales/**
+- i18n/**
+- '*.json'
+- '*.po'
+- '*.pot'
 data:
-  any:
-  - data/**
-  - '*.csv'
-  - '*.json'
-  - '*.yaml'
-  - '*.yml'
+- data/**
+- '*.csv'
+- '*.json'
+- '*.yaml'
+- '*.yml'
 assets:
-  any:
-  - public/**
-  - assets/**
-  - static/**
-  - images/**
-  - fonts/**
+- public/**
+- assets/**
+- static/**
+- images/**
+- fonts/**
 vendor:
-  any:
-  - vendor/**
-  - node_modules/**
-  - vendor/**
-  - third_party/**
+- vendor/**
+- node_modules/**
+- vendor/**
+- third_party/**
 generated:
-  any:
-  - generated/**
-  - dist/**
-  - build/**
-  - out/**
-  - .next/**
-  - .turbo/**
-  - .vercel/**
+- generated/**
+- dist/**
+- build/**
+- out/**
+- .next/**
+- .turbo/**
+- .vercel/**
 temp:
-  any:
-  - tmp/**
-  - temp/**
-  - '*.tmp'
-  - '*.temp'
-  - .tmp/**
-  - '*.log'
+- tmp/**
+- temp/**
+- '*.tmp'
+- '*.temp'
+- .tmp/**
+- '*.log'
 ide:
-  any:
-  - .vscode/**
-  - .idea/**
-  - '*.swp'
-  - '*.swo'
-  - '*.sublime-*'
+- .vscode/**
+- .idea/**
+- '*.swp'
+- '*.swo'
+- '*.sublime-*'
 os:
-  any:
-  - .DS_Store
-  - Thumbs.db
-  - '*.swp'
-  - '*.swo'
-  - ~$*
+- .DS_Store
+- Thumbs.db
+- '*.swp'
+- '*.swo'
+- ~$*
