@@ -11,15 +11,11 @@ import { AtmosphereField } from "@/components/atmosphere";
 export function Transmission() {
   const [ref, visible] = useScrollReveal(0.1, "0px 0px -40px 0px");
 
-  if (!visible) {
-    return <div ref={ref} className="opacity-0" />;
-  }
-
   return (
     <section
       id="transmission"
       ref={ref}
-      className="relative scroll-mt-20 overflow-hidden border-y-2 border-[var(--line)] bg-[var(--ink)] py-20 opacity-0 transition-opacity duration-700"
+      className={`relative scroll-mt-20 overflow-hidden border-y-2 border-[var(--line)] bg-[var(--ink)] py-20 transition-opacity duration-700 motion-reduce:opacity-100 motion-reduce:transition-none ${visible ? "opacity-100" : "opacity-0"}`}
     >
       <Grain />
 
@@ -39,7 +35,7 @@ export function Transmission() {
             EYEWITNESS FEED — LIVE
           </div>
           <Star4
-            className="ml-auto h-6 w-6 animate-spin text-[var(--pink)]"
+            className="ml-auto h-6 w-6 animate-spin motion-reduce:animate-none text-[var(--pink)]"
             style={{ animationDuration: "8s" }}
           />
         </div>
