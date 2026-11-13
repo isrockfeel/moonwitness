@@ -20,16 +20,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: pnpm
+
+      - name: Enable pnpm (corepack)
+        run: |
+          corepack enable
+          corepack prepare "$(node -p "require('./package.json').packageManager")" --activate
+          pnpm --version
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -38,7 +38,12 @@ jobs:
         working-directory: ./apps/web
         run: pnpm build
 
+      - name: Report Percy not configured
+        if: env.PERCY_TOKEN == ''
+        run: echo "::notice::PERCY_TOKEN is not configured; visual comparison was skipped"
+
       - name: Run Percy visual regression
+        if: env.PERCY_TOKEN != ''
         uses: percy/cli-action@v1
         env:
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
