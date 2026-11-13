@@ -18,7 +18,10 @@ import { DistressedSticker, Grain, RansomText, Staple, TactileTape, Tape } from 
 import { artSrc } from "@/lib/art";
 import { AtmosphereField } from "@/components/atmosphere";
 
+import { useParallax } from "@/lib/motion/use-parallax";
+
 export function Hero() {
+  const decorationRef = useParallax(0.12);
   return (
     <section id="home" className="relative flex min-h-[96vh] items-center overflow-hidden pt-16">
       <Grain />
@@ -45,7 +48,14 @@ export function Hero() {
       />
 
       {/* Grunge Riot Elements */}
-      <Splatter className="absolute -left-12 top-20 h-64 w-64 text-[var(--pink)] opacity-80" />
+      <div
+        ref={decorationRef}
+        data-hero-parallax
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+      >
+        <Splatter className="absolute -left-12 top-20 h-64 w-64 text-[var(--pink)] opacity-80" />
+      </div>
       <Star4
         className="absolute right-[12%] top-28 h-10 w-10 text-[var(--pink)] animate-spin motion-reduce:animate-none"
         style={{ animationDuration: "12s" }}

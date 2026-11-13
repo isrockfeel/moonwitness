@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test:brush-lifecycle": "node --experimental-vm-modules node_modules/@playwright/test/cli.js test --config brush-lifecycle.config.ts",
     "clean": "rm -rf .next .turbo node_modules"
   },
   "dependencies": {

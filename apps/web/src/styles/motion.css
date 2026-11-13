@@ -115,8 +115,10 @@
   .reveal-up-delay-4,
   .stagger-grid > *,
   .flash-entry,
-  .pulse-glow {
-    animation: none;
+  .pulse-glow,
+  .animate-fade-in,
+  .scanline {
+    animation: none !important;
     opacity: 1;
     transform: none;
     filter: none;

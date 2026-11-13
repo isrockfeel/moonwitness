@@ -1,5 +1,20 @@
 # Creative Engine Implementation Report
 
+## Completion verification — 2026-11-14
+
+Completion branch: `feat/creative-engine-plan-finish`, isolated on Z:. Historical implementation below is retained as a record; this section supersedes its pending QA and Git status. Actual integrated baseline implementation is `c92d3fb`, an ancestor of `249f891`; old `f786ab0` is not the integrated reference.
+
+Completed active gaps: imported motion keyframes; entrance timer cleanup and narrow title; initial/live reduced-motion reveals; removed nonfunctional READ MORE decoration; neutral timeline-backed Shadow preview with loading/empty/error/retry and encoded event links; bounded decorative hero parallax; responsive p5 enablement; aborted brush setup/draw cleanup. Existing `/shadow` demo login is preserved. No backend redesign or new assets were added.
+
+Verification: fresh Turbo tests 9 successful tasks; fresh lint/typecheck 28 successful tasks, both with zero cache replay; formatting passed; Go tests/vet/build passed. Production build generated 12 pages (homepage 11.5 kB, first-load JS 156 kB). Final production browser acceptance: 14 passed, including 320/390/430px, live reduced motion, boundary states, keyboard navigation and cleanup. Brush real-factory regressions: two failures before guard, four passes afterward. Run with `pnpm --filter @moonwitness/web test:brush-lifecycle`; the portable runner enables experimental VM modules. Independent review identified late draw, runner-flag, and mobile event-deeplink drawer issues; all were addressed. The mobile regression covers visible detail, close, back/forward, and reload.
+
+Manual Chrome QA covered desktop hero/STORIES, mobile hero/archive preview, and actual preview navigation to `/dock?event=evt-001` with matching EVENT DETAIL. No overflow was observed; inspected console showed no errors/warnings or hydration errors. This is not full screen-reader certification. Three existing build advisories remain (two Dock dependencies, one ID Lab Image).
+
+Local production-server traces, CPU 1x/no network throttling/reload-cache context: desktop LCP 164 ms, CLS 0.01, TTFB 3 ms; mobile-sized window LCP 149 ms, CLS 0.00, TTFB 4 ms. No CrUX field data or representative INP is available; these are not production p75 guarantees. Insights estimated zero FCP/LCP savings, so no speculative optimization was added.
+
+Explicitly deferred GSAP ScrollTrigger/p5 choreography and extra engines remain future work, not completed features. The timeline has no Shadow classification: preview uses existing seeded story-world rows, not verified witness reports. Editorial copy is creative fiction. Task-owned changes are committed/pushed to the feature branch; shared-dev integration requires a subsequent merge. Delivery hash and remote verification are reported in the delivery message. Temporary QA outputs are excluded.
+
+
 **Task**: MW-CE-20261113-2142-01  
 **Branch**: `dev`  
 **Date**: 2026-11-13

@@ -19,7 +19,7 @@
 
 | Technology | Decision | Purpose | Rationale |
 |------------|----------|---------|-----------|
-| **GSAP** | **PRIMARY — Install** | Cinematic timelines, scroll-triggered reveals, parallax, pinned sections | Proven production library; granular timeline control; ScrollTrigger for scroll-based choreography |
+| **GSAP** | Installed, deferred choreography | Future cinematic timelines and ScrollTrigger | Foundation execution uses CSS, IntersectionObserver, and the existing JS parallax hook; no pinned scrolling in this iteration |
 | **CSS keyframe animations** | **PRIMARY (existing)** | Simple float, rise-in, flicker, marquee | Already in `base.css`; zero dependency cost |
 | **Motion (framer-motion)** | **Deferred** | Spring physics, drag | Task says "clearly separated responsibilities"; CSS hover + GSAP covers needs for now |
 | **Lenis** | **Deferred** | Smooth scrolling | Native scroll first; add only if scroll-jacking feels necessary |
@@ -44,8 +44,8 @@
 
 | Decision | Selection | Rationale |
 |----------|-----------|-----------|
-| Demo data location | `apps/web/src/lib/data.ts` | Already exists; keeps data collocated with UI |
-| Data adapter pattern | Isolated module imports | Future Supabase integration path without touching creative engine |
+| Editorial content | Existing landing component copy | Preserve the established story-world direction; do not represent it as verified witness evidence |
+| Archive data adapter | Existing `apps/web/src/lib/api/timeline.ts` | Use the current Fastify timeline API; do not invent a Supabase dependency or a Shadow classification |
 | New component locations | `apps/web/src/components/landing/` | Consistent with existing structure; no forced reorganisation |
 
 ---
@@ -63,13 +63,13 @@
 
 ## Deviations from Spec Table
 
-No deviations. Final decision matrix matches spec exactly:
+Foundation execution deliberately keeps native scrolling and CSS/IntersectionObserver reveals. GSAP is installed but its ScrollTrigger choreography remains explicitly deferred; this is not an implemented primary engine.
 
 | Technology | Purpose | Decision |
 |------------|---------|----------|
 | Next.js | Application | Required (existing) |
 | React | Components | Required (existing) |
-| GSAP | Cinematic motion | **Primary (installed)** |
+| GSAP | Future cinematic choreography | Installed, explicitly deferred |
 | CSS keyframes | Interactive UI | Primary (existing) |
 | SVG/CSS | Artwork | Primary (existing) |
 | p5.js | Atmosphere | Conditional — kept (already integrated) |

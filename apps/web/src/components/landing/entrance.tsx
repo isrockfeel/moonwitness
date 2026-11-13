@@ -9,12 +9,27 @@ export function Entrance() {
   const freqRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) {
-      const el = containerRef.current;
-      if (el) el.style.display = "none";
-      return;
-    }
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const timers = new Set<ReturnType<typeof setTimeout>>();
+    const cancelTimers = () => {
+      timers.forEach(clearTimeout);
+      timers.clear();
+    };
+    const schedule = (callback: () => void, delay: number) => {
+      if (media.matches) return;
+      const timer = setTimeout(() => {
+        timers.delete(timer);
+        callback();
+      }, delay);
+      timers.add(timer);
+    };
+    const dismiss = () => {
+      if (!media.matches) return;
+      cancelTimers();
+      if (containerRef.current) containerRef.current.style.display = "none";
+    };
+    media.addEventListener("change", dismiss);
+    dismiss();
 
     // Phase 1: Show screen immediately
     const container = containerRef.current;
@@ -24,7 +39,7 @@ export function Entrance() {
     // Phase 2: Frequency text flashes after brief delay
     const freqEl = freqRef.current;
     if (freqEl) {
-      setTimeout(() => {
+      schedule(() => {
         freqEl.style.animation = "flash-entry 0.8s ease-out forwards";
       }, 100);
     }
@@ -32,25 +47,29 @@ export function Entrance() {
     // Phase 3: Title reveal
     const titleEl = titleRef.current;
     if (titleEl) {
-      setTimeout(() => {
+      schedule(() => {
         titleEl.style.animation = "reveal-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both";
       }, 400);
     }
 
     // Phase 4: Fade out entire entrance after ~3 seconds
-    setTimeout(() => {
+    schedule(() => {
       container.style.transition = "opacity 0.8s ease";
       container.style.opacity = "0";
-      setTimeout(() => {
+      schedule(() => {
         container.style.display = "none";
       }, 800);
     }, 2800);
+    return () => {
+      cancelTimers();
+      media.removeEventListener("change", dismiss);
+    };
   }, []);
 
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-[#050508]"
+      className="pointer-events-none fixed inset-0 z-[200] flex flex-col items-center justify-center bg-[#050508]"
       style={{ opacity: 0 }}
       aria-hidden="true"
     >
@@ -74,9 +93,9 @@ export function Entrance() {
       {/* Main title */}
       <h1
         ref={titleRef}
-        className="font-brush text-6xl font-black text-white sm:text-8xl md:text-9xl drop-shadow-[4px_4px_0_rgba(255,45,120,0.6)] opacity-0"
+        className="font-brush text-[clamp(2.5rem,12vw,3.75rem)] font-black text-white sm:text-8xl md:text-9xl drop-shadow-[4px_4px_0_rgba(255,45,120,0.6)] opacity-0"
       >
-        MOON<span className="text-[var(--pink)">WITNESS</span>
+        MOON<span className="text-[var(--pink)]">WITNESS</span>
       </h1>
 
       {/* Subtitle */}
@@ -86,7 +105,7 @@ export function Entrance() {
 
       {/* Scan line effect */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[var(--pink)] opacity-30"
+        className="scanline pointer-events-none absolute inset-x-0 top-0 h-px bg-[var(--pink)] opacity-30"
         style={{
           animation: "scanline 2.5s linear infinite",
         }}
