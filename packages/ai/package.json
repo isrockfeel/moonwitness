@@ -21,7 +21,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "clean": "rm -rf .turbo node_modules dist"
+    "clean": "rm -rf .turbo node_modules dist",
+    "eval": "node ../../scripts/eval.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
