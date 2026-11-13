@@ -4,15 +4,23 @@
  */
 
 import { resolve, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { writeFileSync, mkdirSync, existsSync } from "node:fs";
 
 const ROOT = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
 
-// Dynamic import of the harness modules
-const { EvalHarnessRunner, getSmokeTasks, FIXTURE_TASKS } = await import(
-  `${ROOT}/packages/ai/src/eval/index.ts`
-);
+// Dynamic import of the harness modules (proper file:// URLs for Windows)
+// Note: Import individual files with .ts extension to work with --experimental-strip-types
+const typesPath = pathToFileURL(join(ROOT, "packages/ai/src/eval/types.ts")).href;
+const fixturesPath = pathToFileURL(join(ROOT, "packages/ai/src/eval/fixtures.ts")).href;
+const runnerPath = pathToFileURL(join(ROOT, "packages/ai/src/eval/runner.ts")).href;
+
+const typesMod = await import(typesPath);
+const fixturesMod = await import(fixturesPath);
+const runnerMod = await import(runnerPath);
+
+const { EvalHarnessRunner } = runnerMod;
+const { getSmokeTasks, FIXTURE_TASKS } = fixturesMod;
 
 const ARTIFACTS_DIR = join(ROOT, "artifacts");
 const OUTPUT_FILE = join(ARTIFACTS_DIR, `eval-report-${Date.now()}.json`);
@@ -50,7 +58,7 @@ async function main() {
   console.log("-------------------------------------------");
   console.log(`Model:        ${modelId}`);
   console.log(`Base URL:     ${baseUrl}`);
-  console.log(`Mode:         ${live ? "LIVE" : smoke ? "SMOKE" : "STUB"}`);
+  console.log(`Mode:         ${live ? "LIVE" : smoke ? "SMOKE" : "STUB"} `);
   console.log(`Dry run:      ${dryRun}`);
   console.log("");
 
