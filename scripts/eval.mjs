@@ -15,7 +15,6 @@ const typesPath = pathToFileURL(join(ROOT, "packages/ai/src/eval/types.ts")).hre
 const fixturesPath = pathToFileURL(join(ROOT, "packages/ai/src/eval/fixtures.ts")).href;
 const runnerPath = pathToFileURL(join(ROOT, "packages/ai/src/eval/runner.ts")).href;
 
-const typesMod = await import(typesPath);
 const fixturesMod = await import(fixturesPath);
 const runnerMod = await import(runnerPath);
 
