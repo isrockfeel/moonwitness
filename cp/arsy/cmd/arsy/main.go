@@ -45,6 +45,10 @@ func main() {
 		err = cmdHost(os.Args[2:])
 	case "metrics":
 		err = cmdMetrics(os.Args[2:])
+	case "capabilities":
+		err = cmdCapabilities(os.Args[2:])
+	case "resources":
+		err = cmdResources(os.Args[2:])
 	case "status":
 		err = cmdStatus(os.Args[2:])
 	case "plan":
@@ -55,6 +59,8 @@ func main() {
 		err = cmdOps(os.Args[2:])
 	case "logs":
 		err = cmdLogs(os.Args[2:])
+	case "alerts":
+		err = cmdAlerts(os.Args[2:])
 	case "vpn":
 		err = cmdVPN(os.Args[2:])
 	case "forward":
@@ -84,11 +90,14 @@ func usage() {
   arsy doctor
   arsy host
   arsy metrics [--json]
+  arsy capabilities [--json]
+  arsy resources [--kind <kind>] [--json]
   arsy status [--state path]
   arsy plan [--state path] [--json]
   arsy apply --confirm <hash> [--state path]
   arsy ops <systemd|docker> <name> <start|stop|restart> [--confirm hash]
   arsy logs <systemd|docker> <name> [-n 200]
+  arsy alerts check [--state path] [--json]
   arsy vpn status
   arsy vpn up [--endpoint host:port] [--port 51820]
   arsy vpn down
@@ -274,6 +283,11 @@ func cmdDoctor(args []string) error {
 	fmt.Printf("cron         %v\n", a.info.Capabilities.Cron)
 	fmt.Printf("users        %v\n", a.info.Capabilities.Users)
 	fmt.Printf("firewall     %v\n", a.info.Capabilities.Firewall)
+	fmt.Printf("network      %v\n", a.info.Capabilities.Network)
+	fmt.Printf("ssh          %v\n", a.info.Capabilities.SSH)
+	fmt.Printf("cert         %v\n", a.info.Capabilities.Cert)
+	fmt.Printf("mount        %v\n", a.info.Capabilities.Mount)
+	fmt.Printf("kubernetes   %v\n", a.info.Capabilities.Kubernetes)
 	fmt.Printf("config       %s\n", nonEmpty(*configPath, "(default)"))
 	fmt.Printf("state        %s\n", a.cfg.StatePath)
 	fmt.Printf("audit        %s\n", a.cfg.AuditPath)
@@ -324,6 +338,192 @@ func cmdMetrics(args []string) error {
 		fmt.Printf("catatan  %s\n", note)
 	}
 	return nil
+}
+
+func cmdCapabilities(args []string) error {
+	fs := flag.NewFlagSet("capabilities", flag.ExitOnError)
+	configPath := fs.String("config", "", "path config JSON")
+	asJSON := fs.Bool("json", false, "keluaran JSON")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	a, err := build(*configPath)
+	if err != nil {
+		return err
+	}
+	payload := map[string]any{
+		"host":           a.info,
+		"resource_kinds": a.registry.Kinds(),
+	}
+	if *asJSON {
+		return printJSON(payload)
+	}
+	fmt.Printf("os           %s/%s\n", a.info.OS, a.info.Arch)
+	fmt.Printf("kinds        %s\n", strings.Join(a.registry.Kinds(), ", "))
+	return nil
+}
+
+func cmdResources(args []string) error {
+	fs := flag.NewFlagSet("resources", flag.ExitOnError)
+	configPath := fs.String("config", "", "path config JSON")
+	kind := fs.String("kind", "", "filter kind resource")
+	asJSON := fs.Bool("json", false, "keluaran JSON")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	a, err := build(*configPath)
+	if err != nil {
+		return err
+	}
+	kinds := a.registry.Kinds()
+	if *kind != "" {
+		kinds = []string{*kind}
+	}
+	out := map[string]any{}
+	for _, k := range kinds {
+		provider, err := a.registry.Get(k)
+		if err != nil {
+			return err
+		}
+		obs, err := provider.Observe(context.Background())
+		if err != nil {
+			out[k] = map[string]string{"error": err.Error()}
+			continue
+		}
+		out[k] = obs
+	}
+	if *asJSON {
+		return printJSON(out)
+	}
+	for k, v := range out {
+		fmt.Printf("%s: %v\n", k, v)
+	}
+	return nil
+}
+
+func cmdAlerts(args []string) error {
+	if len(args) == 0 {
+		return errors.New("pakai: arsy alerts check [--state path] [--json]")
+	}
+	switch args[0] {
+	case "check":
+		return cmdAlertsCheck(args[1:])
+	default:
+		return fmt.Errorf("subcommand alerts tidak dikenal: %s", args[0])
+	}
+}
+
+func cmdAlertsCheck(args []string) error {
+	fs := flag.NewFlagSet("alerts check", flag.ExitOnError)
+	statePath := fs.String("state", "", "path state JSON")
+	configPath := fs.String("config", "", "path config JSON")
+	asJSON := fs.Bool("json", false, "keluaran JSON")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	a, err := build(*configPath)
+	if err != nil {
+		return err
+	}
+	st, err := loadState(nonEmpty(*statePath, a.cfg.StatePath))
+	if err != nil {
+		return err
+	}
+	sample, err := metrics.Collect("/")
+	if err != nil {
+		return err
+	}
+	results := evaluateAlerts(st, sample, a.runner)
+	if *asJSON {
+		return printJSON(results)
+	}
+	for _, r := range results {
+		fmt.Printf("%s\t%s\t%s\n", r["name"], r["status"], r["detail"])
+	}
+	return nil
+}
+
+func evaluateAlerts(st reconcile.State, sample metrics.Sample, runner host.Runner) []map[string]string {
+	metricValue := func(name string) (float64, bool) {
+		switch name {
+		case "cpu_pct", "cpu":
+			return sample.CPUPct, true
+		case "mem_pct", "memory_pct", "memory":
+			return sample.MemPct, true
+		case "disk_pct", "disk":
+			return sample.DiskPct, true
+		case "load1":
+			return sample.Load1, true
+		case "load5":
+			return sample.Load5, true
+		case "load15":
+			return sample.Load15, true
+		}
+		return 0, false
+	}
+	compare := func(v float64, op string, t float64) bool {
+		switch op {
+		case "gt":
+			return v > t
+		case "ge":
+			return v >= t
+		case "lt":
+			return v < t
+		case "le":
+			return v <= t
+		case "eq":
+			return v == t
+		}
+		return false
+	}
+	parseNum := func(s string) float64 {
+		var f float64
+		fmt.Sscanf(strings.TrimSpace(s), "%f", &f)
+		return f
+	}
+
+	// map webhook name -> resource
+	webhooks := map[string]resources.Resource{}
+	for _, r := range st.Resources {
+		if r.Kind == "webhook" {
+			webhooks[r.Name] = r
+		}
+	}
+
+	var out []map[string]string
+	for _, r := range st.Resources {
+		if r.Kind != "alert" || r.State == "absent" {
+			continue
+		}
+		v, ok := metricValue(r.Metric)
+		if !ok {
+			out = append(out, map[string]string{"name": r.Name, "status": "unknown", "detail": "metric tidak dikenal: " + r.Metric})
+			continue
+		}
+		t := parseNum(r.Value)
+		triggered := compare(v, r.Op, t)
+		status := "ok"
+		if triggered {
+			status = "triggered"
+			// best-effort: fire webhooks matching alert event/name
+			for _, wh := range webhooks {
+				if wh.State == "absent" {
+					continue
+				}
+				if wh.Event == "" || wh.Event == r.Name || wh.Event == r.Metric || wh.Event == "alert" {
+					payload := fmt.Sprintf(`{"alert":%q,"metric":%q,"value":%v,"threshold":%v,"op":%q}`, r.Name, r.Metric, v, t, r.Op)
+					w := &resources.Webhook{Runner: runner}
+					_ = w.Fire(context.Background(), wh, payload)
+				}
+			}
+		}
+		out = append(out, map[string]string{
+			"name":   r.Name,
+			"status": status,
+			"detail": fmt.Sprintf("%s %.2f %s %.2f", r.Metric, v, r.Op, t),
+		})
+	}
+	return out
 }
 
 func cmdStatus(args []string) error {

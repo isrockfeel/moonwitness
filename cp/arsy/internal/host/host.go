@@ -25,6 +25,12 @@ type Capabilities struct {
 	Users       bool `json:"users"`
 	Firewall    bool `json:"firewall"`
 	HostMetrics bool `json:"host_metrics"`
+	Network     bool `json:"network"`
+	SSH         bool `json:"ssh"`
+	Cert        bool `json:"cert"`
+	Mount       bool `json:"mount"`
+	Alert       bool `json:"alert"`
+	Kubernetes  bool `json:"kubernetes"`
 }
 
 type Info struct {
@@ -73,8 +79,9 @@ func detect() Info {
 			Files:       true,
 			Docker:      LookPath("docker"),
 			HostMetrics: false,
+			Kubernetes:  LookPath("kubectl"),
 		}
-		info.Notes = append(info.Notes, "metrik host terbatas di Windows; systemd/cron/user/firewall tidak didukung")
+		info.Notes = append(info.Notes, "metrik host terbatas di Windows; systemd/cron/user/firewall/network/ssh/cert/mount tidak didukung")
 	case "darwin":
 		info.OS = Darwin
 		info.IsRoot = os.Geteuid() == 0
@@ -82,6 +89,11 @@ func detect() Info {
 			Files:       true,
 			Docker:      LookPath("docker"),
 			HostMetrics: true,
+			Network:     LookPath("ifconfig"),
+			SSH:         LookPath("ssh-keygen"),
+			Cert:        LookPath("openssl"),
+			Mount:       LookPath("mount"),
+			Kubernetes:  LookPath("kubectl"),
 		}
 		info.Notes = append(info.Notes, "systemd/cron/user/firewall belum didukung di darwin")
 	default:
@@ -101,6 +113,11 @@ func linuxCapabilities(kind OSKind) Capabilities {
 	caps.Cron = LookPath("crontab")
 	caps.Users = LookPath("useradd") && LookPath("getent")
 	caps.Firewall = LookPath("ufw") || LookPath("nft") || LookPath("iptables")
+	caps.Network = LookPath("ip")
+	caps.SSH = LookPath("ssh-keygen") && LookPath("getent")
+	caps.Cert = LookPath("openssl")
+	caps.Mount = LookPath("mount") && LookPath("findmnt")
+	caps.Kubernetes = LookPath("kubectl")
 	if kind == WSL && !caps.Systemd {
 		caps.Systemd = false
 	}
