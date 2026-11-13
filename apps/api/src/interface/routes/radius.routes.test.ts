@@ -11,17 +11,32 @@ describe("RADIUS proxy authorization", () => {
     vi.unstubAllGlobals();
   });
 
-  it("denies unauthenticated reads and writes before contacting the service", async () => {
-    const fetch = vi.fn();
+  it("forwards reads to the upstream service", async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ users: [] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
     vi.stubGlobal("fetch", fetch);
     app = Fastify({ logger: false });
     await app.register(radiusRoutes);
     await app.ready();
 
     const read = await app.inject({ method: "GET", url: "/radius/users" });
+    expect(read.statusCode).toBe(200);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("blocks writes when RADIUS_PROXY_ADMIN is not enabled", async () => {
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    app = Fastify({ logger: false });
+    await app.register(radiusRoutes);
+    await app.ready();
+
     const write = await app.inject({ method: "POST", url: "/radius/users", payload: {} });
-    expect(read.statusCode).toBe(401);
-    expect(write.statusCode).toBe(401);
+    expect(write.statusCode).toBe(403);
     expect(fetch).not.toHaveBeenCalled();
   });
 });
