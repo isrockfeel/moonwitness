@@ -48,3 +48,8 @@ export * from "./errors";
 // Adapter exports (provider-specific, internal use)
 export { OllamaAdapter } from "./adapters/ollama";
 export type { OllamaAdapterOptions } from "./adapters/ollama";
+
+// Evaluation harness (Issue #35)
+export * from "./eval/types";
+export { EvalHarnessRunner } from "./eval/runner";
+export { FIXTURE_TASKS, getSmokeTasks } from "./eval/fixtures";
