@@ -43,15 +43,17 @@ export interface AuthFailure {
 
 export type AuthOutcome = AuthResult | AuthFailure;
 
-export interface SessionValidationResult {
-  ok: true;
-  account: CrewAccount;
-  session: Session;
-} | {
-  ok: false;
-  reason: "expired" | "revoked" | "not_found" | "invalid";
-  message: string;
-}
+export type SessionValidationResult =
+  | {
+      ok: true;
+      account: CrewAccount;
+      session: Session;
+    }
+  | {
+      ok: false;
+      reason: "expired" | "revoked" | "not_found" | "invalid";
+      message: string;
+    };
 
 export interface RegisterAccountInput {
   username: string;
