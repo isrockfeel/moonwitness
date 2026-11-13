@@ -1,103 +1,139 @@
 # ADR: RIOT Intelligence — Architecture Baseline
 
 **Status:** Accepted  
-**Date:** 2026-11-12  
+**Date:** 2026-11-13
 **Deciders:** MoonWitness Engineering Team
+
+This ADR records architectural direction. It does not claim that the planned
+runtime adapter, API routes, SSRF controls, persistence, or operator UI have
+already shipped.
 
 ## Context
 
 MoonWitness needs a local-first AI inference capability (RIOT Intelligence) that:
 
-- Runs entirely on user-controlled infrastructure
-- Exposes a provider-neutral API surface for future multi-provider support
-- Keeps model weights and inference execution outside the Fastify process
-- Integrates with existing MoonWitness auth/RBAC system (Issue #5)
+- Runs on user-controlled infrastructure.
+- Exposes provider-neutral contracts for future runtimes.
+- Keeps model weights and inference execution outside the Fastify process.
+- Integrates with MoonWitness's server-side authentication and authorization.
 
-Current state (from `dev` branch inspection):
+Relevant repository state on `dev` at the time of this reconciliation:
 
-- `apps/api/` — Fastify-based REST API with auth proxy to arsy control plane
-- `apps/web/` — Next.js frontend with static Dock timeline component
-- `packages/ai/` — Provider-neutral AI contracts (new, Issue #29/#30)
-- `packages/orm/` + `packages/schema/` — Database layer with Kysely + LibSQL
-- `apps/api/src/infrastructure/adapters/fastify.adapter.ts` — Fastify composition
-- `packages/addons/` — Addon system (timeline, base, etc.)
+- `apps/api/` is the Fastify application and existing product API boundary.
+- `apps/web/` is the Next.js product UI.
+- `packages/ai/` contains provider-neutral types, schemas, errors, and an
+  Ollama adapter placeholder. The adapter does not yet implement inference.
+- `packages/orm/` and `packages/schema/` are existing persistence components;
+  their presence alone does not establish that RIOT configuration or usage
+  persistence is ready.
+- API composition and addon infrastructure are existing repository
+  mechanisms. RIOT-specific API routes and persistence are not yet delivered
+  on `dev`.
 
 ## Decision
 
 ### 1. Package Structure
 
-- New package `packages/ai` (already created in Issue #29/#30) hosts all provider-neutral contracts
-- Exports: `types`, `schemas`, `errors`, `adapters/ollama`
-- Dependency direction: `packages/ai` ← `apps/api` ← `apps/web` (web never imports `ai` directly)
-- No vendor SDKs in domain contracts
+- `packages/ai` is the provider-neutral contract and adapter boundary.
+- Its current package exports include `types`, `schemas`, `errors`, and
+  `adapters/ollama`.
+- Product inference requests must flow through `apps/api`. The web app may
+  consume API response types, but must not import or call provider adapters.
+- Vendor-specific SDK types do not belong in domain contracts.
 
 ### 2. API Boundary
 
-- Fastify remains the single product API boundary (`apps/api`)
-- New routes under `/api/v1/ai/*` with existing auth middleware
-- No separate AI gateway service for MVP
+- Fastify remains the single product API boundary (`apps/api`).
+- Proposed routes under `/api/v1/ai/*` must use verified server-side identity
+  and authorization when implemented. No RIOT inference route is currently
+  shipped on `dev`.
+- No separate AI gateway service is needed for the first milestone.
 
 ### 3. Local Inference Runtime
 
-- External HTTP runtime (Ollama native API at `/api/*`)
-- Never in-process model execution
-- Server-side allowlist of runtime endpoints via `ALLOWED_INFERENCE_HOSTS` env var
-- First adapter target: **Ollama native API** (`/api/*`) — based on protocol tests showing full chat/streaming/tools support
+- Model execution remains an external HTTP runtime, not part of the Fastify
+  process.
+- The runtime endpoint must be configured and controlled server-side; clients
+  must never submit an upstream URL.
+- The exact configuration and network enforcement mechanism remains to be
+  implemented and security-tested. An environment allowlist by itself is not
+  evidence that DNS rebinding, redirects, or private-network access are
+  prevented.
+- Ollama native API (`/api/*`) is the provisional first adapter target. PR #49
+  added opt-in tests and draft compatibility notes, but no recorded real-runtime
+  result was found during this reconciliation. The selection is provisional,
+  not validated.
 
-### 4. Security / Threat Model
+### 4. Security and Privacy Requirements
 
-- SSRF: Server allowlists runtime endpoints (no client-supplied URLs)
-- Prompt data: Not logged by default; actor+model audited only
-- No secrets in prompts; runtime outside Fastify process
-- Tenant isolation: Session-scoped, model server outside process
-- No cloud fallback unless explicit policy approved
+- **SSRF:** Enforce destination policy at connection time, including redirects,
+  DNS resolution, private and link-local ranges, and cloud metadata addresses.
+  This is a requirement, not a shipped control.
+- **Identity and authorization:** Derive identity from a verified server-side
+  session and enforce permissions at the API boundary.
+- **Prompt data:** Do not log raw prompts or completions by default. Audit only
+  the metadata needed for operations and security.
+- **Secrets:** Never include provider secrets in prompts, browser responses, or
+  ordinary audit records.
+- **Tenant isolation:** Enforce authorization and ownership server-side.
+  Placing the model server outside the API process does not provide tenant
+  isolation by itself.
+- **Cloud routing:** Do not fall back to a cloud provider unless a future
+  explicit policy is approved.
+- **Model output:** Treat output as untrusted data. Input validation and audit
+  logging do not solve prompt injection; features that consume model output as
+  instructions require their own controls.
 
-### 5. Non-Goals for First Milestone
+### 5. Non-Goals for the First Milestone
 
-- Multi-provider orchestration
-- Cloud provider fallback
-- Embeddings API
-- Streaming to web (handled via existing SSE/WebSocket in Fastify)
+- Multi-provider orchestration or automatic cloud fallback.
+- A second API gateway or in-process model execution.
+- Embeddings or model-server administration unless separately specified.
+- Exposing arbitrary runtime endpoints, shell execution, or filesystem access.
 
 ## Consequences
 
-- `packages/ai` is the single source of truth for AI contracts
-- `apps/api` composes AI routes via existing Fastify composition
-- `apps/web` consumes via existing TanStack Query patterns
-- Future providers (OpenAI, Anthropic, etc.) add adapters without changing contracts
+- `packages/ai` is the source of truth for provider-neutral AI contracts.
+- `apps/api` will compose inference routes and enforce authentication,
+  authorization, validation, limits, and audit when that integration is built.
+- `apps/web` consumes secured product API operations only; it does not call
+  model runtimes directly.
+- Future providers require separate adapters that implement the shared
+  contracts.
+- Readiness, security, persistence, and compatibility remain unproven until
+  their implementation issues have direct test and runtime evidence.
 
-## Security / Threat Model Details
+## Implementation Status and Evidence
 
-| Threat                 | Mitigation                                                  |
-| ---------------------- | ----------------------------------------------------------- |
-| SSRF via inference URL | Server allowlist via `ALLOWED_INFERENCE_HOSTS` env          |
-| Local network pivot    | Runtime server outside Fastify process, no localhost access |
-| Prompt injection       | Input validation, output sanitization, audit logging        |
-| Data exfiltration      | No prompt logging by default; actor+model audited           |
-| Tenant isolation       | Session-scoped, external runtime per tenant                 |
+| Area | Verified status |
+| --- | --- |
+| Provider-neutral contracts | Implemented in `packages/ai`, merged by PR #49. CI passed for PR head `2170b7cc06c0fd4d039ae7b38e712f382a3eaf0e`. |
+| Protocol validation | Opt-in test scaffolding and draft notes exist. No recorded real-runtime result was found; issue #30 remains open. |
+| Ollama adapter | Placeholder only: `listModels` returns an empty list and chat/stream methods are not implemented. Issue #31 remains open. |
+| Fastify inference API | No RIOT inference routes are shipped on `dev`. Issue #32 remains open. |
+| Authentication | PR #51 has passing CI but remains unmerged; issue #5 remains open. |
+| Persistence and operator UX | Not delivered for RIOT Intelligence; issues #33 and #34 remain open. |
 
-## Implementation Order
+## Protocol Claims
 
-1. ✅ Issue #29: Provider-neutral contracts (`packages/ai`) — **Done** (PR #49)
-2. ✅ Issue #30: Protocol validation spike (Ollama) — **Done** (PR #49)
-3. 🔄 Issue #31: Local inference adapter implementation — Next
-4. 🔄 Issue #32: Fastify integration with auth — Next
-5. 🔄 Issue #5: Server-side auth + RBAC — In progress (PR #51)
-
-## Validation
-
-- Protocol spike (`packages/ai/src/adapters/ollama/protocol.test.ts`) validates:
-  - Chat completion ✅
-  - SSE streaming (NDJSON) ✅
-  - Tool calling ❌ (not supported)
-  - JSON mode ✅ (`format: "json"`)
-  - Usage metadata ✅ (final chunk)
-  - Model listing ✅ rich metadata via `/api/tags`
-  - Cancellation ✅ via AbortSignal
-- First adapter target selected: **Ollama native API** (`/api/*`)
+- The test file `packages/ai/src/adapters/ollama/protocol.test.ts` is skipped
+  unless `OLLAMA_BASE_URL` is explicitly set. Its presence is not evidence that
+  a live runtime was tested.
+- The checked-in test contains exploratory assertions and console output; it
+  does not establish a reproducible compatibility result for this ADR.
+- `OllamaAdapter.capabilities.tools` is currently `false`, and its chat and
+  streaming methods are placeholders. Tool-calling support must not be
+  claimed.
+- Ollama native API remains a provisional target pending a recorded,
+  reproducible protocol run and corrected compatibility matrix.
 
 ## Links
 
-- PR #49: `@moonwitness/ai` contracts package (Issues #29, #30)
-- Issue #5: Server-side auth + RBAC (PR #51)
-- Issue #7: Dock → real API data (in progress)
+- PR #49: `@moonwitness/ai` contracts package (Issue #29)
+- PR #52: original ADR; this revision reconciles its claims
+- Issue #5: server-side authentication and RBAC (PR #51)
+- Issue #30: protocol validation
+- Issue #31: local inference adapter
+- Issue #32: secure Fastify integration
+- Issue #33: persistence
+- Issue #34: operator UX
