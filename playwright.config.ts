@@ -35,10 +35,29 @@ export default defineConfig({
       use: { ...devices["iPhone 12"] },
     },
   ],
-  webServer: {
-    command: "pnpm --filter @moonwitness/web dev",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  webServer: [
+    {
+      command: "pnpm dev",
+      cwd: "./apps/api",
+      url: "http://127.0.0.1:3002/api/v1/readyz",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120000,
+      env: {
+        DATABASE_URL: "./playwright.db",
+        HOST: "127.0.0.1",
+        PORT: "3002",
+        SEED: "1",
+      },
+    },
+    {
+      command: "pnpm dev",
+      cwd: "./apps/web",
+      url: "http://localhost:3000",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120000,
+      env: {
+        API_INTERNAL_URL: "http://127.0.0.1:3002",
+      },
+    },
+  ],
 });

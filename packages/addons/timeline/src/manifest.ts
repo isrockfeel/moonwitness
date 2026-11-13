@@ -13,4 +13,4 @@ export interface TimelineManifest {
 }
 
 /** Single source of truth for what this addon registers with the AddonRegistry. */
-export const timelineManifest: TimelineManifest = manifestData;
+export const timelineManifest = manifestData as TimelineManifest;
