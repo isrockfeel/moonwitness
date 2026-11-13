@@ -14,7 +14,19 @@ import {
 import { useLogout } from "@/lib/api/onboarding";
 import { ControlGate } from "./gate";
 
-type Kind = "systemd" | "docker";
+type Kind =
+  | "systemd"
+  | "docker"
+  | "network"
+  | "ssh"
+  | "cert"
+  | "mount"
+  | "alert"
+  | "gitdeploy"
+  | "dockercompose"
+  | "package"
+  | "backup"
+  | "kubernetes";
 
 function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
@@ -126,8 +138,10 @@ function ResourcePanel({ kind }: { kind: Kind }) {
     <ZineCard className="overflow-hidden p-0">
       <div className="flex items-center justify-between border-b-2 border-[var(--line)] px-4 py-3">
         <h2 className="font-brush text-lg text-white">
-          {kind === "systemd" ? "SYSTEMD" : "DOCKER"}{" "}
-          <span className="text-[var(--blue)]">UNITS</span>
+          {kind.toUpperCase()}{" "}
+          <span className="text-[var(--blue)]">
+            {kind === "systemd" || kind === "docker" ? "UNITS" : "RESOURCES"}
+          </span>
         </h2>
         <ZineBadge color="#2ea8ff" dark>
           {isLoading ? "SYNCING" : error || kindError ? "UNAVAILABLE" : `${rows.length} SEEN`}
@@ -205,6 +219,12 @@ function HostCard({
         <CapabilityChip label="USERS" on={host.capabilities.users} />
         <CapabilityChip label="FIREWALL" on={host.capabilities.firewall} />
         <CapabilityChip label="METRICS" on={host.capabilities.host_metrics} />
+        <CapabilityChip label="NETWORK" on={host.capabilities.network} />
+        <CapabilityChip label="SSH" on={host.capabilities.ssh} />
+        <CapabilityChip label="CERT" on={host.capabilities.cert} />
+        <CapabilityChip label="MOUNT" on={host.capabilities.mount} />
+        <CapabilityChip label="ALERT" on={host.capabilities.alert} />
+        <CapabilityChip label="K8S" on={host.capabilities.kubernetes} />
       </div>
       {metrics.degraded && (
         <p className="mt-3 border border-[var(--yellow)]/40 bg-[var(--yellow)]/10 px-3 py-2 text-[11px] text-[var(--yellow)]">
@@ -431,6 +451,16 @@ function ControlDashboard() {
               <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 <ResourcePanel kind="systemd" />
                 <ResourcePanel kind="docker" />
+                <ResourcePanel kind="network" />
+                <ResourcePanel kind="ssh" />
+                <ResourcePanel kind="cert" />
+                <ResourcePanel kind="mount" />
+                <ResourcePanel kind="alert" />
+                <ResourcePanel kind="gitdeploy" />
+                <ResourcePanel kind="dockercompose" />
+                <ResourcePanel kind="package" />
+                <ResourcePanel kind="backup" />
+                <ResourcePanel kind="kubernetes" />
               </div>
 
               <AuditPanel />

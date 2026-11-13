@@ -11,6 +11,24 @@ const ARSY_PROXY_ADMIN = process.env.ARSY_PROXY_ADMIN === "1";
 const AUTH_RATE_MAX = Number(process.env.ARSY_AUTH_RATE_MAX ?? "30");
 const AUTH_RATE_WINDOW_MS = Number(process.env.ARSY_AUTH_RATE_WINDOW_MS ?? "60000");
 
+// New resource kinds that need proxy support
+const NEW_RESOURCE_KINDS = new Set([
+  "network",
+  "ssh",
+  "cert",
+  "mount",
+  "alert",
+  "gitdeploy",
+  "dockercompose",
+  "package",
+  "backup",
+  "kubernetes",
+]);
+
+function isNewResourceKind(path: string): boolean {
+  return NEW_RESOURCE_KINDS.has(path);
+}
+
 // Hanya endpoint arsy yang dikenal yang boleh diproxy. Ini mencegah web
 // menjadi open proxy ke apa pun yang kebetulan listen di ARSY_URL.
 const READ_PATHS = new Set([
@@ -24,9 +42,25 @@ const READ_PATHS = new Set([
   "audit",
   "users",
   "dns",
+  "portforwards",
+  "vpn/status",
+  "vpn/subnets",
+  "vpn/peers",
+  ...NEW_RESOURCE_KINDS,
 ]);
 
-const WRITE_PATHS = new Set(["plan", "apply", "ops/plan", "ops"]);
+const WRITE_PATHS = new Set([
+  "plan",
+  "apply",
+  "ops/plan",
+  "ops",
+  "portforwards",
+  "vpn/subnets",
+  "vpn/up",
+  "vpn/down",
+  "vpn/peers",
+  ...NEW_RESOURCE_KINDS,
+]);
 
 // Endpoint onboarding/auth memakai cookie sesi, bukan token server-side.
 const SETUP_PATHS = new Set(["status", "superuser"]);
