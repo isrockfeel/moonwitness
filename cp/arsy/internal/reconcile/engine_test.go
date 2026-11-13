@@ -51,7 +51,7 @@ func TestParseStateRejectsBadVersion(t *testing.T) {
 
 func TestBuildPlanCreatesMissingUnit(t *testing.T) {
 	fake := &host.FakeRunner{Results: map[string]host.Result{
-		"systemctl list-units --type=service --all --no-legend --no-pager --plain": {
+		"systemctl list-units --all --no-legend --no-pager --plain": {
 			Stdout: "caddy.service loaded active running Caddy\n",
 		},
 	}}
@@ -73,7 +73,7 @@ func TestBuildPlanCreatesMissingUnit(t *testing.T) {
 
 func TestBuildPlanNoChange(t *testing.T) {
 	fake := &host.FakeRunner{Results: map[string]host.Result{
-		"systemctl list-units --type=service --all --no-legend --no-pager --plain": {
+		"systemctl list-units --all --no-legend --no-pager --plain": {
 			Stdout: "caddy.service loaded active running Caddy\n",
 		},
 	}}
@@ -129,7 +129,7 @@ func TestApplyRejectsWrongConfirm(t *testing.T) {
 
 func TestApplyRunsInOrder(t *testing.T) {
 	fake := &host.FakeRunner{Results: map[string]host.Result{
-		"systemctl list-units --type=service --all --no-legend --no-pager --plain": {},
+		"systemctl list-units --all --no-legend --no-pager --plain": {},
 		"getent passwd":     {},
 		"crontab -l":        {ExitCode: 1},
 		"docker ps -a --format {{json .}}": {},
@@ -172,7 +172,7 @@ func TestApplyRunsInOrder(t *testing.T) {
 func TestApplyStopsOnFailure(t *testing.T) {
 	fake := &host.FakeRunner{
 		Results: map[string]host.Result{
-			"systemctl list-units --type=service --all --no-legend --no-pager --plain": {},
+			"systemctl list-units --all --no-legend --no-pager --plain": {},
 			"getent passwd": {},
 		},
 		FailOn: "useradd",

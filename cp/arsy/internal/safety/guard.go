@@ -61,6 +61,18 @@ func (g *Guard) Container(name string) error {
 	return nil
 }
 
+// Kube memvalidasi nama resource Kubernetes terhadap allowlist containers.
+// Nama resource Kubernetes mengikuti pola penamaan yang sama dengan container.
+func (g *Guard) Kube(name string) error {
+	if name == "" {
+		return fmt.Errorf("kubernetes: nama kosong")
+	}
+	if !matchesAny(name, g.allow.Containers) {
+		return fmt.Errorf("%w: kubernetes resource %q tidak ada di allow.containers", ErrDenied, name)
+	}
+	return nil
+}
+
 // Path menolak path relatif, path yang keluar dari root, dan path sensitif.
 // Path yang diterima harus berada di dalam salah satu direktori allowlist.
 //
@@ -122,6 +134,17 @@ func (g *Guard) CronOwner(owner string) error {
 	}
 	if !matchesAny(owner, g.allow.CronOwners) {
 		return fmt.Errorf("%w: cron owner %q tidak ada di allow.cron_owners", ErrDenied, owner)
+	}
+	return nil
+}
+
+// Interface memvalidasi nama interface jaringan terhadap allowlist.
+func (g *Guard) Interface(name string) error {
+	if name == "" {
+		return errors.New("interface: nama kosong")
+	}
+	if !matchesAny(name, g.allow.Interfaces) {
+		return fmt.Errorf("%w: interface %q tidak ada di allow.interfaces", ErrDenied, name)
 	}
 	return nil
 }

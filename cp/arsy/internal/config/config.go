@@ -21,6 +21,7 @@ type Allowlist struct {
 	Paths      []string `json:"paths"`
 	Users      []string `json:"users"`
 	CronOwners []string `json:"cron_owners"`
+	Interfaces []string `json:"interfaces"`
 }
 
 type Config struct {
