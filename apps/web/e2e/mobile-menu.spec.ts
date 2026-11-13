@@ -45,6 +45,16 @@ test("keyboard SIGNALS navigation closes menu and reaches the section", async ({
     .toBeLessThan(150);
 });
 
+test("editorial signal card does not require a fictional timeline event", async ({ page }) => {
+  const requests: string[] = [];
+  page.on("request", (request) => requests.push(request.url()));
+  await page.goto("/");
+  await expect(
+    page.locator("#signals").getByText("A SIGNAL FROM BELOW", { exact: true }),
+  ).toBeVisible();
+  expect(requests.some((url) => url.includes("/timeline/events/voices-in-the-fog"))).toBe(false);
+});
+
 test("decorative spins follow motion preference changes", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");

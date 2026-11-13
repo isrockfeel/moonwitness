@@ -5,11 +5,8 @@ import Link from "next/link";
 import { artSrc } from "@/lib/art";
 import { ArrowRight, Crown, SafetyPin, SprayCan } from "@moonwitness/ui/icons";
 import { DistressedSticker, Staple, TactileTape, TransmissionCard } from "@moonwitness/ui";
-import { useTimelineEvent } from "@/lib/api/timeline";
 
 export function Signals() {
-  const { data } = useTimelineEvent("voices-in-the-fog");
-  const transmissionEvent = data?.data ?? null;
   return (
     <section id="signals" className="relative mx-auto max-w-7xl scroll-mt-20 px-4 py-24 sm:px-6">
       <div className="mb-10 flex flex-wrap items-end justify-between gap-4 border-b-2 border-dashed border-zinc-800 pb-6">
@@ -32,15 +29,13 @@ export function Signals() {
 
       {/* Street Flyer Paste-Up Grid: Asymmetric offsets with tactiles */}
       <div className="grid gap-8 md:grid-cols-3">
-        {transmissionEvent ? (
-          <div className="transform md:-rotate-1 transition-transform hover:rotate-0">
-            <TransmissionCard
-              image="signal-tunnel"
-              title="A SIGNAL FROM BELOW"
-              excerpt="Strange sounds. A deeper current. What are we really hearing?"
-            />
-          </div>
-        ) : null}
+        <div className="transform md:-rotate-1 transition-transform hover:rotate-0">
+          <TransmissionCard
+            image="signal-tunnel"
+            title="A SIGNAL FROM BELOW"
+            excerpt="Strange sounds. A deeper current. What are we really hearing?"
+          />
+        </div>
 
         <article className="zine-card-rough photocopy-grit group relative flex flex-col overflow-hidden transition-all duration-300 md:rotate-1 hover:rotate-0 hover:-translate-y-2">
           <Staple className="top-2 left-3 -rotate-12" />
