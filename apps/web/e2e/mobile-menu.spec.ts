@@ -1,0 +1,60 @@
+import { test, expect } from "@playwright/test";
+
+test.use({ viewport: { width: 390, height: 844 } });
+
+for (const origin of ["toggle", "link"] as const) {
+  test(`Escape dismisses mobile navigation from ${origin} and restores focus`, async ({ page }) => {
+    await page.goto("/");
+    const toggle = page.getByRole("button", { name: "Toggle menu" });
+    await toggle.focus();
+    await toggle.press("Enter");
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    if (origin === "link") {
+      await page.keyboard.press("Tab");
+      await expect(
+        page
+          .getByRole("navigation", { name: "Mobile", exact: true })
+          .getByRole("link", { name: "HOME", exact: true }),
+      ).toBeFocused();
+    }
+    await page.keyboard.press("Escape");
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await expect(toggle).toBeFocused();
+  });
+}
+
+test("keyboard SIGNALS navigation closes menu and reaches the section", async ({ page }) => {
+  await page.goto("/");
+  const toggle = page.getByRole("button", { name: "Toggle menu" });
+  await toggle.focus();
+  await toggle.press("Space");
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Tab");
+  const link = page
+    .getByRole("navigation", { name: "Mobile", exact: true })
+    .getByRole("link", { name: "SIGNALS", exact: true });
+  await expect(link).toBeFocused();
+  await link.press("Enter");
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(page).toHaveURL(/#signals$/);
+  await expect
+    .poll(
+      () => page.locator("#signals").evaluate((el) => Math.round(el.getBoundingClientRect().top)),
+      { timeout: 10000 },
+    )
+    .toBeLessThan(150);
+});
+
+test("decorative spins follow motion preference changes", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const star = page.locator("#home svg.animate-spin");
+  await expect(star).toHaveCSS("animation-name", "none");
+  await expect(page.locator("#transmission svg.animate-spin")).toHaveCSS("animation-name", "none");
+  await expect(page.locator("#transmission")).toHaveCSS("opacity", "1");
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect(star).toHaveCSS("animation-name", "spin");
+  await expect(page.locator("#transmission svg.animate-spin")).toHaveCSS("animation-name", "spin");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(star).toHaveCSS("animation-name", "none");
+});
