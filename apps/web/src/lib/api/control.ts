@@ -12,6 +12,12 @@ export interface HostCapabilities {
   users: boolean;
   firewall: boolean;
   host_metrics: boolean;
+  network: boolean;
+  ssh: boolean;
+  cert: boolean;
+  mount: boolean;
+  alert: boolean;
+  kubernetes: boolean;
 }
 
 export interface HostInfo {
@@ -92,7 +98,21 @@ export function useControlStatus() {
   });
 }
 
-export function useControlResources(kind?: "systemd" | "docker") {
+export type ControlResourceKind =
+  | "systemd"
+  | "docker"
+  | "network"
+  | "ssh"
+  | "cert"
+  | "mount"
+  | "alert"
+  | "gitdeploy"
+  | "dockercompose"
+  | "package"
+  | "backup"
+  | "kubernetes";
+
+export function useControlResources(kind?: ControlResourceKind) {
   const query = kind ? `?kind=${kind}` : "";
   return useQuery({
     queryKey: ["control", "resources", kind ?? "all"],

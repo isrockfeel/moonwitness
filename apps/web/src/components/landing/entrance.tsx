@@ -76,7 +76,7 @@ export function Entrance() {
         ref={titleRef}
         className="font-brush text-6xl font-black text-white sm:text-8xl md:text-9xl drop-shadow-[4px_4px_0_rgba(255,45,120,0.6)] opacity-0"
       >
-        MOON<span className="text-[var(--pink)">WITNESS</span>
+        MOON<span className="text-[var(--pink)]">WITNESS</span>
       </h1>
 
       {/* Subtitle */}
