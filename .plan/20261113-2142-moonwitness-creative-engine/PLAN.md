@@ -4,6 +4,31 @@
 **Branch**: `dev`  
 **Created**: 2026-11-13  
 
+## Completion execution, 2026-11-14
+
+Working branch: `feat/creative-engine-plan-finish`, isolated on Z:. Existing changes in the main checkout are excluded.
+
+| Work item | Dependency / conflict check | Execution decision |
+| --- | --- | --- |
+| Motion stylesheet and entrance cleanup | Reveal classes require imported keyframes; entrance owns timers | Restore import and cancel owned timers; verify in browser |
+| Reveal accessibility | STORIES and SHADOW hide content before motion; reduced-motion must not hide content | Verify initial and live preference changes |
+| Hero parallax | Decorative motion must not displace readable content or conflict with float transforms | Use existing JS hook on separate decorative wrappers |
+| Shadow archive adapter | Existing timeline has no Shadow classification; `/shadow` is a demo login | Use neutrally labelled timeline preview, preserve login |
+| Mobile composition | Motion and archive preview affect narrow layouts | Verify 320, 390, and 430px layouts after implementation |
+| Browser QA and performance | Measurements depend on final code and production build | Run after implementation, record local lab evidence only |
+| Commit and push | Main checkout has unrelated WIP; original ledger is stale | Commit only this branch's changes and push feature branch |
+
+Ruling: Explicitly deferred ScrollTrigger/p5 choreography and additional engines remain future scope, not completed requirements. Current hero polish uses the existing parallax hook. Cost if wrong: a separate choreography iteration is needed.
+
+Ruling: Without a Shadow classification in the existing API, show actual timeline entries as a neutral archive preview rather than inventing classified records. Cost if wrong: replace selection when a real Shadow content contract exists.
+
+Ruling: Push the isolated feature branch, not the shared `dev` branch. Cost if wrong: integration requires a subsequent merge, but concurrent work stays protected.
+
+- [x] Complete active remaining implementation with regression evidence
+- [x] Complete desktop/mobile, cleanup, hydration, and local performance QA (no field INP dataset)
+- [x] Reconcile PLAN, REPORT, and DECISIONS with current evidence
+- [x] Review isolated branch; commit and push are the delivery gate reported with remote-head verification
+
 ---
 
 ## Phase 1 — Repository Audit & Foundation ✅
@@ -35,8 +60,8 @@
   - Smooth CSS-transition transition into nav + hero
 
 ### Scene 02 — HERO (enhanced)
-- [~] Existing hero.tsx is strong; kept as-is with atmospheric layers
-  - (GSAP parallax deferred to future iteration)
+- [x] Preserve existing hero atmospheric layers and add bounded decorative JavaScript parallax with cleanup verification
+  - GSAP choreography remains explicitly deferred future scope, not implemented
 
 ### Scene 03 — TRANSMISSION 001 (new editorial panel) ✅
 - [x] Create `apps/web/src/components/landing/transmission.tsx`
@@ -88,20 +113,20 @@
 
 ---
 
-## Phase 6 — QA ✅
+## Phase 6 — QA (completion verified 2026-11-14)
 
 - [x] Run `pnpm --filter @moonwitness/web typecheck` — passes
 - [x] Run `pnpm --filter @moonwitness/web lint` — passes (0 errors, 3 pre-existing warnings)
 - [x] Run `pnpm --filter @moonwitness/web build` — passes (all 12 routes generated)
-- [ ] Manual browser test of desktop layout
-- [ ] Manual browser test of mobile layout
-- [ ] Check animation cleanup on scroll/unmount
-- [ ] Verify no hydration errors
+- [x] Manual browser test of desktop layout
+- [x] Manual browser test of mobile layout (supplemented by 320/390/430px automation)
+- [x] Check animation cleanup on scroll/unmount, including delayed brush factory regression
+- [x] Verify no hydration errors in inspected Chrome navigations
 
 ---
 
-## Phase 7 — Report & Push ✅
+## Phase 7 — Report & Push (completion verified 2026-11-14)
 
 - [x] Write `REPORT.md` with findings
-- [x] Commit to `dev` branch — commit SHA: f786ab0
-- [ ] Push to origin/dev (awaiting approval)
+- [x] Historical implementation integrated via `c92d3fb` (the previous `f786ab0` ledger reference was stale)
+- [x] Completion delivery targets `origin/feat/creative-engine-plan-finish`, authorized on 2026-11-14; commit hash and remote verification reported in delivery message, not embedded in their own commit

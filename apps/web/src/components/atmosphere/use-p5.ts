@@ -6,6 +6,7 @@ import { readPalette, type Palette } from "./palette";
 
 export interface P5Context {
   el: HTMLElement;
+  signal: AbortSignal;
   palette: Palette;
   pointer: { x: number; y: number };
   seed: number;
@@ -38,6 +39,7 @@ export function useP5(
     // Skip loading on mobile to reduce main thread blocking
     if (window.innerWidth < 768) return;
 
+    const controller = new AbortController();
     let cancelled = false;
     let instance: p5 | null = null;
     let ro: ResizeObserver | undefined;
@@ -47,6 +49,7 @@ export function useP5(
 
     const ctx: P5Context = {
       el,
+      signal: controller.signal,
       palette: readPalette(el),
       pointer: { x: 0.5, y: 0.5 },
       seed,
@@ -105,6 +108,7 @@ export function useP5(
 
     return () => {
       cancelled = true;
+      controller.abort();
       ro?.disconnect();
       io?.disconnect();
       document.removeEventListener("visibilitychange", syncLoop);

@@ -1,5 +1,20 @@
 # Creative Engine Implementation Report
 
+## Completion verification — 2026-11-14
+
+Completion branch: `feat/creative-engine-plan-finish`, isolated on Z:. Historical implementation below is retained as a record; this section supersedes its pending QA and Git status. Actual integrated baseline implementation is `c92d3fb`, an ancestor of `249f891`; old `f786ab0` is not the integrated reference.
+
+Completed active gaps: imported motion keyframes; entrance timer cleanup and narrow title; initial/live reduced-motion reveals; removed nonfunctional READ MORE decoration; neutral timeline-backed Shadow preview with loading/empty/error/retry and encoded event links; bounded decorative hero parallax; responsive p5 enablement; aborted brush setup/draw cleanup. Existing `/shadow` demo login is preserved. No backend redesign or new assets were added.
+
+Verification: fresh Turbo tests 9 successful tasks; fresh lint/typecheck 28 successful tasks, both with zero cache replay; formatting passed; Go tests/vet/build passed. Production build generated 12 pages (homepage 11.5 kB, first-load JS 156 kB). Final production browser acceptance: 14 passed, including 320/390/430px, live reduced motion, boundary states, keyboard navigation and cleanup. Brush real-factory regressions: two failures before guard, four passes afterward. Run with `pnpm --filter @moonwitness/web test:brush-lifecycle`; the portable runner enables experimental VM modules. Independent review identified late draw, runner-flag, and mobile event-deeplink drawer issues; all were addressed. The mobile regression covers visible detail, close, back/forward, and reload.
+
+Manual Chrome QA covered desktop hero/STORIES, mobile hero/archive preview, and actual preview navigation to `/dock?event=evt-001` with matching EVENT DETAIL. No overflow was observed; inspected console showed no errors/warnings or hydration errors. This is not full screen-reader certification. Three existing build advisories remain (two Dock dependencies, one ID Lab Image).
+
+Local production-server traces, CPU 1x/no network throttling/reload-cache context: desktop LCP 164 ms, CLS 0.01, TTFB 3 ms; mobile-sized window LCP 149 ms, CLS 0.00, TTFB 4 ms. No CrUX field data or representative INP is available; these are not production p75 guarantees. Insights estimated zero FCP/LCP savings, so no speculative optimization was added.
+
+Explicitly deferred GSAP ScrollTrigger/p5 choreography and extra engines remain future work, not completed features. The timeline has no Shadow classification: preview uses existing seeded story-world rows, not verified witness reports. Editorial copy is creative fiction. Task-owned changes are committed/pushed to the feature branch; shared-dev integration requires a subsequent merge. Delivery hash and remote verification are reported in the delivery message. Temporary QA outputs are excluded.
+
+
 **Task**: MW-CE-20261113-2142-01  
 **Branch**: `dev`  
 **Date**: 2026-11-13
@@ -135,29 +150,35 @@ All routes prerendered as static content. Total JS bundle unchanged (no new heav
 - `dock/index.tsx`: timelineEvents useMemo dependency warning
 - `id-lab/index.tsx`: `<img>` element usage warning
 
-### Manual Tests Not Yet Run
-- [ ] Browser visual test (desktop) — pending browser launch
-- [ ] Browser visual test (mobile) — pending browser launch
-- [ ] Animation cleanup verification — pending browser launch
-- [ ] Navigation interaction test — pending browser launch
+### Manual Tests Completed — 2026-11-14
+- [x] Browser visual test (desktop) — production Chrome QA
+- [x] Browser visual test (mobile) — visual QA plus 320/390/430px regressions
+- [x] Animation cleanup verification — parallax/unmount and delayed brush regressions
+- [x] Navigation interaction test — preview detail, keyboard menu, back/forward and reload
 
 ---
 
 ## G. Remaining Tasks
 
-- [ ] Add p5.js ScrollTrigger integration for more complex scroll choreography (deferred to next phase)
-- [ ] Expand Shadow archive entries with real content adapter pattern
-- [ ] Mobile-specific composition pass (scene stacking, touch interactions)
-- [ ] Core Web Vitals measurement after browser testing
-- [ ] Additional animation polish on hero parallax elements
+- [x] Connect Shadow preview to the existing timeline adapter, including boundary states and encoded links
+- [x] Mobile-specific composition and touch/keyboard verification
+- [x] Local Core Web Vitals measurement; field CrUX/representative INP unavailable
+- [x] Bounded decorative hero parallax and cleanup polish
+
+### Explicit Future Scope — Not Implemented
+
+- p5.js ScrollTrigger choreography remains deferred under the original technology decision. It is not a completed implementation item.
+- A dedicated Shadow classification requires a future API contract; the completed preview uses the existing timeline API.
 
 ---
 
 ## H. Git Status
 
-**Branch**: `dev`  
-**Committed work**: N/A (pending commit)  
-**Remote push status**: Pending approval
+**Branch**: `feat/creative-engine-plan-finish`
+
+**Committed implementation**: `469e4e6fb656e0af7c2037b4fbd4c1910d3b614b`
+
+**Remote push status**: Verified matching remote head on 2026-11-14; checklist reconciliation follows as a separate documentation commit
 
 **Files changed in this task**:
 - New: `apps/web/src/components/landing/entrance.tsx`

@@ -64,16 +64,20 @@ export function Storytelling() {
 
   useEffect(() => {
     if (!revealed) return;
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) return;
-
-    cardRefs.current.forEach((card, i) => {
-      if (!card) return;
-      const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
-      card.style.transition = `opacity 0.6s ${ease} ${i * 0.12}s, transform 0.6s ${ease} ${i * 0.12}s`;
-      card.style.opacity = "1";
-      card.style.transform = "rotate(0deg)";
-    });
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const show = () =>
+      cardRefs.current.forEach((card, i) => {
+        if (!card) return;
+        const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
+        card.style.transition = media.matches
+          ? "none"
+          : `opacity 0.6s ${ease} ${i * 0.12}s, transform 0.6s ${ease} ${i * 0.12}s`;
+        card.style.opacity = "1";
+        card.style.transform = "rotate(0deg)";
+      });
+    show();
+    media.addEventListener("change", show);
+    return () => media.removeEventListener("change", show);
   }, [revealed]);
 
   return (
@@ -151,12 +155,6 @@ export function Storytelling() {
                 <p className="mt-3 font-mono text-sm leading-relaxed text-zinc-400">
                   {story.excerpt}
                 </p>
-
-                <div className="mt-5 flex items-center gap-3">
-                  <span className="btn-zine btn-paper text-xs shadow-[2px_2px_0_#000] px-4 py-2">
-                    READ MORE →
-                  </span>
-                </div>
               </div>
 
               <div className="marginalia -right-2 bottom-4 text-sm opacity-40 group-hover:opacity-70 transition-opacity">
