@@ -105,14 +105,14 @@ Relevant repository state on `dev` at the time of this reconciliation:
 
 ## Implementation Status and Evidence
 
-| Area | Verified status |
-| --- | --- |
-| Provider-neutral contracts | Implemented in `packages/ai`, merged by PR #49. CI passed for PR head `2170b7cc06c0fd4d039ae7b38e712f382a3eaf0e`. |
-| Protocol validation | Opt-in test scaffolding and draft notes exist. No recorded real-runtime result was found; issue #30 remains open. |
-| Ollama adapter | Placeholder only: `listModels` returns an empty list and chat/stream methods are not implemented. Issue #31 remains open. |
-| Fastify inference API | No RIOT inference routes are shipped on `dev`. Issue #32 remains open. |
-| Authentication | PR #51 has passing CI but remains unmerged; issue #5 remains open. |
-| Persistence and operator UX | Not delivered for RIOT Intelligence; issues #33 and #34 remain open. |
+| Area                        | Verified status                                                                                                           |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Provider-neutral contracts  | Implemented in `packages/ai`, merged by PR #49. CI passed for PR head `2170b7cc06c0fd4d039ae7b38e712f382a3eaf0e`.         |
+| Protocol validation         | Opt-in test scaffolding and draft notes exist. No recorded real-runtime result was found; issue #30 remains open.         |
+| Ollama adapter              | Placeholder only: `listModels` returns an empty list and chat/stream methods are not implemented. Issue #31 remains open. |
+| Fastify inference API       | No RIOT inference routes are shipped on `dev`. Issue #32 remains open.                                                    |
+| Authentication              | PR #51 has passing CI but remains unmerged; issue #5 remains open.                                                        |
+| Persistence and operator UX | Not delivered for RIOT Intelligence; issues #33 and #34 remain open.                                                      |
 
 ## Protocol Claims
 
