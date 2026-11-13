@@ -1,5 +1,5 @@
 /**
- * Ollama adapter - placeholder for Issue #30 protocol validation.
+ * Ollama runtime adapter using its OpenAI-compatible `/v1` API.
  * This is a stub that will be implemented based on protocol test findings.
  */
 
@@ -15,6 +15,7 @@ import type {
 import type { ProviderCapabilities } from "../../types";
 
 export interface OllamaAdapterOptions {
+  /** OpenAI-compatible API base URL, including `/v1`. */
   baseUrl: string;
   /** Request timeout in milliseconds. */
   timeoutMs?: number;
@@ -59,7 +60,7 @@ export class OllamaAdapter {
 
   /** List available models. */
   async listModels(): Promise<ModelIdentity[]> {
-    const response = await this.fetchWithTimeout("/api/tags");
+    const response = await this.fetchWithTimeout("/models");
     const data = await response.json();
 
     if (!response.ok) {
@@ -74,7 +75,7 @@ export class OllamaAdapter {
   async checkHealth(): Promise<ProviderHealth> {
     const start = Date.now();
     try {
-      const response = await this.fetchWithTimeout("/api/tags");
+      const response = await this.fetchWithTimeout("/models");
       const latencyMs = Date.now() - start;
 
       if (response.ok) {

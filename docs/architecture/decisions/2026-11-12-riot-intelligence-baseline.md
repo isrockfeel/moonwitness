@@ -59,10 +59,12 @@ Relevant repository state on `dev` at the time of this reconciliation:
   implemented and security-tested. An environment allowlist by itself is not
   evidence that DNS rebinding, redirects, or private-network access are
   prevented.
-- Ollama native API (`/api/*`) is the provisional first adapter target. PR #49
-  added opt-in tests and draft compatibility notes, but no recorded real-runtime
-  result was found during this reconciliation. The selection is provisional,
-  not validated.
+- The first adapter will use the OpenAI-compatible HTTP API only, centered on
+  `GET /v1/models` and `POST /v1/chat/completions` with SSE streaming. Provider-
+  native endpoints such as Ollama `/api/*` are out of scope.
+- Ollama's `/v1`, llama.cpp server, and vLLM are candidate runtimes exposing the
+  same protocol; runtime-specific behavior still needs validation. No recorded
+  real-runtime result was found, so compatibility remains unverified.
 
 ### 4. Security and Privacy Requirements
 
@@ -108,29 +110,30 @@ Relevant repository state on `dev` at the time of this reconciliation:
 | Area                        | Verified status                                                                                                           |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | Provider-neutral contracts  | Implemented in `packages/ai`, merged by PR #49. CI passed for PR head `2170b7cc06c0fd4d039ae7b38e712f382a3eaf0e`.         |
-| Protocol validation         | Opt-in test scaffolding and draft notes exist. No recorded real-runtime result was found; issue #30 remains open.         |
+| Protocol validation | Issue #30 now scopes validation to OpenAI-compatible `/v1/*`; no live result is recorded. |
 | Ollama adapter              | Placeholder only: `listModels` returns an empty list and chat/stream methods are not implemented. Issue #31 remains open. |
 | Fastify inference API       | No RIOT inference routes are shipped on `dev`. Issue #32 remains open.                                                    |
 | Authentication              | PR #51 has passing CI but remains unmerged; issue #5 remains open.                                                        |
 | Persistence and operator UX | Not delivered for RIOT Intelligence; issues #33 and #34 remain open.                                                      |
 
-## Protocol Claims
+## OpenAI-Compatible Protocol Scope
 
-- The test file `packages/ai/src/adapters/ollama/protocol.test.ts` is skipped
-  unless `OLLAMA_BASE_URL` is explicitly set. Its presence is not evidence that
-  a live runtime was tested.
-- The checked-in test contains exploratory assertions and console output; it
-  does not establish a reproducible compatibility result for this ADR.
-- `OllamaAdapter.capabilities.tools` is currently `false`, and its chat and
-  streaming methods are placeholders. Tool-calling support must not be
-  claimed.
-- Ollama native API remains a provisional target pending a recorded,
-  reproducible protocol run and corrected compatibility matrix.
+- The protocol boundary is the OpenAI-compatible API only: model listing,
+  chat completions, SSE streaming, and documented optional fields.
+- OpenAI-compatible servers may differ in tool calls, usage reporting, finish
+  reasons, and error formats. These are to be measured per runtime rather than
+  assumed from the protocol name.
+- The previous protocol tests exercised provider-native `/api/*` endpoints and
+  did not validate the selected protocol. They have been replaced with
+  OpenAI-compatible opt-in tests; no live result is claimed.
+- Issue #30 tracks opt-in, explicitly configured tests and a reproducible
+  compatibility record. No live endpoint result is currently claimed.
 
 ## Links
 
 - PR #49: `@moonwitness/ai` contracts package (Issue #29)
 - PR #52: original ADR; this revision reconciles its claims
+- Issue #30: OpenAI-compatible protocol validation only
 - Issue #5: server-side authentication and RBAC (PR #51)
 - Issue #30: protocol validation
 - Issue #31: local inference adapter
