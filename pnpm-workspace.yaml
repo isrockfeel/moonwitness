@@ -9,6 +9,7 @@ overrides:
 
 allowBuilds:
   "@tailwindcss/oxide": true
+  bcrypt: true
   esbuild: true
   sharp: true
   workerd@1.20250718.0: true
