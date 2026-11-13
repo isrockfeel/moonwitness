@@ -387,6 +387,43 @@ importers:
         specifier: ^3.2.7
         version: 3.2.7(@types/node@24.19.2)(jiti@2.7.0)(jsdom@25.0.1(supports-color@7.2.0))(lightningcss@1.33.0)(supports-color@7.2.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
 
+  packages/ai:
+    dependencies:
+      '@moonwitness/errors':
+        specifier: workspace:*
+        version: link:../errors
+      '@moonwitness/types':
+        specifier: workspace:*
+        version: link:../types
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
+    devDependencies:
+      '@eslint/js':
+        specifier: ^9.39.5
+        version: 9.39.5
+      '@moonwitness/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@moonwitness/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      eslint:
+        specifier: ^9.39.5
+        version: 9.39.5(jiti@2.7.0)(supports-color@7.2.0)
+      eslint-plugin-import:
+        specifier: ^2.32.0
+        version: 2.32.0(@typescript-eslint/parser@8.72.2(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3))(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      typescript-eslint:
+        specifier: ^8.72.2
+        version: 8.72.2(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/node@24.19.2)(jiti@2.7.0)(jsdom@25.0.1(supports-color@7.2.0))(lightningcss@1.33.0)(supports-color@7.2.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
+
   packages/assets:
     dependencies:
       '@moonwitness/types':
