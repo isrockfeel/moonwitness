@@ -150,29 +150,35 @@ All routes prerendered as static content. Total JS bundle unchanged (no new heav
 - `dock/index.tsx`: timelineEvents useMemo dependency warning
 - `id-lab/index.tsx`: `<img>` element usage warning
 
-### Manual Tests Not Yet Run
-- [ ] Browser visual test (desktop) — pending browser launch
-- [ ] Browser visual test (mobile) — pending browser launch
-- [ ] Animation cleanup verification — pending browser launch
-- [ ] Navigation interaction test — pending browser launch
+### Manual Tests Completed — 2026-11-14
+- [x] Browser visual test (desktop) — production Chrome QA
+- [x] Browser visual test (mobile) — visual QA plus 320/390/430px regressions
+- [x] Animation cleanup verification — parallax/unmount and delayed brush regressions
+- [x] Navigation interaction test — preview detail, keyboard menu, back/forward and reload
 
 ---
 
 ## G. Remaining Tasks
 
-- [ ] Add p5.js ScrollTrigger integration for more complex scroll choreography (deferred to next phase)
-- [ ] Expand Shadow archive entries with real content adapter pattern
-- [ ] Mobile-specific composition pass (scene stacking, touch interactions)
-- [ ] Core Web Vitals measurement after browser testing
-- [ ] Additional animation polish on hero parallax elements
+- [x] Connect Shadow preview to the existing timeline adapter, including boundary states and encoded links
+- [x] Mobile-specific composition and touch/keyboard verification
+- [x] Local Core Web Vitals measurement; field CrUX/representative INP unavailable
+- [x] Bounded decorative hero parallax and cleanup polish
+
+### Explicit Future Scope — Not Implemented
+
+- p5.js ScrollTrigger choreography remains deferred under the original technology decision. It is not a completed implementation item.
+- A dedicated Shadow classification requires a future API contract; the completed preview uses the existing timeline API.
 
 ---
 
 ## H. Git Status
 
-**Branch**: `dev`  
-**Committed work**: N/A (pending commit)  
-**Remote push status**: Pending approval
+**Branch**: `feat/creative-engine-plan-finish`
+
+**Committed implementation**: `469e4e6fb656e0af7c2037b4fbd4c1910d3b614b`
+
+**Remote push status**: Verified matching remote head on 2026-11-14; checklist reconciliation follows as a separate documentation commit
 
 **Files changed in this task**:
 - New: `apps/web/src/components/landing/entrance.tsx`

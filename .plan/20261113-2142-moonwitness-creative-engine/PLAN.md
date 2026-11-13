@@ -60,8 +60,8 @@ Ruling: Push the isolated feature branch, not the shared `dev` branch. Cost if w
   - Smooth CSS-transition transition into nav + hero
 
 ### Scene 02 — HERO (enhanced)
-- [~] Existing hero.tsx is strong; kept as-is with atmospheric layers
-  - (GSAP parallax deferred to future iteration)
+- [x] Preserve existing hero atmospheric layers and add bounded decorative JavaScript parallax with cleanup verification
+  - GSAP choreography remains explicitly deferred future scope, not implemented
 
 ### Scene 03 — TRANSMISSION 001 (new editorial panel) ✅
 - [x] Create `apps/web/src/components/landing/transmission.tsx`
@@ -113,7 +113,7 @@ Ruling: Push the isolated feature branch, not the shared `dev` branch. Cost if w
 
 ---
 
-## Phase 6 — QA (completion verification in progress)
+## Phase 6 — QA (completion verified 2026-11-14)
 
 - [x] Run `pnpm --filter @moonwitness/web typecheck` — passes
 - [x] Run `pnpm --filter @moonwitness/web lint` — passes (0 errors, 3 pre-existing warnings)
@@ -125,7 +125,7 @@ Ruling: Push the isolated feature branch, not the shared `dev` branch. Cost if w
 
 ---
 
-## Phase 7 — Report & Push (completion verification in progress)
+## Phase 7 — Report & Push (completion verified 2026-11-14)
 
 - [x] Write `REPORT.md` with findings
 - [x] Historical implementation integrated via `c92d3fb` (the previous `f786ab0` ledger reference was stale)
