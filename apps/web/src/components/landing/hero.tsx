@@ -47,7 +47,7 @@ export function Hero() {
       {/* Grunge Riot Elements */}
       <Splatter className="absolute -left-12 top-20 h-64 w-64 text-[var(--pink)] opacity-80" />
       <Star4
-        className="absolute right-[12%] top-28 h-10 w-10 text-[var(--pink)] animate-spin"
+        className="absolute right-[12%] top-28 h-10 w-10 text-[var(--pink)] animate-spin motion-reduce:animate-none"
         style={{ animationDuration: "12s" }}
       />
       <Bolt className="absolute bottom-28 left-[40%] hidden h-14 w-10 text-[var(--yellow)] md:block" />
