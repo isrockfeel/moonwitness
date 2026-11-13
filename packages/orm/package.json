@@ -19,7 +19,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
+    "@eslint/js": "^10.0.1",
     "@moonwitness/eslint-config": "workspace:*",
     "@moonwitness/typescript-config": "workspace:*",
     "eslint": "^10.14.0",
