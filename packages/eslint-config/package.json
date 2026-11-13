@@ -14,14 +14,14 @@
     "./api": "./api.js"
   },
   "dependencies": {
-    "@eslint/js": "^9.39.0",
+    "@eslint/js": "^10.0.1",
     "@next/eslint-plugin-next": "^15.5.6",
     "eslint-plugin-react-hooks": "^5.2.0",
     "globals": "^16.5.0",
     "typescript-eslint": "^8.46.0"
   },
   "devDependencies": {
-    "eslint": "^9.39.0",
+    "eslint": "^10.14.0",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
