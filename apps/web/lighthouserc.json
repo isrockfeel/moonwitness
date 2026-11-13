@@ -2,11 +2,7 @@
   "ci": {
     "collect": {
       "startServerCommand": "pnpm --filter @moonwitness/web start",
-      "url": [
-        "http://localhost:3000",
-        "http://localhost:3000/vpn",
-        "http://localhost:3000/setup"
-      ],
+      "url": ["http://localhost:3000", "http://localhost:3000/vpn", "http://localhost:3000/setup"],
       "numberOfRuns": 1,
       "settings": {
         "chromeFlags": ["--no-sandbox"]
