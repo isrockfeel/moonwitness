@@ -13,15 +13,15 @@ protocols.
 
 ## Protocol surface to validate
 
-| Capability | Endpoint / format | Validation status |
-|---|---|---|
-| List models | `GET /v1/models` | Pending live endpoint |
-| Non-streaming chat | `POST /v1/chat/completions`, `stream: false` | Pending live endpoint |
-| Streaming chat | `POST /v1/chat/completions`, SSE and `[DONE]` | Pending live endpoint |
-| Tool calls | `tools` and `tool_calls` fields | Runtime variation unverified |
-| Usage and finish reason | `usage`, `finish_reason` | Runtime variation unverified |
-| Errors and missing model | HTTP error response | Runtime variation unverified |
-| Cancellation and timeout | Client-side `AbortSignal` | Pending live endpoint |
+| Capability               | Endpoint / format                             | Validation status            |
+| ------------------------ | --------------------------------------------- | ---------------------------- |
+| List models              | `GET /v1/models`                              | Pending live endpoint        |
+| Non-streaming chat       | `POST /v1/chat/completions`, `stream: false`  | Pending live endpoint        |
+| Streaming chat           | `POST /v1/chat/completions`, SSE and `[DONE]` | Pending live endpoint        |
+| Tool calls               | `tools` and `tool_calls` fields               | Runtime variation unverified |
+| Usage and finish reason  | `usage`, `finish_reason`                      | Runtime variation unverified |
+| Errors and missing model | HTTP error response                           | Runtime variation unverified |
+| Cancellation and timeout | Client-side `AbortSignal`                     | Pending live endpoint        |
 
 These are protocol expectations, not claims that a particular server implements
 them identically. Record the runtime, version, endpoint configuration, and

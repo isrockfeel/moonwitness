@@ -110,7 +110,7 @@ Relevant repository state on `dev` at the time of this reconciliation:
 | Area                        | Verified status                                                                                                           |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | Provider-neutral contracts  | Implemented in `packages/ai`, merged by PR #49. CI passed for PR head `2170b7cc06c0fd4d039ae7b38e712f382a3eaf0e`.         |
-| Protocol validation | Issue #30 now scopes validation to OpenAI-compatible `/v1/*`; no live result is recorded. |
+| Protocol validation         | Issue #30 now scopes validation to OpenAI-compatible `/v1/*`; no live result is recorded.                                 |
 | Ollama adapter              | Placeholder only: `listModels` returns an empty list and chat/stream methods are not implemented. Issue #31 remains open. |
 | Fastify inference API       | No RIOT inference routes are shipped on `dev`. Issue #32 remains open.                                                    |
 | Authentication              | PR #51 has passing CI but remains unmerged; issue #5 remains open.                                                        |

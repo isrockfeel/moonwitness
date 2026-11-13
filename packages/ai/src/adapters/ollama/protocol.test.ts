@@ -48,11 +48,9 @@ integration("OpenAI-compatible protocol validation (opt-in)", () => {
     const firstChoice =
       isRecord(payload) && Array.isArray(payload.choices) ? payload.choices[0] : undefined;
     expect(isRecord(firstChoice) && isRecord(firstChoice.message)).toBe(true);
-    expect(
-      isRecord(firstChoice) &&
-        isRecord(firstChoice.message) &&
-        firstChoice.message.role,
-    ).toBe("assistant");
+    expect(isRecord(firstChoice) && isRecord(firstChoice.message) && firstChoice.message.role).toBe(
+      "assistant",
+    );
     expect(
       isRecord(firstChoice) &&
         isRecord(firstChoice.message) &&
