@@ -50,7 +50,7 @@ export default defineConfig({
       },
     },
     {
-      command: "pnpm dev",
+      command: process.env.CI ? "pnpm start" : "pnpm dev",
       cwd: "./apps/web",
       url: "http://localhost:3000",
       reuseExistingServer: !process.env.CI,
