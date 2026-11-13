@@ -32,6 +32,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
+        working-directory: ./apps/web
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Build web
@@ -40,7 +41,7 @@ jobs:
 
       - name: Run Playwright tests
         working-directory: ./apps/web
-        run: pnpm exec playwright test --reporter=html
+        run: pnpm exec playwright test --config ../../playwright.config.ts --project=chromium
 
       - name: Upload Playwright report
         if: always()

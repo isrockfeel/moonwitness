@@ -38,23 +38,28 @@ jobs:
         working-directory: ./apps/web
         run: pnpm build
 
+      - name: Install Playwright browser
+        if: env.PERCY_TOKEN != ''
+        working-directory: ./apps/web
+        run: pnpm exec playwright install --with-deps chromium
+
       - name: Report Percy not configured
         if: env.PERCY_TOKEN == ''
         run: echo "::notice::PERCY_TOKEN is not configured; visual comparison was skipped"
 
       - name: Run Percy visual regression
         if: env.PERCY_TOKEN != ''
-        uses: percy/cli-action@v1
+        working-directory: ./apps/web
+        run: |
+          pnpm --silent dlx @percy/cli@1.32.12 exec -- \
+            pnpm exec playwright test --config ../../playwright.config.ts --project=chromium --reporter=list
         env:
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
-        with:
-          command: pnpm exec percy exec -- pnpm exec playwright test --reporter=list
-          working-directory: ./apps/web
 
       - name: Upload Percy artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: percy-report
-          path: .percy
+          path: apps/web/.percy
           retention-days: 30
