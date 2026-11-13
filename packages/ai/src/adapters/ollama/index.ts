@@ -147,7 +147,7 @@ export class OllamaAdapter {
       return response;
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
-        throw new Error("Request timed out");
+        throw new Error("Request timed out", { cause: error });
       }
       throw error;
     } finally {
