@@ -8,13 +8,13 @@ on:
 jobs:
   notify:
     name: Notify Slack
-    if: github.event.workflow_run.conclusion != 'skipped'
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion != 'skipped'
     runs-on: ubuntu-latest
     steps:
       - name: Determine status
         id: status
         run: |
-          conclusion="${{ github.event.workflow_run.conclusion }}"
+          conclusion="${{ github.event.workflow_run.conclusion || 'manual' }}"
           if [ "$conclusion" = "success" ]; then
             echo "status=success" >> $GITHUB_OUTPUT
             echo "emoji=:white_check_mark:" >> $GITHUB_OUTPUT
@@ -24,7 +24,7 @@ jobs:
             echo "emoji=:x:" >> $GITHUB_OUTPUT
             echo "color=danger" >> $GITHUB_OUTPUT
           else
-            echo "status=cancelled" >> $GITHUB_OUTPUT
+            echo "status=$conclusion" >> $GITHUB_OUTPUT
             echo "emoji=:warning:" >> $GITHUB_OUTPUT
             echo "color=warning" >> $GITHUB_OUTPUT
           fi
@@ -33,21 +33,29 @@ jobs:
         if: env.SLACK_WEBHOOK_URL != ''
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          STATUS: ${{ steps.status.outputs.status }}
+          EMOJI: ${{ steps.status.outputs.emoji }}
+          COLOR: ${{ steps.status.outputs.color }}
+          WORKFLOW_NAME: ${{ github.event.workflow_run.workflow_name || 'Manual dispatch' }}
+          BRANCH: ${{ github.event.workflow_run.head_branch || github.ref_name }}
+          COMMIT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          RUN_URL: ${{ github.event.workflow_run.html_url || format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.run_id) }}
+          REPOSITORY: ${{ github.repository }}
         run: |
-          curl -X POST -H 'Content-type: application/json' \
-            --data "{
-              \"attachments\": [{
-                \"color\": \"${{ steps.status.outputs.color }}\",
-                \"title\": \"${{ steps.status.outputs.emoji }} CI ${{ steps.status.outputs.status | upper }}\",
-                \"title_link\": \"${{ github.event.workflow_run.html_url }}\",
-                \"fields\": [
-                  {\"title\": \"Workflow\", \"value\": \"${{ github.event.workflow_run.workflow_name }}\", \"short\": true},
-                  {\"title\": \"Branch\", \"value\": \"${{ github.event.workflow_run.head_branch }}\", \"short\": true},
-                  {\"title\": \"Commit\", \"value\": \"${{ github.event.workflow_run.head_sha }}\", \"short\": true},
-                  {\"title\": \"Duration\", \"value\": \"${{ github.event.workflow_run.run_duration }}s\", \"short\": true}
-                ],
-                \"footer\": \"${{ github.repository }}\",
-                \"ts\": $(date +%s)
-              }]
-            }" \
-            $SLACK_WEBHOOK_URL
+          payload=$(jq -n \
+            --arg color "$COLOR" \
+            --arg title "$EMOJI CI $STATUS" \
+            --arg url "$RUN_URL" \
+            --arg workflow "$WORKFLOW_NAME" \
+            --arg branch "$BRANCH" \
+            --arg commit "$COMMIT_SHA" \
+            --arg repository "$REPOSITORY" \
+            '{attachments:[{color:$color,title:$title,title_link:$url,fields:[
+              {title:"Workflow",value:$workflow,short:true},
+              {title:"Branch",value:$branch,short:true},
+              {title:"Commit",value:$commit,short:true}
+            ],footer:$repository,ts:(now|floor)}]}')
+          curl --fail-with-body --silent --show-error --retry 2 --retry-all-errors --max-time 15 \
+            -H 'Content-type: application/json' \
+            --data "$payload" \
+            "$SLACK_WEBHOOK_URL"

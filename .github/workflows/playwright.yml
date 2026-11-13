@@ -17,21 +17,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: pnpm
+
+      - name: Enable pnpm (corepack)
+        run: |
+          corepack enable
+          corepack prepare "$(node -p "require('./package.json').packageManager")" --activate
+          pnpm --version
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
+        working-directory: ./apps/web
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Build web
@@ -40,7 +41,7 @@ jobs:
 
       - name: Run Playwright tests
         working-directory: ./apps/web
-        run: pnpm exec playwright test --reporter=html
+        run: pnpm exec playwright test --config ../../playwright.config.ts --project=chromium
 
       - name: Upload Playwright report
         if: always()

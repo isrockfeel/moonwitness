@@ -14,6 +14,23 @@ async function fetchJson<T>(url: string): Promise<T> {
   return res.json();
 }
 
+export async function fetchTimelineEvents(
+  filters: TimelineFilters = {},
+  apiBase = API_BASE,
+): Promise<{ data: TimelineEvent[]; total: number }> {
+  const params = new URLSearchParams();
+  if (filters.era) params.set("era", filters.era);
+  if (filters.kind) params.set("kind", filters.kind);
+  if (filters.from) params.set("from", filters.from);
+  if (filters.to) params.set("to", filters.to);
+  if (filters.limit) params.set("limit", String(filters.limit));
+  if (filters.offset) params.set("offset", String(filters.offset));
+
+  return fetchJson<{ data: TimelineEvent[]; total: number }>(
+    `${apiBase}/timeline/events?${params}`,
+  );
+}
+
 export function useTimelineEvents(filters: TimelineFilters = {}) {
   const params = new URLSearchParams();
   if (filters.era) params.set("era", filters.era);
@@ -25,8 +42,7 @@ export function useTimelineEvents(filters: TimelineFilters = {}) {
 
   return useQuery({
     queryKey: ["timeline", "events", params.toString()],
-    queryFn: () =>
-      fetchJson<{ data: TimelineEvent[]; total: number }>(`${API_BASE}/timeline/events?${params}`),
+    queryFn: () => fetchTimelineEvents(filters),
     staleTime: 30_000,
   });
 }

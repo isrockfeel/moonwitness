@@ -1,6 +1,4 @@
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import manifestData from "../manifest.json" with { type: "json" };
 
 export interface TimelineManifest {
   name: "timeline";
@@ -14,9 +12,5 @@ export interface TimelineManifest {
   };
 }
 
-const manifestPath = join(dirname(fileURLToPath(import.meta.url)), "..", "manifest.json");
-
 /** Single source of truth for what this addon registers with the AddonRegistry. */
-export const timelineManifest: TimelineManifest = JSON.parse(
-  readFileSync(manifestPath, "utf8"),
-) as TimelineManifest;
+export const timelineManifest = manifestData as TimelineManifest;

@@ -7,6 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test:pact": "tsx pact/consumer.pact.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:brush-lifecycle": "node --experimental-vm-modules node_modules/@playwright/test/cli.js test --config brush-lifecycle.config.ts",
@@ -29,7 +30,9 @@
   "devDependencies": {
     "@moonwitness/eslint-config": "workspace:*",
     "@moonwitness/typescript-config": "workspace:*",
+    "@lhci/cli": "0.15.1",
     "@playwright/test": "^1.40.0",
+    "@pact-foundation/pact": "16.0.0",
     "@tailwindcss/postcss": "^4.1.17",
     "@types/gsap": "^3.0.0",
     "@types/node": "^24.10.0",
@@ -38,6 +41,7 @@
     "eslint": "^10.14.0",
     "gsap": "^3.15.1",
     "tailwindcss": "^4.1.17",
+    "tsx": "^4.19.0",
     "typescript": "^5.9.3"
   }
 }

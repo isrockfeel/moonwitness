@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test("entrance keyframes are loaded and live reduction dismisses it", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
   const entrance = page.locator('[aria-hidden="true"]').filter({ hasText: "FREQUENCY LOCKED" });
   await expect(entrance.locator("h1")).toHaveCSS("animation-name", "reveal-up");
@@ -145,6 +146,7 @@ test("mobile landing preview opens the query-resolved event detail", async ({ pa
 test("live reduction reveals offscreen content and atmosphere responds to resizing", async ({
   page,
 }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await expect(page.locator("#home canvas")).toHaveCount(0);
@@ -167,6 +169,7 @@ test("live reduction reveals offscreen content and atmosphere responds to resizi
 });
 
 test("decorative parallax resets live and survives navigation unmount", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
   const decoration = page.locator("#home [data-hero-parallax]");
   await expect(decoration).toHaveCount(1);
