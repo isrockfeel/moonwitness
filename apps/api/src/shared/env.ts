@@ -13,6 +13,8 @@ const envSchema = {
   RATE_LIMIT_MAX: z.string().default("120"),
   /** Rate-limit window in milliseconds. */
   RATE_LIMIT_WINDOW_MS: z.string().default("60000"),
+  /** Base URL of the S3-compatible storage service. */
+  STORAGE_URL: z.string().default("http://127.0.0.1:8091"),
 };
 
 export const env = parseEnv(envSchema);

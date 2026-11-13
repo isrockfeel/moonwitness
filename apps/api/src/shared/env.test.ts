@@ -11,6 +11,7 @@ const base = {
   LOG_LEVEL: undefined,
   RATE_LIMIT_MAX: "120",
   RATE_LIMIT_WINDOW_MS: "60000",
+  STORAGE_URL: "http://127.0.0.1:8091",
 };
 
 describe("parseCorsOrigins", () => {
