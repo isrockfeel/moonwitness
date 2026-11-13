@@ -96,8 +96,7 @@ export function Shadow() {
         >
           NOT EVERYTHING
           <br />
-          IS{" "}
-          <span className="text-[var(--red)]">VISIBLE</span>
+          IS <span className="text-[var(--red)]">VISIBLE</span>
           <span className="text-[var(--pink)]">.</span>
         </h2>
 
@@ -106,10 +105,10 @@ export function Shadow() {
           className="mt-8 max-w-2xl font-hand text-xl leading-relaxed text-zinc-400 opacity-0"
           style={{ transform: "translateX(-30px)" }}
         >
-          Beneath the signals we publish lies a deeper stratum — transmissions that don&rsquo;t
-          fit standard categories, sightings that resist easy explanation, and connections
-          between witnesses that only emerge in retrospect. This is the Shadow layer of
-          MoonWitness: where the signal gets noisy, and the noise sometimes speaks back.
+          Beneath the signals we publish lies a deeper stratum — transmissions that don&rsquo;t fit
+          standard categories, sightings that resist easy explanation, and connections between
+          witnesses that only emerge in retrospect. This is the Shadow layer of MoonWitness: where
+          the signal gets noisy, and the noise sometimes speaks back.
         </p>
 
         <div className="mt-12 relative inline-block">

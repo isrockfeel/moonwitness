@@ -21,7 +21,8 @@ const STORIES: StoryCard[] = [
     tag: "PEOPLE",
     tagColor: "var(--pink)",
     title: "THE BATTERIES",
-    excerpt: "A garage band in Jakarta channels something older than rock'n'roll — frequencies that predate electricity.",
+    excerpt:
+      "A garage band in Jakarta channels something older than rock'n'roll — frequencies that predate electricity.",
     note: "First transmission: March 2024",
     rotation: -1.5,
   },
@@ -30,7 +31,8 @@ const STORIES: StoryCard[] = [
     tag: "PLACES",
     tagColor: "var(--blue)",
     title: "NEON CITIES",
-    excerpt: "Mapping the underground circuit of cities that never sleep — Seoul, Istanbul, Lagos. The skyline tells a different story at 3 AM.",
+    excerpt:
+      "Mapping the underground circuit of cities that never sleep — Seoul, Istanbul, Lagos. The skyline tells a different story at 3 AM.",
     note: "Ongoing collection",
     rotation: 1,
   },
@@ -39,7 +41,8 @@ const STORIES: StoryCard[] = [
     tag: "STORIES",
     tagColor: "var(--yellow)",
     title: "PENDETA ONLINE",
-    excerpt: "A spiritual guide in rural Malaysia receives what he calls &lsquo;signals from the other side&rsquo; — transmitted through prayer and radio static.",
+    excerpt:
+      "A spiritual guide in rural Malaysia receives what he calls &lsquo;signals from the other side&rsquo; — transmitted through prayer and radio static.",
     note: "Episodes 1–6 published",
     rotation: -0.8,
   },
@@ -48,7 +51,8 @@ const STORIES: StoryCard[] = [
     tag: "WORLDS",
     tagColor: "var(--purple)",
     title: "ZILL",
-    excerpt: "A fiction project that reads like a field report. A city that might not exist, documented by someone who swears they were there.",
+    excerpt:
+      "A fiction project that reads like a field report. A city that might not exist, documented by someone who swears they were there.",
     note: "World bible in progress",
     rotation: 1.2,
   },
@@ -102,17 +106,21 @@ export function Storytelling() {
           {STORIES.map((story, i) => (
             <div
               key={story.id}
-              ref={(el) => { cardRefs.current[i] = el; }}
+              ref={(el) => {
+                cardRefs.current[i] = el;
+              }}
               className="group zine-card-rough relative flex flex-col overflow-hidden opacity-0"
               style={{
                 transform: `rotate(${story.rotation ?? 0}deg)`,
                 transition: "transform 0.3s ease",
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLDivElement).style.transform = "rotate(0deg) translateY(-4px)";
+                (e.currentTarget as HTMLDivElement).style.transform =
+                  "rotate(0deg) translateY(-4px)";
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLDivElement).style.transform = `rotate(${story.rotation ?? 0}deg)`;
+                (e.currentTarget as HTMLDivElement).style.transform =
+                  `rotate(${story.rotation ?? 0}deg)`;
               }}
             >
               <Staple className="-top-1 left-5 -rotate-12" />

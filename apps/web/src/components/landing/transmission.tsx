@@ -38,7 +38,10 @@ export function Transmission() {
             <CassetteTape className="h-3 w-4" />
             EYEWITNESS FEED — LIVE
           </div>
-          <Star4 className="ml-auto h-6 w-6 animate-spin text-[var(--pink)]" style={{ animationDuration: "8s" }} />
+          <Star4
+            className="ml-auto h-6 w-6 animate-spin text-[var(--pink)]"
+            style={{ animationDuration: "8s" }}
+          />
         </div>
 
         {/* Comic-panel editorial layout */}
@@ -65,8 +68,7 @@ export function Transmission() {
               <div
                 className="absolute inset-0 opacity-30"
                 style={{
-                  backgroundImage:
-                    "radial-gradient(rgba(0,0,0,0.6) 1px, transparent 1.5px)",
+                  backgroundImage: "radial-gradient(rgba(0,0,0,0.6) 1px, transparent 1.5px)",
                   backgroundSize: "3px 3px",
                   mixBlendMode: "multiply",
                 }}
@@ -82,9 +84,9 @@ export function Transmission() {
                 THE VOICES IN THE <span className="text-[var(--pink)]">FOG</span>
               </h3>
               <p className="mt-3 font-mono text-sm leading-relaxed text-zinc-400">
-                Three witnesses independently reported hearing unexplained frequencies
-                emanating from the old textile district. All three described the same
-                pattern — ascending, then descending, like a signal being answered.
+                Three witnesses independently reported hearing unexplained frequencies emanating
+                from the old textile district. All three described the same pattern — ascending,
+                then descending, like a signal being answered.
               </p>
             </div>
           </div>
@@ -95,22 +97,18 @@ export function Transmission() {
             <article className="zine-card-rough relative p-5">
               <div className="font-brush text-xl text-[var(--yellow)]">KEY DETAIL</div>
               <p className="mt-2 font-mono text-xs leading-relaxed text-zinc-300">
-                Frequency analysis suggests modulation consistent with non-standard
-                broadcast sources. Multiple independent recordings confirm the pattern.
+                Frequency analysis suggests modulation consistent with non-standard broadcast
+                sources. Multiple independent recordings confirm the pattern.
               </p>
-              <DistressedSticker
-                variant="barcode"
-                code="FREQ-1420-α"
-                className="mt-3 -rotate-2"
-              />
+              <DistressedSticker variant="barcode" code="FREQ-1420-α" className="mt-3 -rotate-2" />
             </article>
 
             {/* Annotation card 2 */}
             <article className="zine-card-rough relative p-5">
               <div className="font-brush text-xl text-[var(--pink)]">WITNESS ACCOUNT</div>
               <blockquote className="mt-2 border-l-2 border-[var(--pink)] pl-4 font-hand text-base italic text-zinc-200">
-                &ldquo;It wasn&rsquo;t coming from any tower I recognised. It was
-                in the walls.&rdquo;
+                &ldquo;It wasn&rsquo;t coming from any tower I recognised. It was in the
+                walls.&rdquo;
               </blockquote>
               <p className="mt-2 font-mono text-[10px] text-zinc-500">— Witness #MW-0447, London</p>
             </article>

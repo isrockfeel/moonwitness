@@ -17,7 +17,8 @@ export function useParallax(depth = 0.3): React.RefObject<HTMLDivElement | null>
     let ticking = false;
     const update = () => {
       const rect = el.getBoundingClientRect();
-      const scrollPercent = (rect.top + rect.height / 2 - window.innerHeight / 2) / window.innerHeight;
+      const scrollPercent =
+        (rect.top + rect.height / 2 - window.innerHeight / 2) / window.innerHeight;
       const offset = scrollPercent * window.innerHeight * depth;
       el.style.transform = `translateY(${offset}px)`;
       ticking = false;
