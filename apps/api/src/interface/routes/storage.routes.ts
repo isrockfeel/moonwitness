@@ -119,7 +119,10 @@ export async function storageRoutes(fastify: FastifyInstance) {
 
   fastify.post<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {
     const { bucket, key } = parseBucketKey(request.params["*"]);
-    return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "POST");
+    if (key) {
+      return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "POST");
+    }
+    return forward(request, reply, `/${bucket}${queryOf(request)}`, "POST");
   });
 
   fastify.get<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {
