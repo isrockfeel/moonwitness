@@ -5,7 +5,13 @@
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import rateLimit from "@fastify/rate-limit";
-import { createSession, getSessionWithUser, revokeSession } from "../../services/session";
+import {
+  createSession,
+  getSessionCookieOptions,
+  getSessionWithUser,
+  revokeSession,
+  SESSION_COOKIE_NAME,
+} from "../../services/session";
 import { findUserByUsername, findUserByEmail, verifyUserPassword } from "../../services/user";
 
 export async function authRoutes(fastify: FastifyInstance) {
@@ -14,28 +20,34 @@ export async function authRoutes(fastify: FastifyInstance) {
     await authScope.register(rateLimit, {
       max: 10,
       timeWindow: 60000,
-      keyGenerator: (request) => {
-        const forwarded = request.headers["x-forwarded-for"];
-        if (typeof forwarded === "string" && forwarded.length > 0) {
-          return forwarded.split(",")[0]!.trim();
-        }
-        return request.ip;
-      },
+      keyGenerator: (request) => request.ip,
       errorResponseBuilder: () => ({
         statusCode: 429,
         error: "Too Many Requests",
         message: "terlalu banyak percobaan; coba lagi nanti",
       }),
     });
+    authScope.addHook("onSend", async (_request, reply, payload) => {
+      reply.header("cache-control", "no-store");
+      return payload;
+    });
 
     // POST /api/v1/auth/login
     authScope.post("/auth/login", async (request: FastifyRequest, reply: FastifyReply) => {
-      const { identifier, password } = request.body as { identifier?: string; password?: string };
+      const body = request.body as { identifier?: unknown; password?: unknown } | null;
+      const identifier = body?.identifier;
+      const password = body?.password;
 
-      if (!identifier || !password) {
+      if (
+        typeof identifier !== "string" ||
+        typeof password !== "string" ||
+        !identifier.trim() ||
+        !password ||
+        Buffer.byteLength(password, "utf8") > 72
+      ) {
         return reply.code(400).send({
           error: "Bad Request",
-          message: "Username/email dan password wajib diisi",
+          message: "Username/email dan password wajib valid",
         });
       }
 
@@ -61,17 +73,7 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       // Create session
       const sessionId = await createSession(user.id);
-
-      // Set session cookie
-      const cookieOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax" as const,
-        maxAge: Math.floor(7 * 24 * 60 * 60), // 7 days in seconds
-        path: "/",
-      };
-
-      reply.setCookie("mw_session", sessionId, cookieOptions);
+      reply.setCookie(SESSION_COOKIE_NAME, sessionId, getSessionCookieOptions());
 
       return reply.send({
         user: {
@@ -86,25 +88,25 @@ export async function authRoutes(fastify: FastifyInstance) {
 
     // POST /api/v1/auth/logout
     authScope.post("/auth/logout", async (request: FastifyRequest, reply: FastifyReply) => {
-      const sessionId = request.cookies?.mw_session;
+      const sessionId = request.cookies?.[SESSION_COOKIE_NAME];
       if (sessionId) {
         await revokeSession(sessionId);
       }
 
-      reply.clearCookie("mw_session", { path: "/" });
+      reply.clearCookie(SESSION_COOKIE_NAME, { path: "/" });
       return reply.send({ ok: true });
     });
 
     // GET /api/v1/auth/me
     authScope.get("/auth/me", async (request: FastifyRequest, reply: FastifyReply) => {
-      const sessionId = request.cookies?.mw_session;
+      const sessionId = request.cookies?.[SESSION_COOKIE_NAME];
       if (!sessionId) {
         return reply.code(401).send({ error: "Not authenticated" });
       }
 
       const session = await getSessionWithUser(sessionId);
       if (!session) {
-        reply.clearCookie("mw_session", { path: "/" });
+        reply.clearCookie(SESSION_COOKIE_NAME, { path: "/" });
         return reply.code(401).send({ error: "Session expired or invalid" });
       }
 

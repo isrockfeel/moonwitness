@@ -4,7 +4,7 @@ import type {
   ListTimelineEventsRequest,
 } from "../../domain/usecases/timeline/timeline.usecase";
 import type { Result } from "@moonwitness/core";
-import { SYSTEM_ACTOR } from "@moonwitness/orm";
+import { createActorContext, SYSTEM_ACTOR } from "@moonwitness/orm";
 import type { ActorContext } from "@moonwitness/orm";
 
 /**
@@ -17,7 +17,10 @@ import type { ActorContext } from "@moonwitness/orm";
 export class TimelineController {
   constructor(private readonly _timelineUseCase: ITimelineUseCase) {}
 
-  private actor(): ActorContext {
+  private actor(request: FastifyRequest): ActorContext {
+    if (request.user) {
+      return createActorContext(String(request.user.id), "api", request.id);
+    }
     return SYSTEM_ACTOR;
   }
 
@@ -25,22 +28,22 @@ export class TimelineController {
     request: FastifyRequest<{ Querystring: ListTimelineEventsRequest }>,
     reply: FastifyReply,
   ) {
-    const result = await this._timelineUseCase.listEvents(request.query, this.actor());
+    const result = await this._timelineUseCase.listEvents(request.query, this.actor(request));
     return this.handleResult(result, reply);
   }
 
   async getEvent(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const result = await this._timelineUseCase.getEvent(request.params.id, this.actor());
+    const result = await this._timelineUseCase.getEvent(request.params.id, this.actor(request));
     return this.handleResult(result, reply);
   }
 
-  async getStats(reply: FastifyReply) {
-    const result = await this._timelineUseCase.getStats(this.actor());
+  async getStats(request: FastifyRequest, reply: FastifyReply) {
+    const result = await this._timelineUseCase.getStats(this.actor(request));
     return this.handleResult(result, reply);
   }
 
-  async getEras(reply: FastifyReply) {
-    const result = await this._timelineUseCase.getEras(this.actor());
+  async getEras(request: FastifyRequest, reply: FastifyReply) {
+    const result = await this._timelineUseCase.getEras(this.actor(request));
     return this.handleResult(result, reply);
   }
 

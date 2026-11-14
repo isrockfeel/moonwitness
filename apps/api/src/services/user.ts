@@ -61,6 +61,11 @@ export async function createUser(input: CreateUserInput): Promise<UserPublic> {
     throw new Error("Invalid role: " + input.role);
   }
 
+  const passwordBytes = Buffer.byteLength(input.password, "utf8");
+  if (passwordBytes < 12 || passwordBytes > 72) {
+    throw new Error("Password must be between 12 and 72 UTF-8 bytes");
+  }
+
   const passwordHash = await hashPassword(input.password);
   const db = getDb();
 
@@ -122,38 +127,35 @@ export async function getUserPublic(user: User) {
   };
 }
 
-export async function seedDemoUsers(): Promise<void> {
+export async function seedBootstrapAdmin(): Promise<void> {
   const db = getDb();
   const existing = await db.get("SELECT COUNT(*) as count FROM users");
   if ((existing as { count: number }).count > 0) {
-    return; // Already seeded
+    return;
   }
 
-  const demoUsers = [
-    {
-      username: "admin",
-      email: "admin@moon.world",
-      password: "admin123",
-      role: "admin" as const,
-      displayName: "Empire Admin",
-    },
-    {
-      username: "witness",
-      email: "witness@moon.world",
-      password: "moonwalk",
-      role: "editor" as const,
-      displayName: "Chief Witness",
-    },
-    {
-      username: "observer",
-      email: "observer@moon.world",
-      password: "lookonly",
-      role: "viewer" as const,
-      displayName: "Signal Observer",
-    },
-  ];
+  const username = process.env.MW_BOOTSTRAP_ADMIN_USERNAME?.trim();
+  const email = process.env.MW_BOOTSTRAP_ADMIN_EMAIL?.trim();
+  const password = process.env.MW_BOOTSTRAP_ADMIN_PASSWORD;
+  const displayName = process.env.MW_BOOTSTRAP_ADMIN_DISPLAY_NAME?.trim();
+  const configuredValues = [username, email, password];
 
-  for (const user of demoUsers) {
-    await createUser(user);
+  if (configuredValues.every((value) => !value)) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Set MW_BOOTSTRAP_ADMIN_USERNAME, EMAIL, and PASSWORD before first boot");
+    }
+    return;
   }
+
+  if (configuredValues.some((value) => !value)) {
+    throw new Error("MW_BOOTSTRAP_ADMIN_USERNAME, EMAIL, and PASSWORD must be set together");
+  }
+
+  await createUser({
+    username: username!.toLowerCase(),
+    email: email!.toLowerCase(),
+    password: password!,
+    role: "admin",
+    displayName: displayName || username!,
+  });
 }

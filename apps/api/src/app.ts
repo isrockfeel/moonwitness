@@ -10,7 +10,6 @@ import {
   timelineRoutesPrefix,
 } from "@moonwitness/addon-timeline";
 import { authMigrations } from "./db/migrations";
-import { seedDemoUsers } from "./services/user";
 import type { FastifyInstance } from "fastify";
 
 export interface BootstrapOptions {
@@ -30,7 +29,6 @@ async function migrateAndSeed(seed: boolean): Promise<void> {
   const db = getDb();
   await db.exec(timelineDdl);
   await applyMigrations([...authMigrations]);
-  await seedDemoUsers();
   if (seed) {
     await seedTimeline();
   }

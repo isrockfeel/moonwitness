@@ -16,7 +16,7 @@ import { syslogRoutes } from "../../interface/routes/syslog.routes";
 import { snmpPollerRoutes } from "../../interface/routes/snmp-poller.routes";
 import { applyMigrations } from "@moonwitness/orm";
 import { authMigrations } from "../../db/migrations";
-import { seedDemoUsers } from "../../services/user";
+import { seedBootstrapAdmin } from "../../services/user";
 
 export interface BootstrapOptions {
   prefix?: string;
@@ -121,13 +121,13 @@ export async function buildFastify(options: BootstrapOptions): Promise<FastifyIn
 
   // Ensure auth schema exists before serving routes.
   await applyMigrations([...authMigrations]);
-  await seedDemoUsers();
+  await seedBootstrapAdmin();
 
   if (options.prefix) {
     await fastify.register(
       async (instance: FastifyInstance) => {
         await registerHealthRoutes(instance);
-        await instance.register(authRoutes, { prefix: "/auth" });
+        await instance.register(authRoutes);
         // Proxy aditif ke control plane arsy & layanan RADIUS.
         await instance.register(controlRoutes);
         await instance.register(radiusRoutes);

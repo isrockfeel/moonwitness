@@ -4,7 +4,7 @@
  */
 
 import type { FastifyRequest, FastifyReply } from "fastify";
-import { getSessionWithUser } from "../services/session";
+import { getSessionWithUser, SESSION_COOKIE_NAME } from "../services/session";
 
 export interface AuthenticatedRequest extends FastifyRequest {
   user?: {
@@ -17,7 +17,7 @@ export interface AuthenticatedRequest extends FastifyRequest {
 }
 
 export async function authMiddleware(request: FastifyRequest, reply: FastifyReply) {
-  const sessionId = request.cookies?.mw_session;
+  const sessionId = request.cookies?.[SESSION_COOKIE_NAME];
   if (!sessionId) {
     return reply.code(401).send({ error: "Not authenticated" });
   }
@@ -40,14 +40,14 @@ export async function authMiddleware(request: FastifyRequest, reply: FastifyRepl
 
 export function requireAuth() {
   return async (request: FastifyRequest, reply: FastifyReply) => {
-    const sessionId = request.cookies?.mw_session;
+    const sessionId = request.cookies?.[SESSION_COOKIE_NAME];
     if (!sessionId) {
       return reply.code(401).send({ error: "Not authenticated" });
     }
 
     const session = await getSessionWithUser(sessionId);
     if (!session) {
-      reply.clearCookie("mw_session", { path: "/" });
+      reply.clearCookie(SESSION_COOKIE_NAME, { path: "/" });
       return reply.code(401).send({ error: "Session expired or invalid" });
     }
 
@@ -64,14 +64,14 @@ export function requireAuth() {
 
 export function requireRole(...allowedRoles: ("admin" | "editor" | "viewer")[]) {
   return async (request: FastifyRequest, reply: FastifyReply) => {
-    const sessionId = request.cookies?.mw_session;
+    const sessionId = request.cookies?.[SESSION_COOKIE_NAME];
     if (!sessionId) {
       return reply.code(401).send({ error: "Not authenticated" });
     }
 
     const session = await getSessionWithUser(sessionId);
     if (!session) {
-      reply.clearCookie("mw_session", { path: "/" });
+      reply.clearCookie(SESSION_COOKIE_NAME, { path: "/" });
       return reply.code(401).send({ error: "Session expired or invalid" });
     }
 
@@ -92,7 +92,7 @@ export function requireRole(...allowedRoles: ("admin" | "editor" | "viewer")[]) 
 
 export function optionalAuth() {
   return async (request: FastifyRequest, _reply: FastifyReply) => {
-    const sessionId = request.cookies?.mw_session;
+    const sessionId = request.cookies?.[SESSION_COOKIE_NAME];
     if (!sessionId) return;
 
     const session = await getSessionWithUser(sessionId);

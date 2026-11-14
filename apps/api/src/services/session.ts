@@ -3,7 +3,11 @@
  * Handles session creation, validation, and revocation
  */
 
-import { SESSION_COOKIE_NAME } from "../shared/auth";
+import {
+  getSessionCookieOptions as sharedCookieOptions,
+  getSessionMaxAgeMs,
+  SESSION_COOKIE_NAME,
+} from "../shared/auth";
 import { getDb } from "@moonwitness/orm";
 
 export interface SessionData {
@@ -27,7 +31,7 @@ export async function createSession(userId: number): Promise<string> {
   const db = getDb();
   const sessionId = crypto.randomUUID();
   const now = new Date();
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + getSessionMaxAgeMs());
 
   await db.run(
     `INSERT INTO sessions (id, user_id, created_at, expires_at, revoked)
@@ -98,14 +102,7 @@ export async function cleanupExpiredSessions(): Promise<number> {
 }
 
 export function getSessionCookieOptions() {
-  return {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
-    maxAge: Math.floor(7 * 24 * 60 * 60), // 7 days in seconds
-    path: "/",
-  };
+  return sharedCookieOptions(getSessionMaxAgeMs());
 }
 
 export { SESSION_COOKIE_NAME };
-export const getSessionMaxAgeMs = () => 7 * 24 * 60 * 60 * 1000;

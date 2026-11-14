@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { TimelineController } from "../controllers/timeline.controller";
 import type { ListTimelineEventsRequest } from "../../domain/usecases/timeline/timeline.usecase";
+import { optionalAuth } from "../../middleware/auth";
 import {
   listTimelineQuerySchema,
   timelineEventListResponseSchema,
@@ -13,6 +14,7 @@ import {
 
 export async function timelineRoutes(fastify: FastifyInstance) {
   const controller = new TimelineController(fastify.timelineUseCase);
+  fastify.addHook("preHandler", optionalAuth());
 
   fastify.get<{ Querystring: ListTimelineEventsRequest }>(
     "/events",
@@ -62,7 +64,7 @@ export async function timelineRoutes(fastify: FastifyInstance) {
         description: "Retrieve aggregate statistics about timeline events",
       },
     },
-    (request, reply) => controller.getStats(reply),
+    (request, reply) => controller.getStats(request, reply),
   );
 
   fastify.get(
@@ -78,6 +80,6 @@ export async function timelineRoutes(fastify: FastifyInstance) {
         description: "Retrieve all available eras",
       },
     },
-    (request, reply) => controller.getEras(reply),
+    (request, reply) => controller.getEras(request, reply),
   );
 }

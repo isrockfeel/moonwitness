@@ -26,6 +26,20 @@ affected versions, and impact. Expect an acknowledgement before any public discl
 - If a secret is committed, rotate it first, then remove it from history. Deleting the commit is
   not enough.
 
+## Application authentication
+
+- API passwords are stored as bcrypt hashes; the browser receives identity only from the API and
+  stores the session in an HTTP-only, SameSite=Lax cookie (Secure in production).
+- On an empty user database, configure `MW_BOOTSTRAP_ADMIN_USERNAME`,
+  `MW_BOOTSTRAP_ADMIN_EMAIL`, and `MW_BOOTSTRAP_ADMIN_PASSWORD` before starting the API.
+  Bootstrap passwords must be 12–72 UTF-8 bytes. No built-in demo users or passwords are created.
+- The bootstrap values are read only while the user table is empty; remove the bootstrap password
+  from the runtime environment after the initial account is created.
+- Password recovery is disabled until a real delivery and verification flow exists. Do not display
+  a successful recovery message without performing recovery.
+- Public timeline reads remain anonymous. Authenticated timeline requests use the verified session
+  to create their ORM `ActorContext`; caller-provided identity or role headers are not trusted.
+
 ## Dependency policy
 
 - Direct dependencies are added deliberately; prefer the standard library or an existing

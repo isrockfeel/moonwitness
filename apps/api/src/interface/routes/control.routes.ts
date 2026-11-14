@@ -61,13 +61,20 @@ const WRITE_PATHS = new Set([
 // Endpoint onboarding/auth memakai cookie sesi, bukan token server-side.
 const SETUP_PATHS = new Set(["status", "superuser"]);
 const AUTH_PATHS = new Set(["login", "logout", "me"]);
+const ADMIN_ONLY_WRITE_PATHS = new Set(["plan", "apply", "ops"]);
 
 function clientIp(request: FastifyRequest): string {
-  const forwarded = request.headers["x-forwarded-for"];
-  if (typeof forwarded === "string" && forwarded.length > 0) {
-    return forwarded.split(",")[0]!.trim();
-  }
   return request.ip;
+}
+
+async function controlWriteRole(
+  request: FastifyRequest<{ Params: { path: string } }>,
+  reply: FastifyReply,
+) {
+  const guard = ADMIN_ONLY_WRITE_PATHS.has(request.params.path)
+    ? requireRole("admin")
+    : requireRole("admin", "editor");
+  return guard(request, reply);
 }
 
 function upstreamHeaders(request: FastifyRequest): Record<string, string> {
@@ -270,7 +277,7 @@ export async function controlRoutes(fastify: FastifyInstance) {
     protectedScope.post<{ Params: { path: string } }>(
       "/control/:path",
       {
-        preHandler: requireRole("admin", "editor"),
+        preHandler: controlWriteRole,
       },
       async (request, reply) => {
         const { path } = request.params;

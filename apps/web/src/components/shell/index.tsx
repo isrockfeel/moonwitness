@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useSavedAvatar } from "@/lib/avatar-store";
-import { useCurrentIdentity, notifySessionChange } from "@/lib/session";
+import { useCurrentIdentity } from "@/lib/session";
 import { Crown } from "@moonwitness/ui/icons";
 import { activeByPath, navItems } from "./nav-items";
 import { Sidebar } from "./sidebar";
@@ -78,13 +78,11 @@ export function EmpireShell({
   }, [sectionAnchors]);
 
   function exitShadow() {
-    try {
-      localStorage.removeItem("mw-session");
-      sessionStorage.removeItem("mw-session");
-    } catch {
-      // ignore
-    }
-    notifySessionChange();
+    // Clear session via API
+    fetch("/api/v1/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    }).catch(() => {});
     router.push("/");
   }
 

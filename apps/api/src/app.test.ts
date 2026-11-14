@@ -1,10 +1,13 @@
-import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { FastifyInstance } from "fastify";
 import { buildApp } from "./app";
 import { seedTimeline } from "@moonwitness/addon-timeline";
+import { SYSTEM_ACTOR } from "@moonwitness/orm";
+import { createUser } from "./services/user";
+import { createSession } from "./services/session";
 
 let app: FastifyInstance;
 let dbDir: string;
@@ -242,6 +245,7 @@ describe("timeline API", () => {
   });
 
   it("ignores a spoofed actor header and still serves public reads", async () => {
+    const getEvent = vi.spyOn(app.timelineUseCase, "getEvent");
     const response = await app.inject({
       method: "GET",
       url: "/api/v1/timeline/events/evt-001",
@@ -249,6 +253,39 @@ describe("timeline API", () => {
     });
 
     expect(response.statusCode).toBe(200);
+    expect(getEvent).toHaveBeenCalledWith("evt-001", SYSTEM_ACTOR);
+  });
+
+  it("propagates identity from a verified session into ActorContext", async () => {
+    const user = await createUser({
+      username: "api-actor",
+      email: "api-actor@moon.world",
+      password: "api-actor-password-2026",
+      role: "editor",
+      displayName: "API Actor",
+    });
+    const sessionId = await createSession(user.id);
+    const getEvent = vi.spyOn(app.timelineUseCase, "getEvent");
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/v1/timeline/events/evt-001",
+      headers: {
+        cookie: `mw_session=${sessionId}`,
+        "x-actor-id": "attacker",
+        "x-actor-role": "admin",
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(getEvent).toHaveBeenCalledWith(
+      "evt-001",
+      expect.objectContaining({
+        actorId: String(user.id),
+        source: "api",
+        requestId: expect.any(String),
+      }),
+    );
   });
 
   it("persists data across an app restart on the same file", async () => {

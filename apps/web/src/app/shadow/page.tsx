@@ -1,5 +1,7 @@
 "use client";
 
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,14 +17,12 @@ export default function ShadowPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(true);
   const [errors, setErrors] = useState<{ identifier?: string; password?: string }>({});
   const [status, setStatus] = useState<"idle" | "entering">("idle");
-  const [forgotSent, setForgotSent] = useState(false);
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const result = authenticate(email, password);
+    const result = await authenticate(email, password);
     if (!result.ok) {
       setErrors(
         result.field === "credentials"
@@ -34,22 +34,7 @@ export default function ShadowPage() {
     setErrors({});
 
     setStatus("entering");
-    const { account } = result;
     setTimeout(() => {
-      try {
-        const store = remember ? localStorage : sessionStorage;
-        store.setItem(
-          "mw-session",
-          JSON.stringify({
-            identity: account.displayName,
-            username: account.username,
-            role: account.role,
-            enteredAt: new Date().toISOString(),
-          }),
-        );
-      } catch {
-        // storage unavailable — session continues in memory
-      }
       notifySessionChange();
       router.push("/mission-control");
     }, 900);
@@ -171,32 +156,19 @@ export default function ShadowPage() {
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="flex cursor-pointer items-center gap-2 text-xs text-zinc-300">
-                  <input
-                    type="checkbox"
-                    checked={remember}
-                    onChange={(e) => setRemember(e.target.checked)}
-                    className="h-4 w-4 cursor-pointer accent-[var(--pink)]"
-                  />
-                  Remember me
-                </label>
+                <span className="text-xs text-zinc-500">Session expires automatically.</span>
                 <button
                   type="button"
-                  onClick={() => setForgotSent(true)}
-                  className="text-xs text-[var(--blue)] underline-offset-4 hover:underline"
+                  disabled
+                  aria-describedby="recovery-unavailable"
+                  className="cursor-not-allowed text-xs text-zinc-500"
                 >
                   Forgot password?
                 </button>
               </div>
-
-              {forgotSent && (
-                <p
-                  className="border border-[var(--blue)]/40 bg-[var(--blue)]/10 px-3 py-2 text-xs text-[var(--blue)]"
-                  role="status"
-                >
-                  Recovery signal sent. Check your inbox — the shadow answers within one moon cycle.
-                </p>
-              )}
+              <p id="recovery-unavailable" className="text-xs text-zinc-500">
+                Password recovery is unavailable. Contact an administrator.
+              </p>
 
               <button
                 type="submit"
@@ -218,9 +190,6 @@ export default function ShadowPage() {
                 Authorized crew only.
                 <span className="h-px flex-1 bg-[var(--line)]" />
               </div>
-              <p className="text-center text-[11px] text-zinc-600">
-                Hardcoded demo crew — admin / admin123
-              </p>
             </form>
           </div>
 
