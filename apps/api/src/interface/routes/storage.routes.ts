@@ -98,7 +98,7 @@ export async function storageRoutes(fastify: FastifyInstance) {
     if (key) {
       return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "PUT");
     }
-    return forward(request, reply, `/${bucket}`, "PUT");
+    return forward(request, reply, `/${bucket}${queryOf(request)}`, "PUT");
   });
 
   fastify.head<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {
@@ -106,7 +106,7 @@ export async function storageRoutes(fastify: FastifyInstance) {
     if (key) {
       return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "HEAD");
     }
-    return forward(request, reply, `/${bucket}`, "HEAD");
+    return forward(request, reply, `/${bucket}${queryOf(request)}`, "HEAD");
   });
 
   fastify.delete<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {
@@ -114,7 +114,7 @@ export async function storageRoutes(fastify: FastifyInstance) {
     if (key) {
       return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "DELETE");
     }
-    return forward(request, reply, `/${bucket}`, "DELETE");
+    return forward(request, reply, `/${bucket}${queryOf(request)}`, "DELETE");
   });
 
   fastify.post<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {

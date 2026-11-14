@@ -19,7 +19,11 @@ function readSession(): Session | null {
       if (!parsed || typeof parsed !== "object") continue;
       const s = parsed as Record<string, unknown>;
       if (typeof s.identity !== "string") continue;
-      return { identity: s.identity, role: typeof s.role === "string" ? s.role : "" };
+      return {
+        identity: s.identity,
+        role: typeof s.role === "string" ? s.role : "",
+        username: typeof s.username === "string" ? s.username : undefined,
+      };
     } catch {
       // ignore malformed entry, try next store
     }
