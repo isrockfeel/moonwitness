@@ -1,4 +1,4 @@
-import { initDb, closeDb, getDb } from "@moonwitness/orm";
+import { initDb, closeDb, getDb, applyMigrations } from "@moonwitness/orm";
 import { env } from "./shared/env";
 import { AddonRegistry } from "@moonwitness/addon-base/registry";
 import { registerBaseAddon } from "@moonwitness/addon-base";
@@ -9,6 +9,7 @@ import {
   timelineManifest,
   timelineRoutesPrefix,
 } from "@moonwitness/addon-timeline";
+import { authMigrations } from "./db/migrations";
 import type { FastifyInstance } from "fastify";
 
 export interface BootstrapOptions {
@@ -27,6 +28,7 @@ const BASE_MANIFEST = {
 async function migrateAndSeed(seed: boolean): Promise<void> {
   const db = getDb();
   await db.exec(timelineDdl);
+  await applyMigrations([...authMigrations]);
   if (seed) {
     await seedTimeline();
   }

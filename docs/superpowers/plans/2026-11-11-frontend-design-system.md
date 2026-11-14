@@ -183,7 +183,7 @@ pnpm --filter @moonwitness/web build
 pnpm --filter @moonwitness/web start -p 4317 &
 ```
 
-Tunggu sampai log `Ready` muncul. Login dulu ke `/shadow` dengan `admin` / `admin123` supaya `/mission-control` dan `/dock` bisa dibuka (sesi disimpan di `localStorage` key `mw-session`).
+Tunggu sampai log `Ready` muncul. Sebelum boot pertama, konfigurasi `MW_BOOTSTRAP_ADMIN_USERNAME`, `MW_BOOTSTRAP_ADMIN_EMAIL`, dan `MW_BOOTSTRAP_ADMIN_PASSWORD` di environment API. Login ke `/shadow` untuk membuka `/mission-control`; sesi dikelola API melalui cookie HTTP-only dan tidak disimpan di browser storage.
 
 - [x] **Step 3: Ambil 12 screenshot**
 
@@ -2941,13 +2941,11 @@ containerRef: React.RefObject<HTMLDivElement | null>;
 
 Footer **tetap di orkestrator** (8 baris, tidak layak jadi file sendiri).
 
-Baca session jangan diubah satu karakter pun:
+Bacaan identitas harus selalu berasal dari sesi server:
 
 ```tsx
-const raw = localStorage.getItem("mw-session") ?? sessionStorage.getItem("mw-session");
-const session = JSON.parse(raw) as { identity?: string; role?: string };
-if (session.identity) setIdentity(session.identity);
-if (session.role) setRole(roleLabel(session.role));
+const response = await fetch("/api/v1/auth/me", { credentials: "include" });
+const session = response.ok ? await response.json() : null;
 ```
 
 - [x] **Step 5: Hapus file lama**

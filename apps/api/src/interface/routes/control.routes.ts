@@ -1,10 +1,10 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import rateLimit from "@fastify/rate-limit";
+import { requireAuth, requireRole } from "../../middleware/auth";
 
 const ARSY_URL = process.env.ARSY_URL ?? "http://127.0.0.1:8787";
 const ARSY_TOKEN_READONLY = process.env.ARSY_TOKEN_READONLY ?? "";
 const ARSY_TOKEN_ADMIN = process.env.ARSY_TOKEN_ADMIN ?? "";
-const ARSY_PROXY_ADMIN = process.env.ARSY_PROXY_ADMIN === "1";
 
 // Endpoint auth/setup meneruskan kredensial ke control plane, jadi dibatasi
 // per-IP untuk mempersempit brute force (login) dan penyalahgunaan setup.
@@ -61,13 +61,20 @@ const WRITE_PATHS = new Set([
 // Endpoint onboarding/auth memakai cookie sesi, bukan token server-side.
 const SETUP_PATHS = new Set(["status", "superuser"]);
 const AUTH_PATHS = new Set(["login", "logout", "me"]);
+const ADMIN_ONLY_WRITE_PATHS = new Set(["plan", "apply", "ops"]);
 
 function clientIp(request: FastifyRequest): string {
-  const forwarded = request.headers["x-forwarded-for"];
-  if (typeof forwarded === "string" && forwarded.length > 0) {
-    return forwarded.split(",")[0]!.trim();
-  }
   return request.ip;
+}
+
+async function controlWriteRole(
+  request: FastifyRequest<{ Params: { path: string } }>,
+  reply: FastifyReply,
+) {
+  const guard = ADMIN_ONLY_WRITE_PATHS.has(request.params.path)
+    ? requireRole("admin")
+    : requireRole("admin", "editor");
+  return guard(request, reply);
 }
 
 function upstreamHeaders(request: FastifyRequest): Record<string, string> {
@@ -117,36 +124,6 @@ async function forwardAuth(request: FastifyRequest, reply: FastifyReply, subPath
     .send(text);
 }
 
-// gate memastikan data control hanya keluar setelah onboarding selesai dan
-// pemanggil punya sesi. Sebelum initialized, wizard masih boleh lewat.
-async function gate(request: FastifyRequest, reply: FastifyReply): Promise<boolean> {
-  const headers = upstreamHeaders(request);
-  try {
-    const me = await fetch(`${ARSY_URL}/v1/auth/me`, {
-      headers,
-      signal: AbortSignal.timeout(5_000),
-    });
-    if (me.ok) return true;
-
-    const status = await fetch(`${ARSY_URL}/v1/setup/status`, {
-      headers,
-      signal: AbortSignal.timeout(5_000),
-    });
-    if (!status.ok) {
-      reply.code(502).send({ error: "arsy tidak dapat dihubungi", reachable: false });
-      return false;
-    }
-    const payload = (await status.json()) as { initialized?: boolean };
-    if (!payload.initialized) return true;
-
-    reply.code(401).send({ error: "butuh login", initialized: true });
-    return false;
-  } catch {
-    reply.code(502).send({ error: "arsy tidak dapat dihubungi", reachable: false });
-    return false;
-  }
-}
-
 async function forward(request: FastifyRequest, reply: FastifyReply, subPath: string) {
   const query = request.url.includes("?") ? request.url.slice(request.url.indexOf("?")) : "";
   const target = `${ARSY_URL}/v1/${subPath}${query}`;
@@ -190,8 +167,8 @@ async function forward(request: FastifyRequest, reply: FastifyReply, subPath: st
 }
 
 export async function controlRoutes(fastify: FastifyInstance) {
-  // Endpoint auth/setup meneruskan kredensial ke control plane, jadi dipisah
-  // ke scope sendiri dengan @fastify/rate-limit per-IP (brute-force guard).
+  // Endpoint auth/setup meneruskan kredensial ke control plane, jadi dibatasi
+  // per-IP untuk mempersempit brute force (login) dan penyalahgunaan setup.
   await fastify.register(async (authScope) => {
     await authScope.register(rateLimit, {
       max: AUTH_RATE_MAX,
@@ -237,147 +214,150 @@ export async function controlRoutes(fastify: FastifyInstance) {
     });
   });
 
-  fastify.get("/control/status", async (request, reply) => {
-    if (!(await gate(request, reply))) return reply;
+  // Protected routes - require authentication
+  fastify.register(async (protectedScope) => {
+    protectedScope.addHook("preHandler", requireAuth());
 
-    const headers = upstreamHeaders(request);
-    const [hostRes, metricsRes] = await Promise.all([
-      fetch(`${ARSY_URL}/v1/host`, { headers, signal: AbortSignal.timeout(5_000) }).catch(
-        () => null,
-      ),
-      fetch(`${ARSY_URL}/v1/metrics`, { headers, signal: AbortSignal.timeout(10_000) }).catch(
-        () => null,
-      ),
-    ]);
+    protectedScope.get("/control/status", async (request, reply) => {
+      const headers = upstreamHeaders(request);
+      const [hostRes, metricsRes] = await Promise.all([
+        fetch(`${ARSY_URL}/v1/host`, { headers, signal: AbortSignal.timeout(5_000) }).catch(
+          () => null,
+        ),
+        fetch(`${ARSY_URL}/v1/metrics`, { headers, signal: AbortSignal.timeout(10_000) }).catch(
+          () => null,
+        ),
+      ]);
 
-    if (!hostRes?.ok || !metricsRes?.ok) {
-      return reply
-        .code(502)
-        .send({ error: "arsy tidak dapat dihubungi", arsyUrl: ARSY_URL, reachable: false });
-    }
-    return reply.send({
-      reachable: true,
-      host: await hostRes.json(),
-      metrics: await metricsRes.json(),
-    });
-  });
-
-  // ---- Port forwarding (dinasih agar tidak ada kesalahan rute /control/:path di bawah)
-  fastify.get("/control/portforwards", async (request, reply) => {
-    if (!(await gate(request, reply))) return reply;
-    return forward(request, reply, "portforwards");
-  });
-
-  fastify.post("/control/portforwards", async (request, reply) => {
-    if (!ARSY_PROXY_ADMIN) {
-      return reply.code(403).send({ error: "aksi tulis lewat web dimatikan" });
-    }
-    if (!(await gate(request, reply))) return reply;
-    return forward(request, reply, "portforwards");
-  });
-
-  fastify.delete("/control/portforwards", async (request, reply) => {
-    if (!ARSY_PROXY_ADMIN) {
-      return reply.code(403).send({ error: "aksi tulis lewat web dimatikan" });
-    }
-    if (!(await gate(request, reply))) return reply;
-    return forward(request, reply, "portforwards");
-  });
-
-  fastify.get<{ Params: { path: string } }>("/control/:path", async (request, reply) => {
-    const { path } = request.params;
-    if (!READ_PATHS.has(path)) {
-      return reply.code(404).send({ error: `path control tidak dikenal: ${path}` });
-    }
-    if (!(await gate(request, reply))) return reply;
-    return forward(request, reply, path);
-  });
-
-  fastify.post<{ Params: { path: string } }>("/control/:path", async (request, reply) => {
-    const { path } = request.params;
-    if (!WRITE_PATHS.has(path)) {
-      return reply.code(404).send({ error: `path control tidak dikenal: ${path}` });
-    }
-    if (!ARSY_PROXY_ADMIN) {
-      return reply.code(403).send({
-        error: "aksi tulis lewat web dimatikan; set ARSY_PROXY_ADMIN=1 untuk mengaktifkan",
+      if (!hostRes?.ok || !metricsRes?.ok) {
+        return reply
+          .code(502)
+          .send({ error: "arsy tidak dapat dihubungi", arsyUrl: ARSY_URL, reachable: false });
+      }
+      return reply.send({
+        reachable: true,
+        host: await hostRes.json(),
+        metrics: await metricsRes.json(),
       });
-    }
-    if (!(await gate(request, reply))) return reply;
-    return forward(request, reply, path);
-  });
-
-  // ---- VPN ----
-  fastify.get("/control/vpn/status", async (request, reply) => {
-    if (!(await gate(request, reply))) return reply;
-    return forward(request, reply, "vpn/status");
-  });
-
-  fastify.get("/control/vpn/subnets", async (request, reply) => {
-    if (!(await gate(request, reply))) return reply;
-    return forward(request, reply, "vpn/subnets");
-  });
-
-  fastify.post("/control/vpn/subnets", async (request, reply) => {
-    if (!ARSY_PROXY_ADMIN) {
-      return reply.code(403).send({ error: "aksi tulis lewat web dimatikan" });
-    }
-    if (!(await gate(request, reply))) return reply;
-    return forward(request, reply, "vpn/subnets");
-  });
-
-  fastify.delete<{ Params: { name: string } }>(
-    "/control/vpn/subnets/:name",
-    async (request, reply) => {
-      if (!ARSY_PROXY_ADMIN) {
-        return reply.code(403).send({ error: "aksi tulis lewat web dimatikan" });
-      }
-      if (!(await gate(request, reply))) return reply;
-      const name = encodeURIComponent(request.params.name);
-      return forward(request, reply, `vpn/subnets/${name}`);
-    },
-  );
-
-  for (const sub of ["vpn/up", "vpn/down", "vpn/peers"] as const) {
-    fastify.post(`/control/${sub}`, async (request, reply) => {
-      if (!ARSY_PROXY_ADMIN) {
-        return reply.code(403).send({ error: "aksi tulis lewat web dimatikan" });
-      }
-      if (!(await gate(request, reply))) return reply;
-      return forward(request, reply, sub);
     });
-  }
 
-  fastify.get<{ Params: { name: string } }>(
-    "/control/vpn/peers/:name/config",
-    async (request, reply) => {
-      if (!(await gate(request, reply))) return reply;
-      const name = encodeURIComponent(request.params.name);
-      return forward(request, reply, `vpn/peers/${name}/config`);
-    },
-  );
+    // ---- Port forwarding ----
+    protectedScope.get("/control/portforwards", async (request, reply) => {
+      return forward(request, reply, "portforwards");
+    });
 
-  fastify.post<{ Params: { name: string } }>(
-    "/control/vpn/peers/:name/quota",
-    async (request, reply) => {
-      if (!ARSY_PROXY_ADMIN) {
-        return reply.code(403).send({ error: "aksi tulis lewat web dimatikan" });
+    protectedScope.post(
+      "/control/portforwards",
+      {
+        preHandler: requireRole("admin", "editor"),
+      },
+      async (request, reply) => {
+        return forward(request, reply, "portforwards");
+      },
+    );
+
+    protectedScope.delete(
+      "/control/portforwards",
+      {
+        preHandler: requireRole("admin", "editor"),
+      },
+      async (request, reply) => {
+        return forward(request, reply, "portforwards");
+      },
+    );
+
+    protectedScope.get<{ Params: { path: string } }>("/control/:path", async (request, reply) => {
+      const { path } = request.params;
+      if (!READ_PATHS.has(path)) {
+        return reply.code(404).send({ error: `path control tidak dikenal: ${path}` });
       }
-      if (!(await gate(request, reply))) return reply;
-      const name = encodeURIComponent(request.params.name);
-      return forward(request, reply, `vpn/peers/${name}/quota`);
-    },
-  );
+      return forward(request, reply, path);
+    });
 
-  fastify.delete<{ Params: { name: string } }>(
-    "/control/vpn/peers/:name",
-    async (request, reply) => {
-      if (!ARSY_PROXY_ADMIN) {
-        return reply.code(403).send({ error: "aksi tulis lewat web dimatikan" });
-      }
-      if (!(await gate(request, reply))) return reply;
-      const name = encodeURIComponent(request.params.name);
-      return forward(request, reply, `vpn/peers/${name}`);
-    },
-  );
+    protectedScope.post<{ Params: { path: string } }>(
+      "/control/:path",
+      {
+        preHandler: controlWriteRole,
+      },
+      async (request, reply) => {
+        const { path } = request.params;
+        if (!WRITE_PATHS.has(path)) {
+          return reply.code(404).send({ error: `path control tidak dikenal: ${path}` });
+        }
+        return forward(request, reply, path);
+      },
+    );
+
+    // ---- VPN ----
+    protectedScope.get("/control/vpn/status", async (request, reply) => {
+      return forward(request, reply, "vpn/status");
+    });
+
+    protectedScope.get("/control/vpn/subnets", async (request, reply) => {
+      return forward(request, reply, "vpn/subnets");
+    });
+
+    protectedScope.post(
+      "/control/vpn/subnets",
+      {
+        preHandler: requireRole("admin", "editor"),
+      },
+      async (request, reply) => {
+        return forward(request, reply, "vpn/subnets");
+      },
+    );
+
+    protectedScope.delete<{ Params: { name: string } }>(
+      "/control/vpn/subnets/:name",
+      {
+        preHandler: requireRole("admin", "editor"),
+      },
+      async (request, reply) => {
+        const name = encodeURIComponent(request.params.name);
+        return forward(request, reply, `vpn/subnets/${name}`);
+      },
+    );
+
+    for (const sub of ["vpn/up", "vpn/down", "vpn/peers"] as const) {
+      protectedScope.post(
+        `/control/${sub}`,
+        {
+          preHandler: requireRole("admin", "editor"),
+        },
+        async (request, reply) => {
+          return forward(request, reply, sub);
+        },
+      );
+    }
+
+    protectedScope.get<{ Params: { name: string } }>(
+      "/control/vpn/peers/:name/config",
+      async (request, reply) => {
+        const name = encodeURIComponent(request.params.name);
+        return forward(request, reply, `vpn/peers/${name}/config`);
+      },
+    );
+
+    protectedScope.post<{ Params: { name: string } }>(
+      "/control/vpn/peers/:name/quota",
+      {
+        preHandler: requireRole("admin", "editor"),
+      },
+      async (request, reply) => {
+        const name = encodeURIComponent(request.params.name);
+        return forward(request, reply, `vpn/peers/${name}/quota`);
+      },
+    );
+
+    protectedScope.delete<{ Params: { name: string } }>(
+      "/control/vpn/peers/:name",
+      {
+        preHandler: requireRole("admin", "editor"),
+      },
+      async (request, reply) => {
+        const name = encodeURIComponent(request.params.name);
+        return forward(request, reply, `vpn/peers/${name}`);
+      },
+    );
+  });
 }

@@ -1,17 +1,22 @@
 import type { FastifyInstance } from "fastify";
 import Fastify from "fastify";
 import type { FastifyError } from "fastify";
+import FastifyCookie from "@fastify/cookie";
 import FastifyCors from "@fastify/cors";
 import FastifySwagger from "@fastify/swagger";
 import FastifySwaggerUi from "@fastify/swagger-ui";
 import { env, parseCorsOrigins } from "../../shared/env";
 import { createRateLimiter } from "../rate-limit";
 import { registerHealthRoutes } from "../../interface/routes/health.routes";
+import { authRoutes } from "../../interface/routes/auth.routes";
 import { controlRoutes } from "../../interface/routes/control.routes";
 import { radiusRoutes } from "../../interface/routes/radius.routes";
 import { storageRoutes } from "../../interface/routes/storage.routes";
 import { syslogRoutes } from "../../interface/routes/syslog.routes";
 import { snmpPollerRoutes } from "../../interface/routes/snmp-poller.routes";
+import { applyMigrations } from "@moonwitness/orm";
+import { authMigrations } from "../../db/migrations";
+import { seedBootstrapAdmin } from "../../services/user";
 
 export interface BootstrapOptions {
   prefix?: string;
@@ -46,6 +51,7 @@ export async function buildFastify(options: BootstrapOptions): Promise<FastifyIn
     reply.header("x-request-id", request.id);
   });
 
+  await fastify.register(FastifyCookie);
   await fastify.register(FastifyCors, {
     origin: corsOrigin(),
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -113,10 +119,15 @@ export async function buildFastify(options: BootstrapOptions): Promise<FastifyIn
     });
   }
 
+  // Ensure auth schema exists before serving routes.
+  await applyMigrations([...authMigrations]);
+  await seedBootstrapAdmin();
+
   if (options.prefix) {
     await fastify.register(
       async (instance: FastifyInstance) => {
         await registerHealthRoutes(instance);
+        await instance.register(authRoutes);
         // Proxy aditif ke control plane arsy & layanan RADIUS.
         await instance.register(controlRoutes);
         await instance.register(radiusRoutes);

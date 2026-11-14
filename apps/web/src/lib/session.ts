@@ -1,77 +1,74 @@
 import { useEffect, useState } from "react";
 
-const SESSION_KEY = "mw-session";
-const SESSION_CHANGE_EVENT = "mw:session-change";
-
 export interface Session {
   identity: string;
   role: string;
   username?: string;
-}
-
-function readSession(): Session | null {
-  if (typeof window === "undefined") return null;
-  for (const store of [window.localStorage, window.sessionStorage]) {
-    try {
-      const raw = store.getItem(SESSION_KEY);
-      if (!raw) continue;
-      const parsed = JSON.parse(raw) as unknown;
-      if (!parsed || typeof parsed !== "object") continue;
-      const s = parsed as Record<string, unknown>;
-      if (typeof s.identity !== "string") continue;
-      return {
-        identity: s.identity,
-        role: typeof s.role === "string" ? s.role : "",
-        username: typeof s.username === "string" ? s.username : undefined,
-      };
-    } catch {
-      // ignore malformed entry, try next store
-    }
-  }
-  return null;
+  id?: number;
 }
 
 /**
- * Hook: current demo identity, synced across tabs via storage events
- * and within the same tab via a custom event.
+ * Hook: current identity from server-side session
  */
 export function useCurrentIdentity(): Session | null {
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
-    setSession(readSession());
+    async function fetchSession() {
+      try {
+        const response = await fetch("/api/v1/auth/me", {
+          credentials: "include",
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setSession({
+            identity: data.user.displayName,
+            role: data.user.role,
+            username: data.user.username,
+            id: data.user.id,
+          });
+        } else {
+          setSession(null);
+        }
+      } catch {
+        setSession(null);
+      }
+    }
+
+    fetchSession();
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    // Cross-tab sync
-    function onStorage(e: StorageEvent) {
-      if (e.key !== SESSION_KEY) return;
-      setSession(readSession());
-    }
-    window.addEventListener("storage", onStorage);
-
-    // Same-tab sync via custom event
     function onSessionChange() {
-      setSession(readSession());
+      fetch("/api/v1/auth/me", { credentials: "include" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (data?.user) {
+            setSession({
+              identity: data.user.displayName,
+              role: data.user.role,
+              username: data.user.username,
+              id: data.user.id,
+            });
+          } else {
+            setSession(null);
+          }
+        })
+        .catch(() => setSession(null));
     }
-    window.addEventListener(SESSION_CHANGE_EVENT, onSessionChange);
 
-    return () => {
-      window.removeEventListener("storage", onStorage);
-      window.removeEventListener(SESSION_CHANGE_EVENT, onSessionChange);
-    };
+    window.addEventListener("mw:session-change", onSessionChange);
+    return () => window.removeEventListener("mw:session-change", onSessionChange);
   }, []);
 
   return session;
 }
 
 /**
- * Call after setting mw-session to notify same-tab listeners.
+ * Call after login/logout to notify same-tab listeners.
  */
 export function notifySessionChange() {
   if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent(SESSION_CHANGE_EVENT));
+    window.dispatchEvent(new CustomEvent("mw:session-change"));
   }
 }
