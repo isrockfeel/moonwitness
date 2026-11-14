@@ -53,12 +53,12 @@ async function forward(
     return reply.code(502).send({ error: "storage tidak dapat dihubungi", reachable: false });
   }
 
-  const text = await upstream.text();
+  const body = Buffer.from(await upstream.arrayBuffer());
   return reply
     .code(upstream.status)
     .header("content-type", upstream.headers.get("content-type") ?? "application/xml")
     .header("cache-control", "no-store")
-    .send(text);
+    .send(body);
 }
 
 interface WildcardParams {
@@ -124,13 +124,18 @@ export async function storageRoutes(fastify: FastifyInstance) {
 
   fastify.get<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {
     const { bucket, key } = parseBucketKey(request.params["*"]);
-    const isListingAlias = key === "objects" && request.url.includes("?");
+    const query = queryOf(request);
+    const isListingAlias =
+      key === "objects" &&
+      /[?&](list-type|prefix|delimiter|max-keys|continuation-token|start-after|key-marker|marker|encoding-type|fetch-owner|versions)=/i.test(
+        query,
+      );
 
     if (!key || isListingAlias) {
       // Bucket listing: GET /storage/buckets/:bucket?list-type=2
       // Also accept /storage/buckets/:bucket/objects?... used by the web client.
-      return forward(request, reply, `/${bucket}${queryOf(request)}`, "GET");
+      return forward(request, reply, `/${bucket}${query}`, "GET");
     }
-    return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "GET");
+    return forward(request, reply, `/${bucket}/${key}${query}`, "GET");
   });
 }
