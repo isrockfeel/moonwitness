@@ -4,6 +4,7 @@
 
 @import "@moonwitness/ui/theme.css";
 @import "@moonwitness/ui/base.css";
+@import "../styles/motion.css";
 
 /* ---- ID Lab ---- */
 @keyframes avatar-pop {

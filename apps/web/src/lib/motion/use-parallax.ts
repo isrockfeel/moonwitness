@@ -1,44 +1,47 @@
 import { useEffect, useRef } from "react";
 
-/**
- * Parallax effect using CSS transform based on scroll position.
- * Returns a ref that will be the parallax container.
- */
+/** Apply displacement to a decorative child, measuring its untransformed parent. */
 export function useParallax(depth = 0.3): React.RefObject<HTMLDivElement | null> {
   const ref = useRef<HTMLDivElement | null>(null);
-
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
-
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) return;
-
-    let ticking = false;
+    const parent = el?.parentElement;
+    if (!el || !parent) return;
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let frame: number | null = null;
+    const cancel = () => {
+      if (frame !== null) cancelAnimationFrame(frame);
+      frame = null;
+    };
     const update = () => {
-      const rect = el.getBoundingClientRect();
-      const scrollPercent =
-        (rect.top + rect.height / 2 - window.innerHeight / 2) / window.innerHeight;
-      const offset = scrollPercent * window.innerHeight * depth;
-      el.style.transform = `translateY(${offset}px)`;
-      ticking = false;
-    };
-
-    const onScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(update);
-        ticking = true;
+      frame = null;
+      if (media.matches) {
+        el.style.transform = "";
+        return;
       }
+      const rect = parent.getBoundingClientRect();
+      const displacement = (rect.top + rect.height / 2 - window.innerHeight / 2) * depth;
+      const offset = Math.max(-80, Math.min(80, displacement));
+      el.style.transform = `translateY(${offset}px)`;
     };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
+    const schedule = () => {
+      if (frame === null) frame = requestAnimationFrame(update);
+    };
+    const onPreference = () => {
+      cancel();
+      update();
+    };
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    media.addEventListener("change", onPreference);
     update();
-
     return () => {
-      window.removeEventListener("scroll", onScroll);
+      cancel();
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      media.removeEventListener("change", onPreference);
       el.style.transform = "";
     };
   }, [depth]);
-
   return ref;
 }

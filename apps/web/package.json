@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test:brush-lifecycle": "node --experimental-vm-modules node_modules/@playwright/test/cli.js test --config brush-lifecycle.config.ts",
     "clean": "rm -rf .next .turbo node_modules"
   },
   "dependencies": {
@@ -19,6 +20,7 @@
     "@moonwitness/ui": "workspace:*",
     "@tanstack/react-query": "^5.60.0",
     "@tanstack/react-query-devtools": "^5.60.0",
+    "gsap": "^3.15.1",
     "next": "^15.5.6",
     "p5": "2.3.4",
     "p5.brush": "3.0.0",
@@ -35,7 +37,6 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "eslint": "^10.14.0",
-    "gsap": "^3.15.1",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3"
   }

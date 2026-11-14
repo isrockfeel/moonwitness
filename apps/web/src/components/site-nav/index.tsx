@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Crown, SearchIcon, GlobeIcon } from "@moonwitness/ui/icons";
 import { links } from "./links";
 import { MobileMenu } from "./mobile-menu";
@@ -12,8 +12,14 @@ export function SiteNav() {
   const router = useRouter();
   const [active, setActive] = useState("home");
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuToggleRef = useRef<HTMLButtonElement>(null);
+  const searchTriggerRef = useRef<HTMLButtonElement>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const dismissSearch = useCallback(() => {
+    setSearchOpen(false);
+    requestAnimationFrame(() => searchTriggerRef.current?.focus());
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -39,7 +45,16 @@ export function SiteNav() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 border-b-2 border-[var(--line)] bg-[rgba(11,11,16,0.88)] backdrop-blur-md">
+      <header
+        className="fixed inset-x-0 top-0 z-50 border-b-2 border-[var(--line)] bg-[rgba(11,11,16,0.88)] backdrop-blur-md"
+        onKeyDown={(event) => {
+          if (menuOpen && event.key === "Escape") {
+            event.preventDefault();
+            setMenuOpen(false);
+            menuToggleRef.current?.focus();
+          }
+        }}
+      >
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6">
           <Link
             href="/"
@@ -73,6 +88,7 @@ export function SiteNav() {
           <div className="ml-auto flex items-center gap-2">
             <button
               onClick={() => setSearchOpen(true)}
+              ref={searchTriggerRef}
               aria-label="Search the archive"
               className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md p-2 text-zinc-300 transition-colors hover:bg-[var(--panel-2)] hover:text-white"
             >
@@ -94,6 +110,7 @@ export function SiteNav() {
             <button
               className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md p-2 text-zinc-200 lg:hidden"
               onClick={() => setMenuOpen((v) => !v)}
+              ref={menuToggleRef}
               aria-label="Toggle menu"
               aria-expanded={menuOpen}
             >
@@ -130,7 +147,7 @@ export function SiteNav() {
           query={query}
           onQueryChange={setQuery}
           onSubmit={submitSearch}
-          onClose={() => setSearchOpen(false)}
+          onClose={dismissSearch}
         />
       )}
     </>

@@ -60,13 +60,17 @@ export function SearchDialog({ query, onQueryChange, onSubmit, onClose }: Search
         aria-modal="true"
         aria-label="Search the archive"
       >
-        <label htmlFor="nav-search" className="font-brush text-lg text-[var(--yellow)]">
-          SEARCH THE SIGNALS
-        </label>
+        <div className="flex items-start justify-between gap-4">
+          <label htmlFor="nav-search" className="font-brush text-lg text-[var(--yellow)]">
+            SEARCH THE SIGNALS
+          </label>
+          <button type="button" onClick={onClose} className="btn-zine min-h-11 px-3 text-sm">
+            Close search
+          </button>
+        </div>
         <div className="mt-3 flex gap-2">
           <ZineInput
             id="nav-search"
-            autoFocus
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder="stories, signals, people, places…"
