@@ -32,3 +32,11 @@ PNG sumber ada di `raw/` dan `apps/web/public/art/`, varian avif/webp dihasilkan
 | `mirror-archive` | arsip kaset + cermin kota neon            | The Other Side, Allahi Promise                |
 | `crew-wall`      | kolase polaroid potret kru                | Zill, koleksi Crew Portraits                  |
 | `crowd-moon`     | kerumunan tangan terangkat di bawah bulan | Join the Crew, New Worlds, koleksi Expansions |
+
+## Mockup comic (generate 2026-11-14)
+
+Mockup terpilih dan eksplorasi visual dashboard/landing disimpan terpisah dari
+artwork produksi di [`mockups/README.md`](./mockups/README.md). Nama dan folder
+mengelompokkan gambar berdasarkan halaman dan arah visual. Semua PNG di sana
+hanya referensi konsep; jangan gunakan sebagai artwork produksi atau background
+halaman secara langsung.
