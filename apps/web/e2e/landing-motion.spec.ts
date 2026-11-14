@@ -146,7 +146,7 @@ test("mobile landing preview opens the query-resolved event detail", async ({ pa
 test("live reduction reveals offscreen content and atmosphere responds to resizing", async ({
   page,
 }) => {
-  // The page can mount two p5 sketches after the viewport crosses the desktop breakpoint.
+  // Both hero p5 sketches can take over 20s to remount in a loaded headless CI browser.
   test.setTimeout(60_000);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -160,13 +160,13 @@ test("live reduction reveals offscreen content and atmosphere responds to resizi
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.setViewportSize({ width: 1024, height: 844 });
   await expect
-    .poll(() => page.locator("#home canvas").count(), { timeout: 20000 })
+    .poll(() => page.locator("#home canvas").count(), { timeout: 30_000 })
     .toBeGreaterThan(0);
   await page.setViewportSize({ width: 430, height: 844 });
   await expect(page.locator("#home canvas")).toHaveCount(0);
   await page.setViewportSize({ width: 1024, height: 844 });
   await expect
-    .poll(() => page.locator("#home canvas").count(), { timeout: 20000 })
+    .poll(() => page.locator("#home canvas").count(), { timeout: 30_000 })
     .toBeGreaterThan(0);
 });
 
