@@ -118,6 +118,52 @@ describe("storage proxy", () => {
     expect(String(fetch.mock.calls[0]?.[0])).toBe("http://127.0.0.1:8091/media?delete=");
   });
 
+  it("forwards bucket-level PUT to the bucket root with query", async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValue(
+        new Response("", { status: 200, headers: { "content-type": "application/xml" } }),
+      );
+    vi.stubGlobal("fetch", fetch);
+    app = Fastify({ logger: false });
+    await app.register(FastifyCors);
+    await app.register(storageRoutes);
+    await app.ready();
+
+    const res = await app.inject({
+      method: "PUT",
+      url: "/storage/buckets/media?acl=",
+      headers: { "content-type": "application/octet-stream" },
+      payload: "<ACL/>",
+    });
+    expect(res.statusCode).toBe(200);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(String(fetch.mock.calls[0]?.[0])).toBe("http://127.0.0.1:8091/media?acl=");
+  });
+
+  it("forwards bucket-level DELETE to the bucket root with query", async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValue(
+        new Response("", { status: 200, headers: { "content-type": "application/xml" } }),
+      );
+    vi.stubGlobal("fetch", fetch);
+    app = Fastify({ logger: false });
+    await app.register(FastifyCors);
+    await app.register(storageRoutes);
+    await app.ready();
+
+    const res = await app.inject({
+      method: "DELETE",
+      url: "/storage/buckets/media?x-delete-orphaned-versions=",
+    });
+    expect(res.statusCode).toBe(200);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(String(fetch.mock.calls[0]?.[0])).toBe(
+      "http://127.0.0.1:8091/media?x-delete-orphaned-versions=",
+    );
+  });
+
   it("forwards binary object bodies without text re-encoding", async () => {
     const bytes = Uint8Array.from([0, 1, 2, 127, 128, 129, 254, 255]);
     const fetch = vi.fn().mockResolvedValue(

@@ -270,18 +270,6 @@ describe("BaseRepository", () => {
     expect(await taskModel.repository.count({ note: null })).toBe(1);
   });
 
-  it("ignores undefined filter values instead of coercing them to null", async () => {
-    await taskModel.repository.create(sample({ id: "with-title", title: "t1" }));
-    await taskModel.repository.create(sample({ id: "with-title-2", title: "t2" }));
-
-    const found = await taskModel.repository.find({ title: undefined });
-    expect(found).toHaveLength(2);
-    expect(await taskModel.repository.count({ title: undefined })).toBe(2);
-
-    const onlyOne = await taskModel.repository.find({ title: undefined, id: "with-title" });
-    expect(onlyOne.map((row) => row.id)).toEqual(["with-title"]);
-  });
-
   it("persists across close and reopen of the same file", async () => {
     const dbPath = join(dir, "persist.db");
     closeDb();

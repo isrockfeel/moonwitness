@@ -1,0 +1,34 @@
+name = "moonwitness-radio"
+compatibility_date = "2024-12-01"
+main = "worker/index.ts"
+
+[build]
+command = "pnpm run build"
+
+[env]
+NODE_ENV = "production"
+
+[[durable_objects.bindings]]
+name = "RADIO_ROOM"
+class_name = "RadioRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RadioRoom"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "moonwitness-radio"
+database_id = "5114fe98-4a90-4444-86ea-677dd8ff320d"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "997db1a68d914df6a3a2531ca4c7b314"
+
+[observability]
+enabled = true
+
+[assets]
+directory = "dist"
+binding = "RADIO_ASSETS"
+not_found_handling = "single-page-application"
