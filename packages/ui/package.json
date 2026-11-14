@@ -13,6 +13,7 @@
   "scripts": {
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "clean": "rm -rf .turbo node_modules"
   },
   "dependencies": {
@@ -27,7 +28,8 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "eslint": "^10.14.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   },
   "peerDependencies": {
     "react": "^19.0.0",

@@ -246,6 +246,26 @@ body {
     transform: translateY(-3px) rotate(0.4deg);
   }
 
+  .comic-panel {
+    position: relative;
+    overflow: hidden;
+    border: 2px solid currentColor;
+    box-shadow: 4px 4px 0 var(--ink);
+    isolation: isolate;
+  }
+  .comic-panel-ink {
+    background: var(--panel);
+    color: var(--paper);
+  }
+  .comic-panel-paper {
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .comic-panel-pink {
+    background: var(--pink);
+    color: var(--ink);
+  }
+
   /* ---- riot grunge effects ---- */
   .cmyk-slip {
     position: relative;

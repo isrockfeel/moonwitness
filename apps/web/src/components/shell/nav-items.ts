@@ -27,7 +27,7 @@ export function navHref(item: NavItem): string {
 const ACTIVE_BY_PATH: Record<string, string> = {
   "/dock": "archive",
   "/mission-control": "dashboard",
-  "/shadow": "settings",
+  "/shadow": "sign-in",
   "/id-lab": "id-lab",
 };
 
@@ -97,9 +97,9 @@ export const navItems: NavItem[] = [
     target: { kind: "route", href: "/dock" },
   },
   {
-    id: "settings",
-    label: "Settings",
-    icon: "M12 8 A4 4 0 1 0 12 16 A4 4 0 1 0 12 8 M12 2 L12 5 M12 19 L12 22 M2 12 L5 12 M19 12 L22 12 M5 5 L7 7 M17 17 L19 19 M19 5 L17 7 M7 17 L5 19",
+    id: "sign-in",
+    label: "Sign in",
+    icon: "M14 4 L20 4 L20 20 L14 20 M10 16 L14 12 L10 8 M14 12 L4 12",
     target: { kind: "route", href: "/shadow" },
   },
 ];

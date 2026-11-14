@@ -45,6 +45,7 @@ yarn-error.log*
 .vercel
 # local tool state
 .codeartsdoer/
+.archives/
 
 # verification artifacts (screenshot pembanding antar fase)
 .verify/

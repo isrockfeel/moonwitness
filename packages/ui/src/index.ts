@@ -8,6 +8,11 @@ export { ZineCard, ZineCardRough } from "./primitives/zine-card";
 export { ZineBadge, type ZineBadgeProps } from "./primitives/zine-badge";
 export { ZineInput } from "./primitives/zine-input";
 export { ZineImage, type ZineImageProps } from "./primitives/zine-image";
+export {
+  ComicPanel,
+  type ComicPanelProps,
+  type ComicPanelTone,
+} from "./primitives/comic-panel";
 export { Marquee, type MarqueeProps } from "./primitives/marquee";
 export { Halftone, Grain, type HalftoneProps } from "./primitives/texture";
 export { SkipLink, type SkipLinkProps } from "./primitives/skip-link";
@@ -46,6 +51,14 @@ export {
 export { EraBand, type EraBandProps, type EraItem } from "./composites/era-band";
 export { CountUp } from "./composites/count-up";
 export { TransmissionCard, type TransmissionCardProps } from "./composites/transmission-card";
+export {
+  OperationsState,
+  ServiceStatus,
+  type OperationsStateKind,
+  type OperationsStateProps,
+  type ServiceAvailability,
+  type ServiceStatusProps,
+} from "./composites/operations-state";
 export {
   CrewConstellation,
   type CrewConstellationProps,
