@@ -48,3 +48,20 @@ These are owner decisions, not oversights:
    emergency change still goes through a PR.
 3. **`pnpm audit` is a point-in-time check** and depends on the registry being reachable. When the
    registry is unreachable the gate reports `BLOCKED`, not `PASS`.
+
+## Rust services
+
+The `services/` directory contains standalone Rust services (storage/S3, syslog, snmp-poller,
+radius) that run independently of the Node API. They are proxied by `apps/api` and are not
+exposed directly to browsers.
+
+- **Storage (S3)**: Supports SigV4 header and presigned-URL authentication. Anonymous access is
+  dev-only (`ANONYMOUS=1`); production requires credentials. Path traversal is blocked by
+  canonicalising keys against `STORAGE_ROOT`.
+- **Syslog**: Listens on unprivileged ports (5140/5514) by default. Messages are stored in SQLite
+  with configurable retention. No authentication on the ingest listeners — restrict network access
+  at the infrastructure layer.
+- **SNMP poller**: Polls devices over SNMP (v1/v2c). Community strings are stored in plaintext in
+  SQLite — use SNMPv3 with auth+priv in production or restrict database access.
+- **RADIUS**: Authentication and accounting proxy. Shared secrets are stored in SQLite; restrict
+  database access and use TLS for HTTP endpoints in production.
