@@ -23,7 +23,7 @@ interface UseP5Options {
 
 /**
  * Lifecycle p5 instance-mode yang aman untuk Next App Router + StrictMode:
- * dynamic import client-only, mount sekali per effect, cleanup .remove(),
+ * dynamic import client-only, mount lazily at desktop/near-viewport, cleanup .remove(),
  * pause saat off-screen / tab hidden, resize mengikuti container.
  */
 export function useP5(
@@ -38,6 +38,8 @@ export function useP5(
 
     const desktop = window.matchMedia("(min-width: 768px)");
     let dispose: (() => void) | undefined;
+    let isVisible = typeof IntersectionObserver === "undefined";
+    let visibilityObserver: IntersectionObserver | undefined;
 
     const mount = () => {
       if (!desktop.matches || dispose) return;
@@ -122,7 +124,7 @@ export function useP5(
 
     const syncViewport = () => {
       if (desktop.matches) {
-        mount();
+        if (isVisible) mount();
         return;
       }
       const unmount = dispose;
@@ -130,10 +132,25 @@ export function useP5(
       unmount?.();
     };
 
+    // Avoid starting every below-the-fold p5 sketch at once on desktop.
+    if (typeof IntersectionObserver !== "undefined") {
+      visibilityObserver = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0];
+          if (!entry) return;
+          isVisible = entry.isIntersecting;
+          if (isVisible) syncViewport();
+        },
+        { rootMargin: "120px" },
+      );
+      visibilityObserver.observe(el);
+    }
+
     desktop.addEventListener("change", syncViewport);
     syncViewport();
     return () => {
       desktop.removeEventListener("change", syncViewport);
+      visibilityObserver?.disconnect();
       const unmount = dispose;
       dispose = undefined;
       unmount?.();
