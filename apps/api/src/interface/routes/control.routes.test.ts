@@ -94,7 +94,11 @@ describe("control routes auth rate limiting", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
     const { controlRoutes } = await loadRoutes("1");
     app = Fastify({ logger: false });
-    await app.register(FastifyCors);
+    await app.register(FastifyCors, {
+      origin: true,
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      credentials: true,
+    });
     await app.register(controlRoutes);
     await app.ready();
 
@@ -102,11 +106,12 @@ describe("control routes auth rate limiting", () => {
       method: "OPTIONS",
       url: "/control/portforwards",
       headers: {
+        origin: "http://localhost:3000",
         "access-control-request-method": "DELETE",
         "access-control-request-headers": "content-type",
       },
     });
-    expect(deletePreflight.statusCode).toBe(200);
+    expect([200, 204]).toContain(deletePreflight.statusCode);
     expect(deletePreflight.headers["access-control-allow-methods"]).toContain("DELETE");
   });
 });

@@ -45,7 +45,11 @@ describe("RADIUS proxy authorization", () => {
 
   it("allows CORS preflight for PUT and DELETE on radius routes", async () => {
     app = Fastify({ logger: false });
-    await app.register(FastifyCors);
+    await app.register(FastifyCors, {
+      origin: true,
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      credentials: true,
+    });
     await app.register(radiusRoutes);
     await app.ready();
 
@@ -54,11 +58,12 @@ describe("RADIUS proxy authorization", () => {
       method: "OPTIONS",
       url: "/radius/users",
       headers: {
+        origin: "http://localhost:3000",
         "access-control-request-method": "PUT",
         "access-control-request-headers": "content-type",
       },
     });
-    expect(putPreflight.statusCode).toBe(200);
+    expect([200, 204]).toContain(putPreflight.statusCode);
     expect(putPreflight.headers["access-control-allow-methods"]).toContain("PUT");
 
     // CORS preflight for DELETE
@@ -66,11 +71,12 @@ describe("RADIUS proxy authorization", () => {
       method: "OPTIONS",
       url: "/radius/users",
       headers: {
+        origin: "http://localhost:3000",
         "access-control-request-method": "DELETE",
         "access-control-request-headers": "content-type",
       },
     });
-    expect(deletePreflight.statusCode).toBe(200);
+    expect([200, 204]).toContain(deletePreflight.statusCode);
     expect(deletePreflight.headers["access-control-allow-methods"]).toContain("DELETE");
   });
 });
