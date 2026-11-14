@@ -25,10 +25,6 @@ const NEW_RESOURCE_KINDS = new Set([
   "kubernetes",
 ]);
 
-function isNewResourceKind(path: string): boolean {
-  return NEW_RESOURCE_KINDS.has(path);
-}
-
 // Hanya endpoint arsy yang dikenal yang boleh diproxy. Ini mencegah web
 // menjadi open proxy ke apa pun yang kebetulan listen di ARSY_URL.
 const READ_PATHS = new Set([

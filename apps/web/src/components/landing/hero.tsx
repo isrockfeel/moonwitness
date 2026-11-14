@@ -29,13 +29,7 @@ export function Hero() {
         media="(max-width: 767px)"
       />
       <div className="hero-city" aria-hidden="true">
-        <Image
-          data-hero-layer="city"
-          src={artSrc("crowd-moon")}
-          fill
-          alt=""
-          sizes="100vw"
-        />
+        <Image data-hero-layer="city" src={artSrc("crowd-moon")} fill alt="" sizes="100vw" />
       </div>
       <div className="hero-shade" />
       <Grain />

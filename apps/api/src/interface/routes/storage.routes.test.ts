@@ -14,7 +14,7 @@ describe("storage proxy", () => {
 
   it("forwards reads to the upstream storage service", async () => {
     const fetch = vi.fn().mockResolvedValue(
-      new Response("<?xml version=\"1.0\"?><ListAllMyBucketsResult/>", {
+      new Response('<?xml version="1.0"?><ListAllMyBucketsResult/>', {
         status: 200,
         headers: { "content-type": "application/xml" },
       }),
@@ -31,9 +31,11 @@ describe("storage proxy", () => {
   });
 
   it("forwards object PUT to the upstream service", async () => {
-    const fetch = vi.fn().mockResolvedValue(
-      new Response("", { status: 200, headers: { "content-type": "application/xml" } }),
-    );
+    const fetch = vi
+      .fn()
+      .mockResolvedValue(
+        new Response("", { status: 200, headers: { "content-type": "application/xml" } }),
+      );
     vi.stubGlobal("fetch", fetch);
     app = Fastify({ logger: false });
     await app.register(FastifyCors);

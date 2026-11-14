@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import Fastify, { type FastifyInstance } from "fastify";
+import FastifyCors from "@fastify/cors";
 
 async function loadRoutes(max: string) {
   vi.resetModules();

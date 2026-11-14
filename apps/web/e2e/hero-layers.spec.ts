@@ -54,10 +54,7 @@ test("hero images use Next img descriptors and one responsive LCP preload", asyn
   };
   for (const [role, source] of Object.entries(sources)) {
     const image = root.locator(`[data-hero-layer='${role}']`);
-    await expect(image).toHaveAttribute(
-      "src",
-      new RegExp(`/_next/image\\?url=%2Fart%2F${source}`),
-    );
+    await expect(image).toHaveAttribute("src", new RegExp(`/_next/image\\?url=%2Fart%2F${source}`));
     await expect(image).toHaveAttribute("srcset", new RegExp(source));
     await expect(image).toHaveAttribute("sizes", /.+/);
   }
