@@ -54,6 +54,24 @@ describe("storage proxy", () => {
     );
   });
 
+  it("fetches an object literally named objects instead of treating it as listing", async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValue(
+        new Response("payload", { status: 200, headers: { "content-type": "text/plain" } }),
+      );
+    vi.stubGlobal("fetch", fetch);
+    app = Fastify({ logger: false });
+    await app.register(FastifyCors);
+    await app.register(storageRoutes);
+    await app.ready();
+
+    const read = await app.inject({ method: "GET", url: "/storage/buckets/media/objects" });
+    expect(read.statusCode).toBe(200);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(String(fetch.mock.calls[0]?.[0])).toBe("http://127.0.0.1:8091/media/objects");
+  });
+
   it("forwards object PUT to the upstream service", async () => {
     const fetch = vi
       .fn()

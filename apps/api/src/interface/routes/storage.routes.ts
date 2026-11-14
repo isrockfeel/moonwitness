@@ -124,7 +124,9 @@ export async function storageRoutes(fastify: FastifyInstance) {
 
   fastify.get<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {
     const { bucket, key } = parseBucketKey(request.params["*"]);
-    if (!key || key === "objects") {
+    const isListingAlias = key === "objects" && request.url.includes("?");
+
+    if (!key || isListingAlias) {
       // Bucket listing: GET /storage/buckets/:bucket?list-type=2
       // Also accept /storage/buckets/:bucket/objects?... used by the web client.
       return forward(request, reply, `/${bucket}${queryOf(request)}`, "GET");
