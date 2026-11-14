@@ -1,47 +1,86 @@
-import { mkdirSync, existsSync } from "node:fs";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
+import catalogue from "../src/catalogue.json" with { type: "json" };
+import { ART_SOURCES, ART_WIDTHS, effectiveWidths } from "../src/optimize.ts";
 
-// Harus tetap sinkron dengan ART_SOURCES di src/optimize.ts — Node tidak bisa
-// mengimpor file .ts dari skrip .mjs.
 const ROOT = path.resolve(import.meta.dirname, "../../..");
-const SOURCES = {
-  "hero-witness": "apps/web/public/art/hero-witness.png",
-  "city-shadow": "apps/web/public/art/city-shadow.png",
-  "crew-rooftop": "apps/web/public/art/crew-rooftop.png",
-  "signal-tunnel": "apps/web/public/art/signal-tunnel.png",
-  "shadow-command": "apps/web/public/art/shadow-command.png",
-  "night-shift": "apps/web/public/art/night-shift.png",
-  "signal-sky": "apps/web/public/art/signal-sky.png",
-  "fog-voices": "apps/web/public/art/fog-voices.png",
-  "mirror-archive": "apps/web/public/art/mirror-archive.png",
-  "crew-wall": "apps/web/public/art/crew-wall.png",
-  "crowd-moon": "apps/web/public/art/crowd-moon.png",
-};
 const OUT_DIR = path.join(ROOT, "apps/web/public/art");
-const WIDTHS = [480, 960, 1440, 1920];
-const QUALITY = 62;
+const heroOnly = process.argv.includes("--hero-only");
+const sources = heroOnly
+  ? Object.values(catalogue.hero).map((layer) => ({
+      ...layer,
+      input: `apps/web/public${layer.source}`,
+    }))
+  : Object.entries(ART_SOURCES).map(([key, input]) => ({
+      key,
+      input,
+      width: catalogue.legacySourceWidths[key],
+    }));
+
+// Preflight every hero master before writing anything; never flatten or replace inputs.
+if (heroOnly) {
+  for (const layer of sources) {
+    const input = path.join(ROOT, layer.input);
+    if (!existsSync(input)) throw new Error(`Missing hero master: ${input}`);
+    const meta = await sharp(input).metadata();
+    if (
+      meta.width !== layer.width ||
+      meta.height !== layer.height ||
+      !!meta.hasAlpha !== layer.alpha
+    ) {
+      throw new Error(`Hero dimension/alpha mismatch: ${layer.key} ${JSON.stringify(meta)}`);
+    }
+    if (layer.alpha) {
+      const { data, info } = await sharp(input)
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      const alphaAt = (x, y) => data[(y * info.width + x) * 4 + 3];
+      if (alphaAt(10, 10) !== 0) throw new Error(`Hero exterior is not transparent: ${layer.key}`);
+      if (layer.key === "hero-character-v2") {
+        for (const [x, y] of [
+          [460, 280],
+          [460, 550],
+          [220, 1080],
+        ]) {
+          const offset = (y * info.width + x) * 4;
+          if (data[offset + 3] !== 255 || data[offset] < 180)
+            throw new Error("Character white interiors must remain opaque");
+        }
+      }
+    }
+  }
+}
 
 let made = 0;
-for (const [key, rel] of Object.entries(SOURCES)) {
-  const input = path.join(ROOT, rel);
+for (const layer of sources) {
+  const input = path.join(ROOT, layer.input);
   if (!existsSync(input)) {
-    console.warn(`[skip] ${key}: sumber tidak ada (${rel})`);
+    console.warn(`[skip] ${layer.key}: source missing (${layer.input})`);
     continue;
   }
-  mkdirSync(OUT_DIR, { recursive: true });
-  for (const w of WIDTHS) {
-    const base = sharp(input).resize({ width: w, withoutEnlargement: true }).rotate();
-    await base
-      .clone()
-      .avif({ quality: QUALITY })
-      .toFile(path.join(OUT_DIR, `${key}-${w}.avif`));
-    await base
-      .clone()
-      .webp({ quality: QUALITY })
-      .toFile(path.join(OUT_DIR, `${key}-${w}.webp`));
-    made += 2;
+  const widths = heroOnly ? effectiveWidths(layer.width) : ART_WIDTHS;
+  for (const width of widths) {
+    const base = sharp(input).rotate().resize({ width, withoutEnlargement: true });
+    for (const format of ["avif", "webp"]) {
+      const output = path.join(OUT_DIR, `${layer.key}-${width}.${format}`);
+      await base.clone()[format]({ quality: 62 }).toFile(output);
+      const decoded = await sharp(output).metadata();
+      const expectedWidth = Math.min(width, layer.width);
+      if (
+        decoded.width !== expectedWidth ||
+        (heroOnly &&
+          (decoded.height !== Math.round((layer.height * width) / layer.width) ||
+            !!decoded.hasAlpha !== layer.alpha))
+      ) {
+        throw new Error(`Invalid decoded derivative: ${output}`);
+      }
+      console.log(
+        `[ok] ${path.basename(output)} ${decoded.width}x${decoded.height} alpha=${!!decoded.hasAlpha}`,
+      );
+      made++;
+    }
   }
-  console.log(`[ok] ${key}: ${WIDTHS.length * 2} file`);
 }
-console.log(`Selesai. ${made} file ditulis ke ${path.relative(ROOT, OUT_DIR)}`);
+console.log(`Done. ${made} files written to ${path.relative(ROOT, OUT_DIR)}`);

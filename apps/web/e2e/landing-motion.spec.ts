@@ -1,20 +1,46 @@
 import { test, expect } from "@playwright/test";
 
-test("entrance keyframes are loaded and live reduction dismisses it", async ({ page }) => {
+test("Signals discloses its fictional storyworld and uses a real archive action", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("**/api/v1/**", (route) => route.fulfill({ json: { data: [], total: 0 } }));
   await page.goto("/");
-  const entrance = page.locator('[aria-hidden="true"]').filter({ hasText: "FREQUENCY LOCKED" });
-  await expect(entrance.locator("h1")).toHaveCSS("animation-name", "reveal-up");
-  expect(
-    await entrance
-      .locator("h1")
-      .evaluate((el) =>
-        el
-          .getAnimations()
-          .some((a) => a.effect instanceof KeyframeEffect && a.effect.getKeyframes().length),
-      ),
-  ).toBe(true);
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(entrance).toBeHidden();
+  const signals = page.locator("#signals");
+  await expect(signals.getByText("FICTIONAL STORIES", { exact: false })).toBeVisible();
+  const storyLink = signals.getByRole("link", { name: "READ SIGNAL STORY" });
+  await expect(storyLink).toHaveAttribute("href", "/dock");
+  expect((await storyLink.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await expect(signals.getByRole("button", { name: /transmission/i })).toHaveCount(0);
+  for (const claim of ["LIVE_STREAM 24/7", "REAL PEOPLE", "Firsthand accounts", "LVL 4 CLEARANCE"])
+    await expect(signals.getByText(claim, { exact: false })).toHaveCount(0);
+  await storyLink.click();
+  await expect(page).toHaveURL(/\/dock$/);
+});
+
+test("entrance is a brief local ink stamp, not a fullscreen gate", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("FREQUENCY LOCKED", { exact: false })).toHaveCount(0);
+  const stamp = page.locator("[data-entrance-stamp]");
+  await expect(stamp).toHaveCount(1);
+  await expect(stamp).toHaveAttribute("aria-hidden", "true");
+  await expect(stamp).toHaveCSS("pointer-events", "none");
+  await expect(stamp.locator("canvas, h1, h2")).toHaveCount(0);
+  const box = await stamp.boundingBox();
+  const vp = page.viewportSize()!;
+  expect(box!.width * box!.height).toBeLessThan(vp.width * vp.height * 0.25);
+  const ms = await stamp.evaluate((el) =>
+    el.getAnimations().reduce((m, a) => {
+      const t = a.effect?.getComputedTiming();
+      return Math.max(m, Number(t?.delay ?? 0) + Number(t?.duration ?? 0));
+    }, 0),
+  );
+  expect(ms).toBeLessThanOrEqual(250);
+  await page
+    .getByRole("link", { name: /moonwitness/i })
+    .first()
+    .focus();
+  await expect(page.getByRole("link", { name: /moonwitness/i }).first()).toBeFocused();
 });
 
 for (const width of [320, 390, 430]) {
@@ -42,15 +68,6 @@ for (const width of [320, 390, 430]) {
     await expect(page.locator("#shadow h2")).toHaveCSS("opacity", "1");
   });
 }
-
-test("entrance title fits narrow mobile and never blocks input", async ({ page }) => {
-  await page.setViewportSize({ width: 320, height: 844 });
-  await page.goto("/");
-  const entrance = page.locator('[aria-hidden="true"]').filter({ hasText: "FREQUENCY LOCKED" });
-  await expect(entrance).toHaveCSS("pointer-events", "none");
-  const box = await entrance.locator("h1").boundingBox();
-  expect(box!.width).toBeLessThanOrEqual(320);
-});
 
 test("timeline preview exposes actual encoded event and empty/error retry states", async ({
   page,
@@ -145,6 +162,8 @@ test("mobile landing preview opens the query-resolved event detail", async ({ pa
 test("live reduction reveals offscreen content and atmosphere responds to resizing", async ({
   page,
 }) => {
+  // Dev-server compile plus two p5 mounts exceeds the default 30s budget.
+  test.setTimeout(60000);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await expect(page.locator("#home canvas")).toHaveCount(0);
@@ -211,3 +230,159 @@ test("decorative parallax resets live and survives navigation unmount", async ({
   await page.goBack();
   await expect(page.locator("#home [data-hero-parallax]")).toHaveCSS("transform", "none");
 });
+
+test("transmission is a static, honest fiction panel with an immediate CTA", async ({ page }) => {
+  await page.goto("/");
+  const section = page.locator("#transmission");
+  await section.scrollIntoViewIfNeeded();
+  await expect(section).toHaveCSS("opacity", "1");
+  for (const claim of [
+    "LIVE",
+    "CLASSIFIED",
+    "Witness #MW-0447",
+    "independent recordings confirm",
+    "Three witnesses independently reported",
+  ])
+    await expect(section.getByText(claim, { exact: false })).toHaveCount(0);
+  await expect(section.getByText(/fiction/i).first()).toBeVisible();
+  const cta = section.getByRole("link", { name: /read the full transmission/i });
+  await expect(cta).toHaveAttribute("href", "/dock");
+  await expect(cta).toHaveCSS("opacity", "1");
+  expect((await cta.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  const strip = section.locator("[data-transmission-strip]");
+  await expect(strip).toHaveAttribute("aria-hidden", "true");
+  const ms = await strip.evaluate((el) =>
+    Math.max(
+      0,
+      ...el.getAnimations().map((a) => Number(a.effect?.getComputedTiming().duration ?? 0)),
+    ),
+  );
+  expect(ms).toBeGreaterThanOrEqual(350);
+  expect(ms).toBeLessThanOrEqual(500);
+  await expect(section.locator("[data-transmission-id]")).toBeVisible();
+});
+
+test("storytelling renders honest alternating art/type units with horizontal settles", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+  const section = page.locator("#storytelling");
+  await section.scrollIntoViewIfNeeded();
+  await expect(section.getByText("&lsquo;", { exact: false })).toHaveCount(0);
+  await expect(section.getByText("‘signals from the other side’", { exact: false })).toBeVisible();
+  for (const claim of ["REAL PEOPLE", "published", "First transmission"])
+    await expect(section.getByText(claim, { exact: false })).toHaveCount(0);
+  await expect(section.getByRole("button")).toHaveCount(0);
+  await expect(section.getByText(/read more/i)).toHaveCount(0);
+  const units = section.locator("[data-story-unit]");
+  await expect(units).toHaveCount(4);
+  for (const unit of await units.all()) await expect(unit.locator("img")).toHaveCount(1);
+  const dirs = await units.evaluateAll((els) =>
+    els.map((el) => {
+      const img = el.querySelector("img")!.getBoundingClientRect();
+      const h = el.querySelector("h3")!.getBoundingClientRect();
+      return img.left < h.left ? "art-left" : "art-right";
+    }),
+  );
+  expect(dirs).toEqual(["art-left", "art-right", "art-left", "art-right"]);
+  const timing = await units.evaluateAll((els) =>
+    els.map((el) => {
+      const s = getComputedStyle(el);
+      return { d: parseFloat(s.transitionDuration), delay: parseFloat(s.transitionDelay) };
+    }),
+  );
+  for (const t of timing) {
+    expect(t.d).toBeGreaterThanOrEqual(0.45);
+    expect(t.d).toBeLessThanOrEqual(0.65);
+  }
+  const step = timing[1]!.delay - timing[0]!.delay;
+  expect(step).toBeGreaterThanOrEqual(0.08);
+  expect(step).toBeLessThanOrEqual(0.12);
+  for (const card of await section.locator(".zine-card-rough").all())
+    await expect(card).toHaveCSS("opacity", "1");
+});
+
+test("shadow runs a decorative red light wipe while preview and CTA stay usable", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const cta = page.getByRole("link", { name: /enter the shadow/i });
+  await expect(cta).toHaveCSS("opacity", "1");
+  await page.locator("#shadow").scrollIntoViewIfNeeded();
+  const wipe = page.locator("#shadow [data-shadow-wipe]");
+  await expect(wipe).toHaveCount(1);
+  await expect(wipe).toHaveAttribute("aria-hidden", "true");
+  await expect(wipe).toHaveCSS("pointer-events", "none");
+  await expect(wipe).toHaveCSS("animation-name", "light-wipe");
+  const duration = await wipe.evaluate((el) => parseFloat(getComputedStyle(el).animationDuration));
+  expect(duration).toBeGreaterThanOrEqual(0.5);
+  expect(duration).toBeLessThanOrEqual(0.7);
+  await expect(page.locator("#shadow h2")).toHaveCSS("opacity", "1");
+});
+
+test("join layers paper, type and ink with overlapping settles and an unmasked CTA", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator("#about")).toHaveCount(1);
+  const about = page.locator("#about");
+  await about.scrollIntoViewIfNeeded();
+  const layers = about.locator("[data-join-layer]");
+  await expect(layers).toHaveCount(3);
+  const timings = await layers.evaluateAll((els) =>
+    els.map((el) => ({
+      name: el.getAttribute("data-join-layer"),
+      d: parseFloat(getComputedStyle(el).transitionDuration),
+      delay: parseFloat(getComputedStyle(el).transitionDelay),
+    })),
+  );
+  expect(timings.map((t) => t.name)).toEqual(["paper", "type", "ink"]);
+  for (const t of timings) {
+    expect(t.d).toBeGreaterThanOrEqual(0.45);
+    expect(t.d).toBeLessThanOrEqual(0.7);
+  }
+  expect(timings[1]!.delay).toBeLessThan(timings[0]!.d);
+  expect(timings[2]!.delay).toBeLessThan(timings[1]!.delay + timings[1]!.d);
+  for (const el of await layers.all()) await expect(el).toHaveCSS("opacity", "1");
+  const cta = about.getByRole("link", { name: /become a moonwitness/i });
+  await expect(cta).toHaveAttribute("href", "/shadow");
+  await expect(cta).toHaveCSS("opacity", "1");
+  expect(await cta.evaluate((el) => el.closest("[data-join-layer]"))).toBeNull();
+});
+
+test("motion toggle pauses continuous effects without recreating the atmosphere canvas", async ({
+  page,
+}) => {
+  test.setTimeout(60000);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+  const toggle = page.getByRole("button", { name: /pause motion/i });
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  expect((await toggle.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  const canvas = page.locator("#home canvas").first();
+  await expect(canvas).toBeAttached({ timeout: 20000 });
+  await canvas.evaluate((el) => ((el as HTMLElement).dataset.qaMark = "1"));
+  await toggle.focus();
+  await page.keyboard.press("Enter");
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".marquee-track").first()).toHaveCSS("animation-play-state", "paused");
+  await expect(page.locator("#home svg.animate-spin")).toHaveCSS("animation-play-state", "paused");
+  await expect(page.locator('#home canvas[data-qa-mark="1"]')).toHaveCount(1);
+  await page.keyboard.press("Space");
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator(".marquee-track").first()).toHaveCSS("animation-play-state", "running");
+  await expect(page.locator('#home canvas[data-qa-mark="1"]')).toHaveCount(1);
+});
+
+for (const width of [320, 390, 430, 768, 1024, 1440]) {
+  test(`landing has no horizontal overflow at ${width}`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+}

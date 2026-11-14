@@ -14,14 +14,14 @@ export function Shadow() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const paraRef = useRef<HTMLParagraphElement | null>(null);
-  const ctaRef = useRef<HTMLDivElement | null>(null);
+  const wipeRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const showReduced = () => {
       if (!media.matches) return;
       observer?.disconnect();
-      [titleRef.current, paraRef.current, ctaRef.current].forEach((el) => {
+      [titleRef.current, paraRef.current].forEach((el) => {
         if (!el) return;
         el.style.transition = "none";
         el.style.opacity = "1";
@@ -43,11 +43,7 @@ export function Shadow() {
           paraRef.current.style.opacity = "1";
           paraRef.current.style.transform = "none";
         }
-        if (ctaRef.current) {
-          ctaRef.current.style.transition = `opacity 0.5s ${ease} 0.4s, transform 0.5s ${ease} 0.4s`;
-          ctaRef.current.style.opacity = "1";
-          ctaRef.current.style.transform = "none";
-        }
+        wipeRef.current?.classList.add("light-wipe");
 
         observer?.disconnect();
       },
@@ -104,6 +100,13 @@ export function Shadow() {
           </span>
           <SprayCan className="ml-auto h-5 w-5 text-[var(--red)] opacity-50 rotate-12" />
         </div>
+
+        <span
+          ref={wipeRef}
+          data-shadow-wipe
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 block h-40 origin-left bg-gradient-to-r from-transparent via-[rgba(255,59,59,0.35)] to-transparent opacity-0 sm:h-56"
+        />
 
         <h2
           ref={titleRef}
@@ -179,11 +182,7 @@ export function Shadow() {
           </div>
         </div>
 
-        <div
-          ref={ctaRef}
-          className="mt-12 flex flex-wrap items-center gap-5 opacity-0"
-          style={{ transform: "translateY(20px)" }}
-        >
+        <div className="mt-12 flex flex-wrap items-center gap-5">
           <Link
             href="/shadow"
             className="btn-zine px-8 py-4 text-xl shadow-[5px_5px_0_rgba(255,59,59,0.5)]"

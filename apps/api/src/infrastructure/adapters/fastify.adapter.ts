@@ -45,7 +45,7 @@ export async function buildFastify(options: BootstrapOptions): Promise<FastifyIn
 
   await fastify.register(FastifyCors, {
     origin: corsOrigin(),
-    methods: ["GET", "POST", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     credentials: true,
   });
 

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { artSrc } from "@/lib/art";
 import { ArrowRight, Crown, SafetyPin, SprayCan } from "@moonwitness/ui/icons";
-import { DistressedSticker, Staple, TactileTape, TransmissionCard } from "@moonwitness/ui";
+import { DistressedSticker, Staple, TactileTape } from "@moonwitness/ui";
 
 export function Signals() {
   return (
@@ -22,20 +22,49 @@ export function Signals() {
           </h2>
         </div>
         <div className="flex items-center gap-3">
-          <DistressedSticker variant="foil" text="LIVE_STREAM 24/7" className="rotate-2" />
+          <DistressedSticker variant="foil" text="FICTIONAL STORIES" className="rotate-2" />
           <Crown className="h-8 w-11 text-[var(--yellow)] rotate-6" />
         </div>
       </div>
 
       {/* Street Flyer Paste-Up Grid: Asymmetric offsets with tactiles */}
       <div className="grid gap-8 md:grid-cols-3">
-        <div className="transform md:-rotate-1 transition-transform hover:rotate-0">
-          <TransmissionCard
-            image="signal-tunnel"
-            title="A SIGNAL FROM BELOW"
-            excerpt="Strange sounds. A deeper current. What are we really hearing?"
+        <article className="zine-card-rough photocopy-grit group relative flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:rotate-[-0.5deg] md:-rotate-1">
+          <Staple className="top-2 left-3 -rotate-12" />
+          <TactileTape
+            variant="yellow"
+            label="STORYWORLD"
+            width={90}
+            className="-top-1 -right-4 rotate-12 text-[9px]"
           />
-        </div>
+          <div className="relative h-48 overflow-hidden bg-black/60">
+            <Image
+              src={artSrc("signal-tunnel")}
+              alt="Illustrated tunnel scene from a fictional Moonwitness story"
+              fill
+              className="duo-img object-cover transition-transform duration-700 group-hover:scale-110"
+              sizes="(max-width: 768px) 100vw, 33vw"
+            />
+            <span className="sticker sticker-pink absolute left-3 top-3 px-3 py-1 font-brush text-xs rotate-[-2deg] shadow-[2px_2px_0_rgba(0,0,0,0.8)]">
+              FICTIONAL SIGNAL
+            </span>
+          </div>
+          <div className="flex flex-1 flex-col p-5 bg-gradient-to-b from-[var(--panel)] to-[#0e0e15]">
+            <h3 className="cmyk-slip font-brush text-2xl leading-tight text-white tracking-wide">
+              A SIGNAL FROM BELOW
+            </h3>
+            <p className="mt-2 flex-1 font-mono text-xs leading-relaxed text-zinc-300">
+              A story from the Moonwitness storyworld. Strange sounds. A deeper current. What are we
+              really hearing?
+            </p>
+            <Link
+              href="/dock"
+              className="btn-zine btn-blue mt-4 min-h-11 px-5 py-2.5 text-sm shadow-[3px_3px_0_#000]"
+            >
+              READ SIGNAL STORY <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </article>
 
         <article className="zine-card-rough photocopy-grit group relative flex flex-col overflow-hidden transition-all duration-300 md:rotate-1 hover:rotate-0 hover:-translate-y-2">
           <Staple className="top-2 left-3 -rotate-12" />
@@ -61,15 +90,15 @@ export function Signals() {
           </div>
           <div className="flex flex-1 flex-col p-5 bg-gradient-to-b from-[var(--panel)] to-[#0c0c14]">
             <h3 className="cmyk-slip font-brush text-2xl leading-tight text-white">
-              REAL PEOPLE. BIGGER HORIZONS.
+              STORIES. BIGGER HORIZONS.
             </h3>
             <p className="mt-2 flex-1 font-mono text-xs leading-relaxed text-zinc-300">
-              Firsthand accounts, visual stories, and unfiltered perspectives from around the world.
+              Fictional story fragments from the Moonwitness storyworld.
             </p>
             <div className="mt-4 flex items-center justify-between border-t border-[var(--line)] pt-3">
               <Link
                 href="/dock"
-                className="btn-zine btn-blue px-5 py-2.5 text-sm shadow-[3px_3px_0_#000]"
+                className="btn-zine btn-blue min-h-11 px-5 py-2.5 text-sm shadow-[3px_3px_0_#000]"
               >
                 EXPLORE STORIES <ArrowRight className="h-4 w-4" />
               </Link>
@@ -104,18 +133,17 @@ export function Signals() {
               NOT EVERYTHING IS VISIBLE.
             </h3>
             <p className="mt-2 flex-1 font-mono text-xs leading-relaxed text-zinc-300">
-              A deeper layer of Moonwitness. Unexplained stories. Hidden connections, and what lives
-              in the in-between.
+              Fictional signals, invented connections, and scenes from the Moonwitness storyworld.
             </p>
             <div className="mt-4 flex items-center justify-between border-t border-[var(--line)] pt-3">
               <Link
                 href="/dock"
-                className="btn-zine btn-yellow px-5 py-2.5 text-sm shadow-[3px_3px_0_#000]"
+                className="btn-zine btn-yellow min-h-11 px-5 py-2.5 text-sm shadow-[3px_3px_0_#000]"
               >
                 ACCESS ARCHIVE <ArrowRight className="h-4 w-4" />
               </Link>
               <span className="font-mono text-[10px] text-[var(--red)] font-bold">
-                LVL 4 CLEARANCE
+                STORYWORLD ARCHIVE
               </span>
             </div>
           </div>

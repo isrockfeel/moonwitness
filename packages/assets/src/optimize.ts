@@ -1,21 +1,24 @@
 import type { ArtKey } from "@moonwitness/types";
 
-export const ART_WIDTHS = [480, 960, 1440, 1920] as const;
+import catalogue from "./catalogue.json" with { type: "json" };
 
-/** Path PNG sumber relatif terhadap root repo. Input pipeline sharp. */
-export const ART_SOURCES: Record<ArtKey, string> = {
-  "hero-witness": "apps/web/public/art/hero-witness.png",
-  "city-shadow": "apps/web/public/art/city-shadow.png",
-  "crew-rooftop": "apps/web/public/art/crew-rooftop.png",
-  "signal-tunnel": "apps/web/public/art/signal-tunnel.png",
-  "shadow-command": "apps/web/public/art/shadow-command.png",
-  "night-shift": "apps/web/public/art/night-shift.png",
-  "signal-sky": "apps/web/public/art/signal-sky.png",
-  "fog-voices": "apps/web/public/art/fog-voices.png",
-  "mirror-archive": "apps/web/public/art/mirror-archive.png",
-  "crew-wall": "apps/web/public/art/crew-wall.png",
-  "crowd-moon": "apps/web/public/art/crowd-moon.png",
-};
+export const ART_WIDTHS: readonly number[] = catalogue.widths;
+export const ART_SOURCES: Record<ArtKey, string> = catalogue.legacy;
+export const ART_SOURCE_WIDTHS: Record<ArtKey, number> = catalogue.legacySourceWidths;
+
+export function effectiveWidths(
+  sourceWidth: number,
+  requested: readonly number[] = ART_WIDTHS,
+): number[] {
+  if (
+    !Number.isInteger(sourceWidth) ||
+    sourceWidth <= 0 ||
+    requested.some((w) => !Number.isInteger(w) || w <= 0)
+  ) {
+    throw new Error("Image widths must be positive integers");
+  }
+  return [...new Set(requested.map((w) => Math.min(w, sourceWidth)))].sort((a, b) => a - b);
+}
 
 export const ART_OUT_DIR = "apps/web/public/art";
 
@@ -30,4 +33,14 @@ export function srcSetFor(
   widths: readonly number[] = ART_WIDTHS,
 ): string {
   return widths.map((w) => `/art/${key}-${w}.${ext} ${w}w`).join(", ");
+}
+
+export function legacySrcSetFor(key: string, ext: "avif" | "webp", sourceWidth: number): string {
+  const candidates = new Map<number, number>();
+  for (const filenameWidth of ART_WIDTHS) {
+    candidates.set(Math.min(filenameWidth, sourceWidth), filenameWidth);
+  }
+  return [...candidates]
+    .map(([width, filenameWidth]) => `/art/${key}-${filenameWidth}.${ext} ${width}w`)
+    .join(", ");
 }
