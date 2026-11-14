@@ -73,7 +73,10 @@ export function Storytelling() {
   const [revealRef, revealed] = useScrollReveal(0.1, "0px 0px -40px 0px");
 
   return (
-    <section id="storytelling" className="relative scroll-mt-20 overflow-x-clip bg-[var(--ink)] py-24">
+    <section
+      id="storytelling"
+      className="relative scroll-mt-20 overflow-x-clip bg-[var(--ink)] py-24"
+    >
       <Halftone tone="pink" className="pointer-events-none absolute inset-0 opacity-20" />
 
       <div ref={revealRef} className="relative mx-auto max-w-7xl px-4 sm:px-6">

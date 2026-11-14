@@ -8,6 +8,7 @@ import { Grain } from "@moonwitness/ui";
 import { AtmosphereField } from "@/components/atmosphere";
 import { useParallax } from "@/lib/motion/use-parallax";
 import { useHeroIntro } from "@/lib/motion/use-hero-intro";
+import { artSrc } from "@/lib/art";
 
 export function Hero() {
   const root = useHeroIntro();
@@ -18,7 +19,7 @@ export function Hero() {
       <link
         rel="preload"
         as="image"
-        href="/_next/image?url=%2Fart%2Fhero-city-v2.png&w=1440&q=75"
+        href="/_next/image?url=%2Fart%2Fcrowd-moon.png&w=1440&q=75"
         media="(min-width: 768px)"
       />
       <link
@@ -30,9 +31,8 @@ export function Hero() {
       <div className="hero-city" aria-hidden="true">
         <Image
           data-hero-layer="city"
-          src={HERO_LAYERS.city.source}
-          width={HERO_LAYERS.city.width}
-          height={HERO_LAYERS.city.height}
+          src={artSrc("crowd-moon")}
+          fill
           alt=""
           sizes="100vw"
         />
@@ -231,7 +231,7 @@ export function Hero() {
           position: absolute;
           width: 48%;
           max-width: 600px;
-          right: 12%;
+          right: 28%;
           top: -70px;
           z-index: 2;
         }

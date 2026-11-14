@@ -13,8 +13,11 @@ const envSchema = {
   RATE_LIMIT_MAX: z.string().default("120"),
   /** Rate-limit window in milliseconds. */
   RATE_LIMIT_WINDOW_MS: z.string().default("60000"),
-  /** Base URL of the S3-compatible storage service. */
+  /** Upstream Rust service base URLs (proxied by this API). */
+  RADIUS_URL: z.string().default("http://127.0.0.1:8090"),
   STORAGE_URL: z.string().default("http://127.0.0.1:8091"),
+  SYSLOG_URL: z.string().default("http://127.0.0.1:8093"),
+  SNMP_POLLER_URL: z.string().default("http://127.0.0.1:8094"),
 };
 
 export const env = parseEnv(envSchema);
