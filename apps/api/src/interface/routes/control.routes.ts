@@ -120,9 +120,11 @@ async function forward(request: FastifyRequest, reply: FastifyReply, subPath: st
 
   // Data control diteruskan dengan cookie sesi pengguna. Token server-side
   // hanya dipakai bila pemanggil tidak membawa sesi (integrasi non-manusia).
+  // Operasi tulis memakai token admin; operasi baca memakai token read-only.
   const headers = upstreamHeaders(request);
   if (!headers.cookie) {
-    const fallback = ARSY_TOKEN_READONLY || ARSY_TOKEN_ADMIN;
+    const isWrite = request.method !== "GET" && request.method !== "HEAD";
+    const fallback = isWrite ? ARSY_TOKEN_ADMIN : ARSY_TOKEN_READONLY || ARSY_TOKEN_ADMIN;
     if (!fallback) {
       return reply.code(401).send({ error: "butuh login" });
     }
