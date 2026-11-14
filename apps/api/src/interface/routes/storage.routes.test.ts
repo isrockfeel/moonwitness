@@ -30,6 +30,30 @@ describe("storage proxy", () => {
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
+  it("forwards bucket object listing to the bucket root with the original query", async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      new Response('<?xml version="1.0"?><ListBucketResult/>', {
+        status: 200,
+        headers: { "content-type": "application/xml" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetch);
+    app = Fastify({ logger: false });
+    await app.register(FastifyCors);
+    await app.register(storageRoutes);
+    await app.ready();
+
+    const read = await app.inject({
+      method: "GET",
+      url: "/storage/buckets/media/objects?list-type=2&prefix=img/",
+    });
+    expect(read.statusCode).toBe(200);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(String(fetch.mock.calls[0]?.[0])).toBe(
+      "http://127.0.0.1:8091/media?list-type=2&prefix=img/",
+    );
+  });
+
   it("forwards object PUT to the upstream service", async () => {
     const fetch = vi
       .fn()

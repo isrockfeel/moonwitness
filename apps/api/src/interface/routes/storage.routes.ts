@@ -124,10 +124,11 @@ export async function storageRoutes(fastify: FastifyInstance) {
 
   fastify.get<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {
     const { bucket, key } = parseBucketKey(request.params["*"]);
-    if (key) {
-      return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "GET");
+    if (!key || key === "objects") {
+      // Bucket listing: GET /storage/buckets/:bucket?list-type=2
+      // Also accept /storage/buckets/:bucket/objects?... used by the web client.
+      return forward(request, reply, `/${bucket}${queryOf(request)}`, "GET");
     }
-    // Bucket listing: GET /storage/buckets/:bucket?list-type=2
-    return forward(request, reply, `/${bucket}${queryOf(request)}`, "GET");
+    return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "GET");
   });
 }
