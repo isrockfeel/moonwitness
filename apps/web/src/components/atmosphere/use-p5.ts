@@ -36,9 +36,6 @@ export function useP5(
     const el = containerRef.current;
     if (!el) return;
 
-    // Skip loading on mobile to reduce main thread blocking
-    if (window.innerWidth < 768) return;
-
     const controller = new AbortController();
     let cancelled = false;
     let instance: p5 | null = null;

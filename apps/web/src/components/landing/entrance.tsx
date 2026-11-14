@@ -5,7 +5,6 @@ import { AtmosphereField } from "@/components/atmosphere";
 
 export function Entrance() {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const titleRef = useRef<HTMLHeadingElement | null>(null);
   const freqRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
@@ -44,15 +43,7 @@ export function Entrance() {
       }, 100);
     }
 
-    // Phase 3: Title reveal
-    const titleEl = titleRef.current;
-    if (titleEl) {
-      schedule(() => {
-        titleEl.style.animation = "reveal-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both";
-      }, 400);
-    }
-
-    // Phase 4: Fade out entire entrance after ~3 seconds
+    // Dismiss the entrance after ~3 seconds
     schedule(() => {
       container.style.transition = "opacity 0.8s ease";
       container.style.opacity = "0";
@@ -92,8 +83,8 @@ export function Entrance() {
 
       {/* Main title */}
       <h1
-        ref={titleRef}
-        className="font-brush text-[clamp(2.5rem,12vw,3.75rem)] font-black text-white sm:text-8xl md:text-9xl drop-shadow-[4px_4px_0_rgba(255,45,120,0.6)] opacity-0"
+        className="reveal-up font-brush text-[clamp(2.5rem,12vw,3.75rem)] font-black text-white sm:text-8xl md:text-9xl drop-shadow-[4px_4px_0_rgba(255,45,120,0.6)] opacity-0"
+        style={{ animationDelay: "400ms" }}
       >
         MOON<span className="text-[var(--pink)]">WITNESS</span>
       </h1>
