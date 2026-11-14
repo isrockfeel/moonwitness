@@ -47,19 +47,24 @@ test("hero images use Next img descriptors and one responsive LCP preload", asyn
   await page.goto("/");
   const root = page.locator("[data-hero-root]");
   await expect(root.locator("img")).toHaveCount(3);
-  for (const role of ["city", "moon", "character"]) {
+  const sources = {
+    city: "crowd-moon.png",
+    moon: "hero-moon-v2.png",
+    character: "hero-character-v2.png",
+  };
+  for (const [role, source] of Object.entries(sources)) {
     const image = root.locator(`[data-hero-layer='${role}']`);
     await expect(image).toHaveAttribute(
       "src",
-      new RegExp(`/_next/image\\?url=%2Fart%2Fhero-${role}-v2\\.png`),
+      new RegExp(`/_next/image\\?url=%2Fart%2F${source}`),
     );
-    await expect(image).toHaveAttribute("srcset", new RegExp(`hero-${role}-v2`));
+    await expect(image).toHaveAttribute("srcset", new RegExp(source));
     await expect(image).toHaveAttribute("sizes", /.+/);
   }
   const preloads = page.locator("head link[rel='preload'][as='image']");
   await expect(preloads).toHaveCount(2);
   await expect(preloads.nth(0)).toHaveAttribute("media", "(min-width: 768px)");
-  await expect(preloads.nth(0)).toHaveAttribute("href", /hero-city-v2/);
+  await expect(preloads.nth(0)).toHaveAttribute("href", /crowd-moon/);
   await expect(preloads.nth(1)).toHaveAttribute("media", "(max-width: 767px)");
   await expect(preloads.nth(1)).toHaveAttribute("href", /hero-character-v2/);
   expect(
@@ -100,9 +105,14 @@ for (const width of [320, 390, 430, 768, 1024, 1440]) {
     const root = page.locator("[data-hero-root]");
     await expect(root).toHaveCount(1);
     await expect(root.locator("img")).toHaveCount(3);
-    for (const role of ["city", "moon", "character"]) {
+    const sources = {
+      city: "crowd-moon.png",
+      moon: "hero-moon-v2.png",
+      character: "hero-character-v2.png",
+    };
+    for (const [role, source] of Object.entries(sources)) {
       const image = root.locator(`[data-hero-layer='${role}']`);
-      await expect(image).toHaveAttribute("src", new RegExp(`hero-${role}-v2`));
+      await expect(image).toHaveAttribute("src", new RegExp(source));
       expect(
         await image.evaluate(
           (el) => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0,

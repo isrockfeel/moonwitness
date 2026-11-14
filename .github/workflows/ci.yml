@@ -94,9 +94,9 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy
+          rustup default stable
 
       - name: Format
         working-directory: services/storage
@@ -108,4 +108,54 @@ jobs:
 
       - name: Test
         working-directory: services/storage
-        run: cargo test --all-targets -- --nocapture
+        run: cargo test
+
+  syslog:
+    name: Verify syslog service (Rust)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Rust
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy
+          rustup default stable
+
+      - name: Format
+        working-directory: services/syslog
+        run: cargo fmt --check
+
+      - name: Clippy
+        working-directory: services/syslog
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Test
+        working-directory: services/syslog
+        run: cargo test
+
+  snmp-poller:
+    name: Verify snmp-poller service (Rust)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Rust
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy
+          rustup default stable
+
+      - name: Format
+        working-directory: services/snmp-poller
+        run: cargo fmt --check
+
+      - name: Clippy
+        working-directory: services/snmp-poller
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Test
+        working-directory: services/snmp-poller
+        run: cargo test

@@ -1,0 +1,28 @@
+[package]
+name = "snmp-poller"
+version = "0.1.0"
+edition = "2021"
+description = "SNMP poller and metrics timeseries service (MRTG-style) for moonwitness"
+license = "MIT"
+repository = "https://github.com/isrockfeel/moonwitness"
+
+[dependencies]
+axum = { version = "0.7", features = ["json"] }
+tokio = { version = "1", features = ["full"] }
+tower = { version = "0.5", features = ["timeout"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sqlx = { version = "0.8", features = ["sqlite", "runtime-tokio-native-tls", "chrono", "uuid"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+dotenvy = "0.15"
+anyhow = "1"
+thiserror = "1"
+# Simple synchronous SNMP client; wrapped in spawn_blocking for async polling.
+snmp = "0.2"
+
+[dev-dependencies]
+tempfile = "3"
