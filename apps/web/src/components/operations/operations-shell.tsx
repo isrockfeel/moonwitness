@@ -6,6 +6,16 @@ import { useState, type ReactNode } from "react";
 
 const navigationGroups = [
   {
+    label: "Overview",
+    items: [
+      {
+        href: "/control",
+        label: "Control",
+        icon: "M4 13 L10 13 L10 19 L4 19 Z M14 5 L20 5 L20 19 L14 19 Z M4 5 L10 5 L10 9 L4 9 Z",
+      },
+    ],
+  },
+  {
     label: "Network",
     items: [
       {

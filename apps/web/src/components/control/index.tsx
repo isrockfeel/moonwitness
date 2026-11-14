@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Sticker, Tape, ZineBadge, ZineCard, ZineCardRough } from "@moonwitness/ui";
 import { Crown, Star4 } from "@moonwitness/ui/icons";
 import { EmpireShell } from "@/components/shell";
+import { OperationsShell } from "@/components/operations/operations-shell";
 import {
   useControlAudit,
   useControlResources,
@@ -331,16 +332,7 @@ function OnboardingPanel({ reachable }: { reachable: boolean }) {
     </ZineCardRough>
   );
 }
-export function ControlCenter() {
-  return (
-    <ControlGate>
-      <ControlDashboard />
-    </ControlGate>
-  );
-}
-
-function ControlDashboard() {
-  const [query, setQuery] = useState("");
+function ControlBody() {
   const status = useControlStatus();
   const logout = useLogout();
 
@@ -352,122 +344,151 @@ function ControlDashboard() {
   }
 
   return (
+    <div className="space-y-6 px-4 py-6 sm:px-8">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-brush text-3xl text-white sm:text-4xl">
+            ARSY <span className="text-[var(--pink)]">CONTROL PLANE</span>
+          </h1>
+          <p className="mt-1 max-w-xl font-hand text-xl text-zinc-400">
+            Observe the server, reconcile declared state, keep the empire honest.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Sticker tone="yellow" className="-rotate-2 px-3 py-1 font-brush text-xs">
+            <Crown className="mr-1 inline h-3 w-5" /> WEB → API → ARSY
+          </Sticker>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="btn-zine btn-paper px-3 py-2 text-[11px]"
+          >
+            KELUAR
+          </button>
+        </div>
+      </header>
+
+      {status.isLoading ? (
+        <div className="flex h-[40vh] items-center justify-center font-brush text-xl text-[var(--pink)]">
+          REACHING THE CONTROL PLANE…
+        </div>
+      ) : status.isError ? (
+        <>
+          <OnboardingPanel reachable={false} />
+          <ZineCardRough className="p-6">
+            <h2 className="font-brush text-2xl text-[var(--red)]">ARSY UNREACHABLE</h2>
+            <p className="mt-2 max-w-2xl text-sm text-zinc-400">
+              {(status.error as Error).message}. Jalankan <code>arsy serve</code> di host, lalu
+              pastikan <code>ARSY_URL</code> dan token read-only diatur pada apps/api.
+            </p>
+            <p className="mt-2 text-xs text-zinc-500">
+              Dashboard hanya membaca; aksi tulis tetap lewat CLI atau{" "}
+              <code>ARSY_PROXY_ADMIN=1</code>.
+            </p>
+          </ZineCardRough>
+        </>
+      ) : (
+        status.data && (
+          <>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+              <HostCard host={status.data.host} metrics={status.data.metrics} />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <Gauge
+                  label="CPU"
+                  pct={status.data.metrics.cpu_pct}
+                  detail={`load ${status.data.metrics.load1.toFixed(2)} / ${status.data.metrics.load5.toFixed(2)} / ${status.data.metrics.load15.toFixed(2)}`}
+                  tone="var(--pink)"
+                />
+                <Gauge
+                  label="MEMORY"
+                  pct={status.data.metrics.mem_pct}
+                  detail={
+                    status.data.metrics.mem_total > 0
+                      ? `${formatBytes(status.data.metrics.mem_used)} / ${formatBytes(status.data.metrics.mem_total)}`
+                      : `${formatBytes(status.data.metrics.mem_used)} · total tidak tersedia`
+                  }
+                  tone="var(--blue)"
+                />
+                <Gauge
+                  label="DISK"
+                  pct={status.data.metrics.disk_pct}
+                  detail={
+                    status.data.metrics.disk_total > 0
+                      ? `${formatBytes(status.data.metrics.disk_used)} / ${formatBytes(status.data.metrics.disk_total)}`
+                      : `${status.data.metrics.disk_path} · total tidak tersedia`
+                  }
+                  tone="var(--yellow)"
+                />
+                <Gauge
+                  label="SWAP"
+                  pct={
+                    status.data.metrics.swap_total > 0
+                      ? (status.data.metrics.swap_used / status.data.metrics.swap_total) * 100
+                      : 0
+                  }
+                  detail={
+                    status.data.metrics.swap_total > 0
+                      ? `${formatBytes(status.data.metrics.swap_used)} / ${formatBytes(status.data.metrics.swap_total)}`
+                      : "no swap"
+                  }
+                  tone="var(--green)"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+              <ResourcePanel kind="systemd" />
+              <ResourcePanel kind="docker" />
+              <ResourcePanel kind="network" />
+              <ResourcePanel kind="ssh" />
+              <ResourcePanel kind="cert" />
+              <ResourcePanel kind="mount" />
+              <ResourcePanel kind="alert" />
+              <ResourcePanel kind="gitdeploy" />
+              <ResourcePanel kind="dockercompose" />
+              <ResourcePanel kind="package" />
+              <ResourcePanel kind="backup" />
+              <ResourcePanel kind="kubernetes" />
+            </div>
+
+            <AuditPanel />
+          </>
+        )
+      )}
+    </div>
+  );
+}
+
+export function ControlCenter() {
+  return (
+    <ControlGate>
+      <ControlDashboard />
+    </ControlGate>
+  );
+}
+
+export function ControlOperations() {
+  return (
+    <ControlGate>
+      <ControlDashboard shell="operations" />
+    </ControlGate>
+  );
+}
+
+function ControlDashboard({ shell = "empire" }: { shell?: "empire" | "operations" }) {
+  const [query, setQuery] = useState("");
+  const body = <ControlBody />;
+
+  if (shell === "operations") {
+    return <OperationsShell title="Control">{body}</OperationsShell>;
+  }
+
+  return (
     <EmpireShell
       breadcrumb="Control Plane"
       search={{ value: query, onChange: setQuery, placeholder: "Filter host state…" }}
     >
-      <div className="space-y-6 px-4 py-6 sm:px-8">
-        <header className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="font-brush text-3xl text-white sm:text-4xl">
-              ARSY <span className="text-[var(--pink)]">CONTROL PLANE</span>
-            </h1>
-            <p className="mt-1 max-w-xl font-hand text-xl text-zinc-400">
-              Observe the server, reconcile declared state, keep the empire honest.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Sticker tone="yellow" className="-rotate-2 px-3 py-1 font-brush text-xs">
-              <Crown className="mr-1 inline h-3 w-5" /> WEB → API → ARSY
-            </Sticker>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="btn-zine btn-paper px-3 py-2 text-[11px]"
-            >
-              KELUAR
-            </button>
-          </div>
-        </header>
-
-        {status.isLoading ? (
-          <div className="flex h-[40vh] items-center justify-center font-brush text-xl text-[var(--pink)]">
-            REACHING THE CONTROL PLANE…
-          </div>
-        ) : status.isError ? (
-          <>
-            <OnboardingPanel reachable={false} />
-            <ZineCardRough className="p-6">
-              <h2 className="font-brush text-2xl text-[var(--red)]">ARSY UNREACHABLE</h2>
-              <p className="mt-2 max-w-2xl text-sm text-zinc-400">
-                {(status.error as Error).message}. Jalankan <code>arsy serve</code> di host, lalu
-                pastikan <code>ARSY_URL</code> dan token read-only diatur pada apps/api.
-              </p>
-              <p className="mt-2 text-xs text-zinc-500">
-                Dashboard hanya membaca; aksi tulis tetap lewat CLI atau{" "}
-                <code>ARSY_PROXY_ADMIN=1</code>.
-              </p>
-            </ZineCardRough>
-          </>
-        ) : (
-          status.data && (
-            <>
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-                <HostCard host={status.data.host} metrics={status.data.metrics} />
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  <Gauge
-                    label="CPU"
-                    pct={status.data.metrics.cpu_pct}
-                    detail={`load ${status.data.metrics.load1.toFixed(2)} / ${status.data.metrics.load5.toFixed(2)} / ${status.data.metrics.load15.toFixed(2)}`}
-                    tone="var(--pink)"
-                  />
-                  <Gauge
-                    label="MEMORY"
-                    pct={status.data.metrics.mem_pct}
-                    detail={
-                      status.data.metrics.mem_total > 0
-                        ? `${formatBytes(status.data.metrics.mem_used)} / ${formatBytes(status.data.metrics.mem_total)}`
-                        : `${formatBytes(status.data.metrics.mem_used)} · total tidak tersedia`
-                    }
-                    tone="var(--blue)"
-                  />
-                  <Gauge
-                    label="DISK"
-                    pct={status.data.metrics.disk_pct}
-                    detail={
-                      status.data.metrics.disk_total > 0
-                        ? `${formatBytes(status.data.metrics.disk_used)} / ${formatBytes(status.data.metrics.disk_total)}`
-                        : `${status.data.metrics.disk_path} · total tidak tersedia`
-                    }
-                    tone="var(--yellow)"
-                  />
-                  <Gauge
-                    label="SWAP"
-                    pct={
-                      status.data.metrics.swap_total > 0
-                        ? (status.data.metrics.swap_used / status.data.metrics.swap_total) * 100
-                        : 0
-                    }
-                    detail={
-                      status.data.metrics.swap_total > 0
-                        ? `${formatBytes(status.data.metrics.swap_used)} / ${formatBytes(status.data.metrics.swap_total)}`
-                        : "no swap"
-                    }
-                    tone="var(--green)"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-                <ResourcePanel kind="systemd" />
-                <ResourcePanel kind="docker" />
-                <ResourcePanel kind="network" />
-                <ResourcePanel kind="ssh" />
-                <ResourcePanel kind="cert" />
-                <ResourcePanel kind="mount" />
-                <ResourcePanel kind="alert" />
-                <ResourcePanel kind="gitdeploy" />
-                <ResourcePanel kind="dockercompose" />
-                <ResourcePanel kind="package" />
-                <ResourcePanel kind="backup" />
-                <ResourcePanel kind="kubernetes" />
-              </div>
-
-              <AuditPanel />
-            </>
-          )
-        )}
-      </div>
+      {body}
     </EmpireShell>
   );
 }

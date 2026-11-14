@@ -11,6 +11,7 @@ import { Crew } from "./crew";
 import { Entrance } from "./entrance";
 import { LandingFooter } from "./footer";
 import { Hero } from "./hero";
+import { LandingStoryStrip } from "./story-strip";
 import { Shadow } from "./shadow";
 import { Signals } from "./signals";
 import { Storytelling } from "./storytelling";
@@ -38,6 +39,8 @@ export function Landing() {
 
         {/* Scene 02 — MoonWitness Universe: hero */}
         <Hero />
+
+        <LandingStoryStrip />
 
         <main id="main">
           <Marquee className="border-y-2 border-[var(--line)] bg-[var(--pink)] py-2.5 font-brush text-lg text-white">
