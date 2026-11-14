@@ -235,4 +235,48 @@ describe("storage proxy", () => {
     });
     expect([200, 204, 400]).toContain(deletePreflight.statusCode);
   });
+
+  it("forwards bucket-level HEAD with query string intact", async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValue(
+        new Response("", { status: 200, headers: { "content-type": "application/xml" } }),
+      );
+    vi.stubGlobal("fetch", fetch);
+    app = Fastify({ logger: false });
+    await app.register(FastifyCors);
+    await app.register(storageRoutes);
+    await app.ready();
+
+    const res = await app.inject({
+      method: "HEAD",
+      url: "/storage/buckets/media?acl=",
+    });
+    expect(res.statusCode).toBe(200);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(String(fetch.mock.calls[0]?.[0])).toBe("http://127.0.0.1:8091/media?acl=");
+  });
+
+  it("forwards object-level HEAD with query string intact", async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValue(
+        new Response("", { status: 200, headers: { "content-type": "text/plain" } }),
+      );
+    vi.stubGlobal("fetch", fetch);
+    app = Fastify({ logger: false });
+    await app.register(FastifyCors);
+    await app.register(storageRoutes);
+    await app.ready();
+
+    const res = await app.inject({
+      method: "HEAD",
+      url: "/storage/buckets/media/blob.bin?response-content-disposition=attachment",
+    });
+    expect(res.statusCode).toBe(200);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(String(fetch.mock.calls[0]?.[0])).toBe(
+      "http://127.0.0.1:8091/media/blob.bin?response-content-disposition=attachment",
+    );
+  });
 });

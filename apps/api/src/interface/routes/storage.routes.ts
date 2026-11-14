@@ -106,7 +106,7 @@ export async function storageRoutes(fastify: FastifyInstance) {
     if (key) {
       return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "HEAD");
     }
-    return forward(request, reply, `/${bucket}`, "HEAD");
+    return forward(request, reply, `/${bucket}${queryOf(request)}`, "HEAD");
   });
 
   fastify.delete<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {
