@@ -2,9 +2,28 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 const STORAGE_URL = process.env.STORAGE_URL ?? "http://127.0.0.1:8091";
 
+// Allow application/octet-stream and other binary content types for storage uploads
+function configureContentTypeParsers(fastify: FastifyInstance): void {
+  fastify.addContentTypeParser(
+    "application/octet-stream",
+    { parseAs: "buffer" },
+    (request, payload, done) => {
+      done(null, payload);
+    },
+  );
+  fastify.addContentTypeParser("*/*", { parseAs: "buffer" }, (request, payload, done) => {
+    done(null, payload);
+  });
+}
+
 function forwardHeaders(request: FastifyRequest): Record<string, string> {
   const headers: Record<string, string> = {};
-  if (request.body) headers["content-type"] = "application/json";
+  const incomingContentType = request.headers["content-type"];
+  if (typeof incomingContentType === "string" && incomingContentType.length > 0) {
+    headers["content-type"] = incomingContentType;
+  } else if (request.body) {
+    headers["content-type"] = "application/json";
+  }
   return headers;
 }
 
@@ -16,10 +35,17 @@ async function forward(
 ) {
   let upstream: Response;
   try {
+    const body = request.body;
+    const serializedBody =
+      typeof body === "string" || body instanceof Buffer
+        ? body
+        : body
+          ? JSON.stringify(body)
+          : undefined;
     upstream = await fetch(`${STORAGE_URL}${target}`, {
       method,
       headers: forwardHeaders(request),
-      body: request.body ? JSON.stringify(request.body) : undefined,
+      body: serializedBody,
       signal: AbortSignal.timeout(15_000),
     });
   } catch (error) {
@@ -27,12 +53,12 @@ async function forward(
     return reply.code(502).send({ error: "storage tidak dapat dihubungi", reachable: false });
   }
 
-  const text = await upstream.text();
+  const body = Buffer.from(await upstream.arrayBuffer());
   return reply
     .code(upstream.status)
     .header("content-type", upstream.headers.get("content-type") ?? "application/xml")
     .header("cache-control", "no-store")
-    .send(text);
+    .send(body);
 }
 
 interface WildcardParams {
@@ -46,7 +72,7 @@ interface WildcardParams {
  * - `mybucket/path/to.js` → bucket="mybucket", key="path/to.js"
  */
 function parseBucketKey(wildcard: string): { bucket: string; key: string } {
-  const trimmed = wildcard.replace(/^\/+/, "");
+  const trimmed = wildcard.replace(/^\/+/, "").split("?")[0] ?? "";
   const slash = trimmed.indexOf("/");
   if (slash === -1) return { bucket: trimmed, key: "" };
   return { bucket: trimmed.slice(0, slash), key: trimmed.slice(slash + 1) };
@@ -57,6 +83,8 @@ function queryOf(request: FastifyRequest): string {
 }
 
 export async function storageRoutes(fastify: FastifyInstance) {
+  configureContentTypeParsers(fastify);
+
   fastify.get("/storage/health", async (request, reply) =>
     forward(request, reply, "/health", "GET"),
   );
@@ -96,10 +124,18 @@ export async function storageRoutes(fastify: FastifyInstance) {
 
   fastify.get<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {
     const { bucket, key } = parseBucketKey(request.params["*"]);
-    if (key) {
-      return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "GET");
+    const query = queryOf(request);
+    const isListingAlias =
+      key === "objects" &&
+      /[?&](list-type|prefix|delimiter|max-keys|continuation-token|start-after|key-marker|marker|encoding-type|fetch-owner|versions)=/i.test(
+        query,
+      );
+
+    if (!key || isListingAlias) {
+      // Bucket listing: GET /storage/buckets/:bucket?list-type=2
+      // Also accept /storage/buckets/:bucket/objects?... used by the web client.
+      return forward(request, reply, `/${bucket}${query}`, "GET");
     }
-    // Bucket listing: GET /storage/buckets/:bucket?list-type=2
-    return forward(request, reply, `/${bucket}${queryOf(request)}`, "GET");
+    return forward(request, reply, `/${bucket}/${key}${query}`, "GET");
   });
 }
