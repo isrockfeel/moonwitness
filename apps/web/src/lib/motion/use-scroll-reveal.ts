@@ -23,8 +23,20 @@ export function useScrollReveal(
       { threshold, rootMargin },
     );
 
-    observer.observe(el);
-    return () => observer.disconnect();
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onChange = () => {
+      if (media.matches) {
+        setVisible(true);
+        observer.disconnect();
+      }
+    };
+    if (media.matches) onChange();
+    else observer.observe(el);
+    media.addEventListener("change", onChange);
+    return () => {
+      observer.disconnect();
+      media.removeEventListener("change", onChange);
+    };
   }, [threshold, rootMargin]);
 
   return [ref, visible];

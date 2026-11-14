@@ -1,103 +1,18 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-import { AtmosphereField } from "@/components/atmosphere";
-
 export function Entrance() {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const titleRef = useRef<HTMLHeadingElement | null>(null);
-  const freqRef = useRef<HTMLSpanElement | null>(null);
-
-  useEffect(() => {
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) {
-      const el = containerRef.current;
-      if (el) el.style.display = "none";
-      return;
-    }
-
-    // Phase 1: Show screen immediately
-    const container = containerRef.current;
-    if (!container) return;
-    container.style.opacity = "1";
-
-    // Phase 2: Frequency text flashes after brief delay
-    const freqEl = freqRef.current;
-    if (freqEl) {
-      setTimeout(() => {
-        freqEl.style.animation = "flash-entry 0.8s ease-out forwards";
-      }, 100);
-    }
-
-    // Phase 3: Title reveal
-    const titleEl = titleRef.current;
-    if (titleEl) {
-      setTimeout(() => {
-        titleEl.style.animation = "reveal-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both";
-      }, 400);
-    }
-
-    // Phase 4: Fade out entire entrance after ~3 seconds
-    setTimeout(() => {
-      container.style.transition = "opacity 0.8s ease";
-      container.style.opacity = "0";
-      setTimeout(() => {
-        container.style.display = "none";
-      }, 800);
-    }, 2800);
-  }, []);
-
   return (
-    <div
-      ref={containerRef}
-      className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-[#050508]"
-      style={{ opacity: 0 }}
+    <svg
+      data-entrance-stamp
       aria-hidden="true"
+      viewBox="0 0 120 120"
+      className="ink-stamp pointer-events-none absolute right-4 top-20 z-30 h-20 w-20 text-[var(--pink)] sm:right-10 sm:h-28 sm:w-28"
     >
-      {/* Static noise overlay */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-        }}
+      <path
+        fill="currentColor"
+        d="M58 6c9 7 6 20 17 21 12 1 20-12 30-4 8 7-3 19 3 28 6 10 21 9 21 21 0 11-15 10-20 19-5 8 4 20-6 25-10 6-17-7-28-5-11 1-15 16-27 12-10-4-4-17-11-25-7-7-21-6-23-17-2-12 12-13 15-23 3-9-7-19 1-27 9-8 18 3 27-1C66 26 49 0 58 6Z"
+        opacity="0.9"
       />
-
-      {/* Frequency callout */}
-      <span
-        ref={freqRef}
-        className="mb-6 font-mono text-xs tracking-[0.3em] text-[var(--pink)] opacity-0"
-      >
-        // FREQUENCY LOCKED — 1420.4 MHZ
-      </span>
-
-      {/* Main title */}
-      <h1
-        ref={titleRef}
-        className="font-brush text-6xl font-black text-white sm:text-8xl md:text-9xl drop-shadow-[4px_4px_0_rgba(255,45,120,0.6)] opacity-0"
-      >
-        MOON<span className="text-[var(--pink)]">WITNESS</span>
-      </h1>
-
-      {/* Subtitle */}
-      <p className="mt-4 font-hand text-lg text-zinc-400 opacity-0 animate-fade-in">
-        Another side of reality.
-      </p>
-
-      {/* Scan line effect */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[var(--pink)] opacity-30"
-        style={{
-          animation: "scanline 2.5s linear infinite",
-        }}
-      />
-
-      {/* Atmospheric FX */}
-      <AtmosphereField
-        variant="brush"
-        seed={7}
-        className="inset-0 z-[1] mix-blend-screen opacity-60"
-      />
-    </div>
+      <circle cx="18" cy="104" r="5" fill="currentColor" />
+      <circle cx="108" cy="14" r="3.5" fill="currentColor" />
+    </svg>
   );
 }

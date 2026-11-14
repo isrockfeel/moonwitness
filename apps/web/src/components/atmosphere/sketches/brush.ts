@@ -22,10 +22,12 @@ export function brushSketch(opts: { seed: number }) {
     p.setup = async () => {
       try {
         brush = await import("p5.brush");
+        if (ctx.signal.aborted) return;
         brush.instance(p);
       } catch {
         brush = null;
       }
+      if (ctx.signal.aborted) return;
       p.createCanvas(ctx.el.clientWidth, ctx.el.clientHeight, p.WEBGL);
       p.pixelDensity(Math.min(window.devicePixelRatio || 1, 1.5));
       if (brush) {
@@ -39,6 +41,7 @@ export function brushSketch(opts: { seed: number }) {
     };
 
     p.draw = () => {
+      if (ctx.signal.aborted) return;
       p.clear();
       p.randomSeed(opts.seed * 7919);
       const cx = 0;

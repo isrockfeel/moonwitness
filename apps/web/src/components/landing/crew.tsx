@@ -2,11 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { crewStats, witnesses } from "@/lib/data";
+import { witnesses } from "@/lib/data";
 import { artSrc } from "@/lib/art";
 import { ArrowRight, SkullCrossbonesFunky } from "@moonwitness/ui/icons";
 import { CrewConstellation, Halftone, Staple, TactileTape } from "@moonwitness/ui";
-import { AtmosphereField } from "@/components/atmosphere";
 
 export function Crew() {
   return (
@@ -25,21 +24,21 @@ export function Crew() {
               A GLOBAL MAP OF <span className="text-[var(--blue)]">WITNESSES.</span>
             </h2>
             <p className="mt-2 max-w-xl font-mono text-xs text-zinc-300">
-              Different coordinates. Underground cells. Same moon. Tap any operative to intercept
-              their broadcast.
+              Same moon, different story coordinates. Select a fictional demo profile on the map or
+              in the list to read their story quote.
             </p>
           </div>
           <div className="relative hidden h-32 w-64 overflow-hidden border-2 border-black bg-black shadow-[6px_6px_0_rgba(0,0,0,0.8)] md:block rotate-1">
             <Image
               src={artSrc("crew-wall")}
-              alt="Crew Wall"
+              alt="Fictional demo crew collage"
               fill
               className="object-cover contrast-125"
               sizes="256px"
             />
             <TactileTape
               variant="yellow"
-              label="SURVEILLANCE"
+              label="DEMO COLLAGE"
               width={110}
               className="-top-2 right-2 rotate-6 text-[9px]"
             />
@@ -48,10 +47,9 @@ export function Crew() {
         </div>
         <CrewConstellation
           witnesses={witnesses}
-          stats={crewStats}
-          backdrop={
-            <AtmosphereField variant="crew" className="inset-0 mix-blend-screen opacity-70" />
-          }
+          stats={[]}
+          demo
+          stickerText="DEMO CHARACTERS. SAME STORY SKY."
           cta={
             <Link
               href="/shadow"

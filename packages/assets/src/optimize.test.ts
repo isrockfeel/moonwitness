@@ -1,7 +1,8 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import sharp from "sharp";
 import { describe, expect, it } from "vitest";
-import { ART_SOURCES, ART_WIDTHS, outputNames } from "./optimize";
+import { ART_SOURCES, ART_SOURCE_WIDTHS, effectiveWidths, outputNames } from "./optimize";
 import { ARTWORK } from "./index";
 import type { ArtKey } from "@moonwitness/types";
 
@@ -53,16 +54,24 @@ describe("ARTWORK manifest", () => {
     );
   });
 
-  it("setiap entri merujuk srcSet yang memuat semua lebar", () => {
+  it("setiap kandidat srcSet memakai lebar yang sama dengan derivative yang didekode", async () => {
     for (const key of KEYS) {
       const entry = ARTWORK[key];
-      for (const w of ART_WIDTHS) {
-        expect(entry.srcSet).toContain(`${key}-${w}.avif ${w}w`);
-        expect(entry.fallbackSrcSet).toContain(`${key}-${w}.webp ${w}w`);
+      for (const srcSet of [entry.srcSet, entry.fallbackSrcSet]) {
+        const widths = new Set<number>();
+        for (const candidate of srcSet.split(", ")) {
+          const [url, descriptor] = candidate.split(" ");
+          const width = Number(descriptor?.replace("w", ""));
+          const metadata = await sharp(
+            resolve(REPO_ROOT, "apps/web/public", url!.slice(1)),
+          ).metadata();
+          expect(metadata.width, `${key} ${url}`).toBe(width);
+          expect(widths.has(width), `${key} duplicates ${width}w`).toBe(false);
+          widths.add(width);
+        }
+        expect([...widths]).toEqual(effectiveWidths(ART_SOURCE_WIDTHS[key]));
       }
       expect(entry.source).toBe(`/art/${key}.png`);
-      expect(entry.src).toBe(`/art/${key}-1440.avif`);
-      expect(entry.fallback).toBe(`/art/${key}-1440.webp`);
       expect(entry.alt.length).toBeGreaterThan(20);
       expect(entry.credit).toMatch(/^0[1-6]-/);
     }
@@ -73,6 +82,8 @@ describe("ARTWORK manifest", () => {
     for (const key of KEYS) {
       const abs = resolve(REPO_ROOT, ART_SOURCES[key]);
       expect(existsSync(abs), `${key} tidak ada di ${abs}`).toBe(true);
+      const metadata = await sharp(abs).metadata();
+      expect(metadata.width, `${key} source width`).toBe(ART_SOURCE_WIDTHS[key]);
     }
   });
 });

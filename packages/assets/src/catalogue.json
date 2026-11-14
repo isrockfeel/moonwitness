@@ -1,0 +1,58 @@
+{
+  "widths": [480, 960, 1440, 1920],
+  "legacy": {
+    "hero-witness": "apps/web/public/art/hero-witness.png",
+    "city-shadow": "apps/web/public/art/city-shadow.png",
+    "crew-rooftop": "apps/web/public/art/crew-rooftop.png",
+    "signal-tunnel": "apps/web/public/art/signal-tunnel.png",
+    "shadow-command": "apps/web/public/art/shadow-command.png",
+    "night-shift": "apps/web/public/art/night-shift.png",
+    "signal-sky": "apps/web/public/art/signal-sky.png",
+    "fog-voices": "apps/web/public/art/fog-voices.png",
+    "mirror-archive": "apps/web/public/art/mirror-archive.png",
+    "crew-wall": "apps/web/public/art/crew-wall.png",
+    "crowd-moon": "apps/web/public/art/crowd-moon.png"
+  },
+  "legacySourceWidths": {
+    "hero-witness": 1536,
+    "city-shadow": 1792,
+    "crew-rooftop": 1792,
+    "signal-tunnel": 1024,
+    "shadow-command": 1792,
+    "night-shift": 1792,
+    "signal-sky": 1792,
+    "fog-voices": 1792,
+    "mirror-archive": 1792,
+    "crew-wall": 1792,
+    "crowd-moon": 1792
+  },
+  "hero": {
+    "city": {
+      "key": "hero-city-v2",
+      "source": "/art/hero-city-v2.png",
+      "width": 1344,
+      "height": 768,
+      "alpha": false,
+      "crop": "cover; skyline lower/right, dark headline space left",
+      "provenance": "Pollinations generation seed 14205; targeted edit removed unwanted person/moon; controller accepted environment-only master. Edit seed tool-random. PNG is a lossless format-normalized copy of the accepted source raster (.verify/mw-hero-city-v2-final-source.jpg); raster identity verified. Rights not warranted."
+    },
+    "moon": {
+      "key": "hero-moon-v2",
+      "source": "/art/hero-moon-v2.png",
+      "width": 1024,
+      "height": 1024,
+      "alpha": true,
+      "crop": "contain full disc; behind character upper/right",
+      "provenance": "Pollinations generation seed 14206; BGNinja background extraction; controller accepted genuine alpha. Rights not warranted."
+    },
+    "character": {
+      "key": "hero-character-v2",
+      "source": "/art/hero-character-v2.png",
+      "width": 832,
+      "height": 1248,
+      "alpha": true,
+      "crop": "contain; face at source 460,280; mobile full silhouette, desktop lower body cropped at stage border",
+      "provenance": "Pollinations generation seed 14204; targeted two-image face restoration edit, tool-random seed; BGNinja extraction then threshold32 connected-exterior flood restored original RGB and opaque enclosed face/shirt/hands (404627 interior pixels). Controller accepted corrected master. Fictional adult, not real witness. Rights not warranted."
+    }
+  }
+}

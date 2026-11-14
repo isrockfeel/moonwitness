@@ -287,6 +287,9 @@ importers:
       '@tanstack/react-query-devtools':
         specifier: ^5.60.0
         version: 5.107.1(@tanstack/react-query@5.107.1(@types/react@19.3.0)(react@19.3.1))(@types/react@19.3.0)(csstype@3.2.3)(react@19.3.1)
+      gsap:
+        specifier: ^3.15.1
+        version: 3.15.1
       next:
         specifier: ^15.5.6
         version: 15.5.29(@babel/core@7.29.13(supports-color@7.2.0))(@playwright/test@1.65.0)(@types/node@24.19.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -330,9 +333,6 @@ importers:
       eslint:
         specifier: ^10.14.0
         version: 10.14.0(jiti@2.7.0)(supports-color@7.2.0)
-      gsap:
-        specifier: ^3.15.1
-        version: 3.15.1
       tailwindcss:
         specifier: ^4.1.17
         version: 4.3.5

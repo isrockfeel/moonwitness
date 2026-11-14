@@ -1,21 +1,25 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { Crown, SprayCan } from "@moonwitness/ui/icons";
+import Image from "next/image";
+import { ARTWORK } from "@moonwitness/assets";
+import type { ArtKey } from "@moonwitness/types";
+import { SprayCan } from "@moonwitness/ui/icons";
 import { Halftone, Staple, TactileTape } from "@moonwitness/ui";
+import { artSrc } from "@/lib/art";
 import { useScrollReveal } from "@/lib/motion/use-scroll-reveal";
 
-interface StoryCard {
+interface StoryUnit {
   id: string;
   tag: string;
   tagColor: string;
   title: string;
   excerpt: string;
-  note?: string;
-  rotation?: number;
+  art: ArtKey;
+  marginalia: string;
+  rotation: number;
 }
 
-const STORIES: StoryCard[] = [
+const STORIES: StoryUnit[] = [
   {
     id: "s1",
     tag: "PEOPLE",
@@ -23,7 +27,8 @@ const STORIES: StoryCard[] = [
     title: "THE BATTERIES",
     excerpt:
       "A garage band in Jakarta channels something older than rock'n'roll — frequencies that predate electricity.",
-    note: "First transmission: March 2024",
+    art: "night-shift",
+    marginalia: "// jakarta // night session",
     rotation: -1.5,
   },
   {
@@ -33,7 +38,8 @@ const STORIES: StoryCard[] = [
     title: "NEON CITIES",
     excerpt:
       "Mapping the underground circuit of cities that never sleep — Seoul, Istanbul, Lagos. The skyline tells a different story at 3 AM.",
-    note: "Ongoing collection",
+    art: "city-shadow",
+    marginalia: "// skyline // 3am frequency",
     rotation: 1,
   },
   {
@@ -42,8 +48,9 @@ const STORIES: StoryCard[] = [
     tagColor: "var(--yellow)",
     title: "PENDETA ONLINE",
     excerpt:
-      "A spiritual guide in rural Malaysia receives what he calls &lsquo;signals from the other side&rsquo; — transmitted through prayer and radio static.",
-    note: "Episodes 1–6 published",
+      "A spiritual guide in rural Malaysia receives what he calls ‘signals from the other side’ — transmitted through prayer and radio static.",
+    art: "signal-sky",
+    marginalia: "// prayer × radio // malay realm",
     rotation: -0.8,
   },
   {
@@ -53,120 +60,100 @@ const STORIES: StoryCard[] = [
     title: "ZILL",
     excerpt:
       "A fiction project that reads like a field report. A city that might not exist, documented by someone who swears they were there.",
-    note: "World bible in progress",
+    art: "mirror-archive",
+    marginalia: "// urban legend or // field report?",
     rotation: 1.2,
   },
 ];
 
+const SETTLE_S = 0.55;
+const STAGGER_S = 0.1;
+
 export function Storytelling() {
   const [revealRef, revealed] = useScrollReveal(0.1, "0px 0px -40px 0px");
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  useEffect(() => {
-    if (!revealed) return;
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) return;
-
-    cardRefs.current.forEach((card, i) => {
-      if (!card) return;
-      const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
-      card.style.transition = `opacity 0.6s ${ease} ${i * 0.12}s, transform 0.6s ${ease} ${i * 0.12}s`;
-      card.style.opacity = "1";
-      card.style.transform = "rotate(0deg)";
-    });
-  }, [revealed]);
 
   return (
-    <section id="storytelling" className="relative scroll-mt-20 bg-[var(--ink)] py-24">
+    <section id="storytelling" className="relative scroll-mt-20 overflow-x-clip bg-[var(--ink)] py-24">
       <Halftone tone="pink" className="pointer-events-none absolute inset-0 opacity-20" />
 
-      <div
-        ref={revealRef}
-        className={`relative mx-auto max-w-7xl px-4 sm:px-6 transition-all duration-700 ${
-          revealed ? "opacity-100" : "opacity-0"
-        }`}
-      >
-        <div className="mb-12 flex flex-wrap items-end justify-between gap-4 border-b-2 border-dashed border-zinc-800 pb-6">
-          <div>
-            <div className="mb-2 flex items-center gap-2">
-              <SprayCan className="h-5 w-5 text-[var(--pink)]" />
-              <span className="font-mono text-xs font-black tracking-widest text-[var(--yellow)]">
-                NARRATIVE COLLECTIVE // FIELD REPORTS
-              </span>
-            </div>
-            <h2 className="cmyk-slip font-brush text-4xl text-white sm:text-5xl">
-              REAL PEOPLE.{" "}
-              <span className="text-[var(--pink)] brush-underline">BIGGER HORIZONS.</span>
-            </h2>
+      <div ref={revealRef} className="relative mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="mb-12 border-b-2 border-dashed border-zinc-800 pb-6">
+          <div className="mb-2 flex items-center gap-2">
+            <SprayCan className="h-5 w-5 text-[var(--pink)]" />
+            <span className="font-mono text-xs font-black tracking-widest text-[var(--yellow)]">
+              STORY WORLD // FICTION FILES
+            </span>
           </div>
-          <Crown className="hidden h-10 w-14 text-[var(--yellow)] rotate-6 sm:block" />
+          <h2 className="cmyk-slip font-brush text-4xl text-white sm:text-5xl">
+            STRANGE PEOPLE.{" "}
+            <span className="text-[var(--pink)] brush-underline">BIGGER HORIZONS.</span>
+          </h2>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {STORIES.map((story, i) => (
-            <div
-              key={story.id}
-              ref={(el) => {
-                cardRefs.current[i] = el;
-              }}
-              className="group zine-card-rough relative flex flex-col overflow-hidden opacity-0"
-              style={{
-                transform: `rotate(${story.rotation ?? 0}deg)`,
-                transition: "transform 0.3s ease",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLDivElement).style.transform =
-                  "rotate(0deg) translateY(-4px)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLDivElement).style.transform =
-                  `rotate(${story.rotation ?? 0}deg)`;
-              }}
-            >
-              <Staple className="-top-1 left-5 -rotate-12" />
-              <TactileTape
-                variant="black"
-                label={story.tag}
-                width={70}
-                className="-top-2 right-4 rotate-3 text-[9px]"
-              />
-
-              <div className="px-6 py-7 flex-1">
-                <div className="mb-3 flex items-center justify-between">
-                  <span
-                    className="font-mono text-[10px] font-black tracking-widest"
-                    style={{ color: story.tagColor }}
+        <div className="flex flex-col gap-10">
+          {STORIES.map((story, i) => {
+            const artRight = i % 2 === 1;
+            const art = ARTWORK[story.art];
+            return (
+              <div
+                key={story.id}
+                data-story-unit
+                className="transition-[opacity,transform] ease-[var(--ease-ink-out)] motion-reduce:transition-none"
+                style={{
+                  transitionDuration: `${SETTLE_S}s`,
+                  transitionDelay: `${i * STAGGER_S}s`,
+                  opacity: revealed ? 1 : 0,
+                  transform: revealed ? "none" : `translateX(${artRight ? 40 : -40}px)`,
+                }}
+              >
+                <div style={{ transform: `rotate(${story.rotation}deg)` }}>
+                  <article
+                    className={`group zine-card-rough relative grid overflow-hidden transition-transform duration-300 hover:-translate-y-1 motion-reduce:transition-none md:grid-cols-2 ${
+                      artRight ? "md:[&>figure]:order-2" : ""
+                    }`}
                   >
-                    [{story.tag}]
-                  </span>
-                  {story.note && (
-                    <span className="font-mono text-[10px] text-zinc-600">{story.note}</span>
-                  )}
-                </div>
-
-                <h3 className="cmyk-slip font-brush text-2xl leading-tight text-white group-hover:text-[var(--pink)] transition-colors">
-                  {story.title}
-                </h3>
-
-                <p className="mt-3 font-mono text-sm leading-relaxed text-zinc-400">
-                  {story.excerpt}
-                </p>
-
-                <div className="mt-5 flex items-center gap-3">
-                  <span className="btn-zine btn-paper text-xs shadow-[2px_2px_0_#000] px-4 py-2">
-                    READ MORE →
-                  </span>
+                    <Staple className="-top-1 left-5 z-10 -rotate-12" />
+                    <TactileTape
+                      variant="black"
+                      label={story.tag}
+                      width={70}
+                      className="-top-2 right-4 z-10 rotate-3 text-[9px]"
+                    />
+                    <figure className="relative aspect-[4/3] w-full">
+                      <Image
+                        src={artSrc(story.art)}
+                        alt={art.alt}
+                        fill
+                        sizes="(min-width: 768px) 50vw, 100vw"
+                        className="object-cover"
+                        style={{ objectPosition: art.position }}
+                      />
+                    </figure>
+                    <div className="relative px-6 py-7">
+                      <span
+                        className="font-mono text-[10px] font-black tracking-widest"
+                        style={{ color: story.tagColor }}
+                      >
+                        [{story.tag}]
+                      </span>
+                      <h3 className="cmyk-slip mt-3 font-brush text-2xl leading-tight text-white transition-colors group-hover:text-[var(--pink)]">
+                        {story.title}
+                      </h3>
+                      <p className="mt-3 font-mono text-sm leading-relaxed text-zinc-400">
+                        {story.excerpt}
+                      </p>
+                      <div
+                        aria-hidden="true"
+                        className="marginalia -right-2 bottom-4 text-sm opacity-40 transition-opacity group-hover:opacity-70"
+                      >
+                        {story.marginalia}
+                      </div>
+                    </div>
+                  </article>
                 </div>
               </div>
-
-              <div className="marginalia -right-2 bottom-4 text-sm opacity-40 group-hover:opacity-70 transition-opacity">
-                {story.id === "s1" && "// jakarta // night session"}
-                {story.id === "s2" && "// skyline // 3am frequency"}
-                {story.id === "s3" && "// prayer × radio // malay realm"}
-                {story.id === "s4" && "// urban legend or // field report?"}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

@@ -6,17 +6,28 @@ import { useEffect, useRef } from "react";
 import { ArrowRight, SkullCrossbonesFunky, SprayCan } from "@moonwitness/ui/icons";
 import { DistressedSticker, Grain, Staple } from "@moonwitness/ui";
 import { artSrc } from "@/lib/art";
+import { useTimelineEvents } from "@/lib/api/timeline";
 
 export function Shadow() {
+  const { data, isPending, isError, refetch } = useTimelineEvents({ limit: 1 });
+  const event = data?.data[0];
   const sectionRef = useRef<HTMLElement | null>(null);
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const paraRef = useRef<HTMLParagraphElement | null>(null);
-  const ctaRef = useRef<HTMLDivElement | null>(null);
+  const wipeRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) return;
-
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const showReduced = () => {
+      if (!media.matches) return;
+      observer?.disconnect();
+      [titleRef.current, paraRef.current].forEach((el) => {
+        if (!el) return;
+        el.style.transition = "none";
+        el.style.opacity = "1";
+        el.style.transform = "none";
+      });
+    };
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry || !entry.isIntersecting) return;
@@ -32,20 +43,21 @@ export function Shadow() {
           paraRef.current.style.opacity = "1";
           paraRef.current.style.transform = "none";
         }
-        if (ctaRef.current) {
-          ctaRef.current.style.transition = `opacity 0.5s ${ease} 0.4s, transform 0.5s ${ease} 0.4s`;
-          ctaRef.current.style.opacity = "1";
-          ctaRef.current.style.transform = "none";
-        }
+        wipeRef.current?.classList.add("light-wipe");
 
-        observer.disconnect();
+        observer?.disconnect();
       },
       { threshold: 0.15, rootMargin: "0px 0px -60px 0px" },
     );
 
+    showReduced();
+    media.addEventListener("change", showReduced);
     const el = sectionRef.current;
-    if (el) observer.observe(el);
-    return () => observer.disconnect();
+    if (el && !media.matches) observer.observe(el);
+    return () => {
+      observer?.disconnect();
+      media.removeEventListener("change", showReduced);
+    };
   }, []);
 
   return (
@@ -89,6 +101,13 @@ export function Shadow() {
           <SprayCan className="ml-auto h-5 w-5 text-[var(--red)] opacity-50 rotate-12" />
         </div>
 
+        <span
+          ref={wipeRef}
+          data-shadow-wipe
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 block h-40 origin-left bg-gradient-to-r from-transparent via-[rgba(255,59,59,0.35)] to-transparent opacity-0 sm:h-56"
+        />
+
         <h2
           ref={titleRef}
           className="cmyk-slip font-brush text-5xl leading-none text-zinc-100 drop-shadow-[6px_6px_0_rgba(255,59,59,0.3)] sm:text-7xl md:text-8xl opacity-0"
@@ -111,40 +130,59 @@ export function Shadow() {
           the signal gets noisy, and the noise sometimes speaks back.
         </p>
 
-        <div className="mt-12 relative inline-block">
+        <div className="mt-12 relative w-full max-w-2xl">
           <Staple className="-top-1 left-10 -rotate-12" />
           <div className="zine-card-rough relative overflow-hidden border-[var(--red)]/40">
-            <div className="relative aspect-[16/9] overflow-hidden bg-[#0a0a12]">
-              <Image
-                src={artSrc("night-shift")}
-                alt="A lone figure on a rooftop at night, watching something unseen"
-                fill
-                className="object-cover object-[50%_40%] grayscale contrast-[1.3] brightness-75"
-                sizes="(max-width: 768px) 100vw, 720px"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#050508] via-transparent to-transparent" />
-              <div className="absolute inset-0 bg-[var(--red)] mix-blend-color opacity-15" />
+            <div className="p-5 font-mono text-xs tracking-widest text-[var(--red)]">
+              SIGNAL ARCHIVE PREVIEW
             </div>
-            <div className="border-t border-[var(--red)]/30 bg-[#08080e] p-5">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] tracking-widest text-[var(--red)] opacity-80">
-                  SHADOW ARCHIVE #001 — THE WATCHER ON THE ROOF
-                </span>
-                <DistressedSticker variant="classified" className="rotate-3" />
-              </div>
-              <p className="mt-2 font-mono text-xs text-zinc-500">
-                Three separate reports. Same location. Different nights. All describe the same
-                figure — motionless, facing away from the camera, staring toward the moon.
+            {isPending ? (
+              <p role="status" className="p-5 font-mono text-sm text-zinc-400">
+                Loading archive preview…
               </p>
-            </div>
+            ) : isError ? (
+              <div className="p-5">
+                <p role="alert" className="font-mono text-sm text-zinc-400">
+                  Archive preview unavailable.
+                </p>
+                <button
+                  onClick={() => void refetch()}
+                  className="btn-zine mt-4 min-h-11 min-w-11 px-4 py-3"
+                >
+                  Retry archive preview
+                </button>
+              </div>
+            ) : event ? (
+              <Link
+                href={`/dock?event=${encodeURIComponent(event.id)}`}
+                className="block min-h-11 break-words"
+              >
+                <div className="relative aspect-[16/9] overflow-hidden bg-[#0a0a12]">
+                  <Image
+                    src={artSrc(event.image)}
+                    alt=""
+                    fill
+                    className="object-cover grayscale contrast-[1.3] brightness-75"
+                    style={{ objectPosition: event.imagePosition ?? "center" }}
+                    sizes="(max-width: 768px) 100vw, 720px"
+                  />
+                </div>
+                <div className="border-t border-[var(--red)]/30 bg-[#08080e] p-5">
+                  <span className="font-mono text-xs text-zinc-400">
+                    {event.kind} // {event.date}
+                  </span>
+                  <h3 className="mt-2 font-brush text-2xl text-white">{event.title}</h3>
+                </div>
+              </Link>
+            ) : (
+              <p role="status" className="p-5 font-mono text-sm text-zinc-400">
+                No timeline events available.
+              </p>
+            )}
           </div>
         </div>
 
-        <div
-          ref={ctaRef}
-          className="mt-12 flex flex-wrap items-center gap-5 opacity-0"
-          style={{ transform: "translateY(20px)" }}
-        >
+        <div className="mt-12 flex flex-wrap items-center gap-5">
           <Link
             href="/shadow"
             className="btn-zine px-8 py-4 text-xl shadow-[5px_5px_0_rgba(255,59,59,0.5)]"

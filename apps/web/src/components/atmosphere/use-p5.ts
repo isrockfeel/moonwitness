@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import type p5 from "p5";
 import { readPalette, type Palette } from "./palette";
 
 export interface P5Context {
   el: HTMLElement;
+  signal: AbortSignal;
   palette: Palette;
   pointer: { x: number; y: number };
   seed: number;
@@ -18,6 +19,7 @@ interface UseP5Options {
   continuous: boolean;
   interactive: boolean;
   seed: number;
+  paused?: boolean;
 }
 
 /**
@@ -28,8 +30,16 @@ interface UseP5Options {
 export function useP5(
   containerRef: RefObject<HTMLDivElement | null>,
   factory: SketchFactory,
-  { enabled, continuous, interactive, seed }: UseP5Options,
+  { enabled, continuous, interactive, seed, paused = false }: UseP5Options,
 ) {
+  const pausedRef = useRef(paused);
+  const syncRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    pausedRef.current = paused;
+    syncRef.current();
+  }, [paused]);
+
   useEffect(() => {
     if (!enabled) return;
     const el = containerRef.current;
@@ -38,6 +48,7 @@ export function useP5(
     // Skip loading on mobile to reduce main thread blocking
     if (window.innerWidth < 768) return;
 
+    const controller = new AbortController();
     let cancelled = false;
     let instance: p5 | null = null;
     let ro: ResizeObserver | undefined;
@@ -47,6 +58,7 @@ export function useP5(
 
     const ctx: P5Context = {
       el,
+      signal: controller.signal,
       palette: readPalette(el),
       pointer: { x: 0.5, y: 0.5 },
       seed,
@@ -61,11 +73,12 @@ export function useP5(
     const syncLoop = () => {
       if (!instance || !continuous) return;
       const visible = io ? lastIntersecting : true;
-      if (document.hidden || !visible) instance.noLoop();
+      if (document.hidden || !visible || pausedRef.current) instance.noLoop();
       else instance.loop();
     };
 
     let lastIntersecting = true;
+    syncRef.current = syncLoop;
 
     void import("p5")
       .then((mod) => {
@@ -105,10 +118,12 @@ export function useP5(
 
     return () => {
       cancelled = true;
+      controller.abort();
       ro?.disconnect();
       io?.disconnect();
       document.removeEventListener("visibilitychange", syncLoop);
       window.removeEventListener("pointermove", onPointer);
+      syncRef.current = () => {};
       instance?.remove();
       instance = null;
     };

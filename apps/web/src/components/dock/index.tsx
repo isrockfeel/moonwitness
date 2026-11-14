@@ -50,6 +50,7 @@ export function Dock() {
     const id = params.get("event");
     if (id && timelineEvents.some((e) => e.id === id)) {
       setSelectedId(id);
+      setDrawerOpen(true);
     } else if (timelineEvents.length > 0) {
       const first = timelineEvents[0];
       if (first) setSelectedId(first.id);
