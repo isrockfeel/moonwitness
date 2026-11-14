@@ -2,14 +2,20 @@ import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vites
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import Fastify from "fastify";
+import cookie from "@fastify/cookie";
 import type { FastifyInstance } from "fastify";
 import { buildApp } from "./app";
-import { seedTimeline } from "@moonwitness/addon-timeline";
-import { SYSTEM_ACTOR } from "@moonwitness/orm";
+import { events, seedTimeline } from "@moonwitness/addon-timeline";
+import { SYSTEM_ACTOR, type ActorContext } from "@moonwitness/orm";
+import { ok } from "@moonwitness/core";
 import { createUser } from "./services/user";
 import { createSession } from "./services/session";
+import type { ITimelineUseCase } from "./domain/usecases/timeline/timeline.usecase";
+import { timelineRoutes } from "./interface/routes/timeline.routes";
 
 let app: FastifyInstance;
+let actorTestApp: FastifyInstance | null = null;
 let dbDir: string;
 let dbPath: string;
 const dirs: string[] = [];
@@ -23,6 +29,10 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+  if (actorTestApp) {
+    await actorTestApp.close();
+    actorTestApp = null;
+  }
   await app.close();
 });
 
@@ -245,7 +255,10 @@ describe("timeline API", () => {
   });
 
   it("ignores a spoofed actor header and still serves public reads", async () => {
-    const getEvent = vi.spyOn(app.timelineUseCase, "getEvent");
+    const baseline = await app.inject({
+      method: "GET",
+      url: "/api/v1/timeline/events/evt-001",
+    });
     const response = await app.inject({
       method: "GET",
       url: "/api/v1/timeline/events/evt-001",
@@ -253,7 +266,7 @@ describe("timeline API", () => {
     });
 
     expect(response.statusCode).toBe(200);
-    expect(getEvent).toHaveBeenCalledWith("evt-001", SYSTEM_ACTOR);
+    expect(response.body).toBe(baseline.body);
   });
 
   it("propagates identity from a verified session into ActorContext", async () => {
@@ -265,9 +278,31 @@ describe("timeline API", () => {
       displayName: "API Actor",
     });
     const sessionId = await createSession(user.id);
-    const getEvent = vi.spyOn(app.timelineUseCase, "getEvent");
+    const getEvent = vi.fn(async (_id: string, _actor: ActorContext) =>
+      ok({ data: events[0]! }),
+    );
+    const timelineUseCase: ITimelineUseCase = {
+      listEvents: async () => ok({ data: [], total: 0 }),
+      getEvent,
+      getStats: async () => ok({ data: { total: 0, byEra: {}, byKind: {} } }),
+      getEras: async () => ok({ data: [] }),
+    };
+    actorTestApp = Fastify({ logger: false });
+    actorTestApp.decorate("timelineUseCase", timelineUseCase);
+    await actorTestApp.register(cookie);
+    await actorTestApp.register(timelineRoutes, { prefix: "/api/v1/timeline" });
+    await actorTestApp.ready();
 
-    const response = await app.inject({
+    const anonymous = await actorTestApp.inject({
+      method: "GET",
+      url: "/api/v1/timeline/events/evt-001",
+      headers: { "x-actor-id": "attacker", "x-actor-role": "admin" },
+    });
+    expect(anonymous.statusCode).toBe(200);
+    expect(getEvent).toHaveBeenCalledWith("evt-001", SYSTEM_ACTOR);
+    getEvent.mockClear();
+
+    const response = await actorTestApp.inject({
       method: "GET",
       url: "/api/v1/timeline/events/evt-001",
       headers: {
@@ -278,6 +313,7 @@ describe("timeline API", () => {
     });
 
     expect(response.statusCode).toBe(200);
+    expect(getEvent).toHaveBeenCalledTimes(1);
     expect(getEvent).toHaveBeenCalledWith(
       "evt-001",
       expect.objectContaining({
