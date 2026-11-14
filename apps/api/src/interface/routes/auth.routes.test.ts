@@ -209,11 +209,12 @@ describe("auth routes", () => {
 
   it("enforces authenticated role permissions instead of caller-supplied role headers", async () => {
     app = await loadApp();
-    const fetch = vi.fn(async () =>
-      new Response(JSON.stringify({ ok: true }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
+    const fetch = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
     );
     vi.stubGlobal("fetch", fetch);
 

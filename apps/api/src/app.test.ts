@@ -278,9 +278,7 @@ describe("timeline API", () => {
       displayName: "API Actor",
     });
     const sessionId = await createSession(user.id);
-    const getEvent = vi.fn(async (_id: string, _actor: ActorContext) =>
-      ok({ data: events[0]! }),
-    );
+    const getEvent = vi.fn(async (_id: string, _actor: ActorContext) => ok({ data: events[0]! }));
     const timelineUseCase: ITimelineUseCase = {
       listEvents: async () => ok({ data: [], total: 0 }),
       getEvent,
