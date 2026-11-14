@@ -72,7 +72,7 @@ interface WildcardParams {
  * - `mybucket/path/to.js` → bucket="mybucket", key="path/to.js"
  */
 function parseBucketKey(wildcard: string): { bucket: string; key: string } {
-  const trimmed = wildcard.replace(/^\/+/, "");
+  const trimmed = wildcard.replace(/^\/+/, "").split("?")[0] ?? "";
   const slash = trimmed.indexOf("/");
   if (slash === -1) return { bucket: trimmed, key: "" };
   return { bucket: trimmed.slice(0, slash), key: trimmed.slice(slash + 1) };
