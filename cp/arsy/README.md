@@ -46,11 +46,37 @@ Override via env: `ARSY_LISTEN`, `ARSY_STATE_PATH`, `ARSY_AUDIT_PATH`, `ARSY_DAT
   "version": 1,
   "resources": [
     { "kind": "systemd", "name": "caddy", "state": "started", "enabled": true },
-    { "kind": "docker", "name": "web", "state": "running", "image": "nginx:latest", "ports": ["80:80"], "restart": "unless-stopped" },
-    { "kind": "gitdeploy", "name": "app", "repo": "https://...", "branch": "main", "work_dir": "/opt/app", "post_cmd": "sh deploy.sh" },
-    { "kind": "dockercompose", "name": "stack", "compose_file": "/opt/app/docker-compose.yml", "project_name": "app", "state": "up" },
+    {
+      "kind": "docker",
+      "name": "web",
+      "state": "running",
+      "image": "nginx:latest",
+      "ports": ["80:80"],
+      "restart": "unless-stopped"
+    },
+    {
+      "kind": "gitdeploy",
+      "name": "app",
+      "repo": "https://...",
+      "branch": "main",
+      "work_dir": "/opt/app",
+      "post_cmd": "sh deploy.sh"
+    },
+    {
+      "kind": "dockercompose",
+      "name": "stack",
+      "compose_file": "/opt/app/docker-compose.yml",
+      "project_name": "app",
+      "state": "up"
+    },
     { "kind": "package", "name": "curl", "state": "present" },
-    { "kind": "backup", "name": "app-data", "source": "/var/lib/app", "dest": "/var/backups/app.tar.gz", "schedule": "0 2 * * *" },
+    {
+      "kind": "backup",
+      "name": "app-data",
+      "source": "/var/lib/app",
+      "dest": "/var/backups/app.tar.gz",
+      "schedule": "0 2 * * *"
+    },
     { "kind": "alert", "name": "high-cpu", "metric": "cpu_pct", "op": "gt", "value": "85" },
     { "kind": "webhook", "name": "notify", "url": "https://example/hook", "event": "alert" }
   ]

@@ -42,7 +42,11 @@ export function CommandHero({ project }: { project: Project }) {
         <div className="max-w-2xl">
           <div className="mb-4 flex flex-wrap items-center gap-3">
             <DistressedSticker variant="hazard" text="IN PROGRESS" />
-            <DistressedSticker variant="barcode" code={`${project.progress}% COMPLETE`} className="rotate-2" />
+            <DistressedSticker
+              variant="barcode"
+              code={`${project.progress}% COMPLETE`}
+              className="rotate-2"
+            />
           </div>
           <h1
             id="cc-top"
