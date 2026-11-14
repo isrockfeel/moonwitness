@@ -7,6 +7,12 @@ export const ArtKeySchema = z.enum([
   "crew-rooftop",
   "signal-tunnel",
   "shadow-command",
+  "night-shift",
+  "signal-sky",
+  "fog-voices",
+  "mirror-archive",
+  "crew-wall",
+  "crowd-moon",
 ]) satisfies z.ZodType<ArtKey>;
 
 export const EraIdSchema = z.enum([
