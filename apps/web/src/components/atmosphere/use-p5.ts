@@ -36,82 +36,107 @@ export function useP5(
     const el = containerRef.current;
     if (!el) return;
 
-    const controller = new AbortController();
-    let cancelled = false;
-    let instance: p5 | null = null;
-    let ro: ResizeObserver | undefined;
-    let io: IntersectionObserver | undefined;
-    let lastW = el.clientWidth;
-    let lastH = el.clientHeight;
+    const desktop = window.matchMedia("(min-width: 768px)");
+    let dispose: (() => void) | undefined;
 
-    const ctx: P5Context = {
-      el,
-      signal: controller.signal,
-      palette: readPalette(el),
-      pointer: { x: 0.5, y: 0.5 },
-      seed,
-    };
+    const mount = () => {
+      if (!desktop.matches || dispose) return;
 
-    const onPointer = (e: PointerEvent) => {
-      const r = el.getBoundingClientRect();
-      ctx.pointer.x = (e.clientX - r.left) / Math.max(1, r.width);
-      ctx.pointer.y = (e.clientY - r.top) / Math.max(1, r.height);
-    };
+      const controller = new AbortController();
+      let cancelled = false;
+      let instance: p5 | null = null;
+      let ro: ResizeObserver | undefined;
+      let io: IntersectionObserver | undefined;
+      let lastW = el.clientWidth;
+      let lastH = el.clientHeight;
 
-    const syncLoop = () => {
-      if (!instance || !continuous) return;
-      const visible = io ? lastIntersecting : true;
-      if (document.hidden || !visible) instance.noLoop();
-      else instance.loop();
-    };
+      const ctx: P5Context = {
+        el,
+        signal: controller.signal,
+        palette: readPalette(el),
+        pointer: { x: 0.5, y: 0.5 },
+        seed,
+      };
 
-    let lastIntersecting = true;
+      const onPointer = (e: PointerEvent) => {
+        const r = el.getBoundingClientRect();
+        ctx.pointer.x = (e.clientX - r.left) / Math.max(1, r.width);
+        ctx.pointer.y = (e.clientY - r.top) / Math.max(1, r.height);
+      };
 
-    void import("p5")
-      .then((mod) => {
-        if (cancelled) return;
-        const P5 = mod.default;
-        instance = new P5((p) => factory(p, ctx), el);
+      let lastIntersecting = true;
+      const syncLoop = () => {
+        if (!instance || !continuous) return;
+        const visible = io ? lastIntersecting : true;
+        if (document.hidden || !visible) instance.noLoop();
+        else instance.loop();
+      };
 
-        ro = new ResizeObserver(() => {
-          const w = el.clientWidth;
-          const h = el.clientHeight;
-          if (!instance || w === 0 || h === 0 || (w === lastW && h === lastH)) return;
-          lastW = w;
-          lastH = h;
-          instance.resizeCanvas(w, h);
-          if (!continuous) instance.redraw();
+      void import("p5")
+        .then((mod) => {
+          if (cancelled) return;
+          const P5 = mod.default;
+          instance = new P5((p) => factory(p, ctx), el);
+
+          ro = new ResizeObserver(() => {
+            const w = el.clientWidth;
+            const h = el.clientHeight;
+            if (!instance || w === 0 || h === 0 || (w === lastW && h === lastH)) return;
+            lastW = w;
+            lastH = h;
+            instance.resizeCanvas(w, h);
+            if (!continuous) instance.redraw();
+          });
+          ro.observe(el);
+
+          io = new IntersectionObserver(
+            (entries) => {
+              const entry = entries[0];
+              if (!entry) return;
+              lastIntersecting = entry.isIntersecting;
+              syncLoop();
+            },
+            { threshold: 0.01 },
+          );
+          io.observe(el);
+
+          document.addEventListener("visibilitychange", syncLoop);
+          if (interactive) window.addEventListener("pointermove", onPointer, { passive: true });
+          syncLoop();
+        })
+        .catch(() => {
+          /* p5 gagal dimuat: biarkan fallback CSS halftone/grain yang sudah ada. */
         });
-        ro.observe(el);
 
-        io = new IntersectionObserver(
-          (entries) => {
-            const entry = entries[0];
-            if (!entry) return;
-            lastIntersecting = entry.isIntersecting;
-            syncLoop();
-          },
-          { threshold: 0.01 },
-        );
-        io.observe(el);
+      dispose = () => {
+        cancelled = true;
+        controller.abort();
+        ro?.disconnect();
+        io?.disconnect();
+        document.removeEventListener("visibilitychange", syncLoop);
+        window.removeEventListener("pointermove", onPointer);
+        instance?.remove();
+        instance = null;
+      };
+    };
 
-        document.addEventListener("visibilitychange", syncLoop);
-        if (interactive) window.addEventListener("pointermove", onPointer, { passive: true });
-        syncLoop();
-      })
-      .catch(() => {
-        /* p5 gagal dimuat: biarkan fallback CSS halftone/grain yang sudah ada. */
-      });
+    const syncViewport = () => {
+      if (desktop.matches) {
+        mount();
+        return;
+      }
+      const unmount = dispose;
+      dispose = undefined;
+      unmount?.();
+    };
 
+    desktop.addEventListener("change", syncViewport);
+    syncViewport();
     return () => {
-      cancelled = true;
-      controller.abort();
-      ro?.disconnect();
-      io?.disconnect();
-      document.removeEventListener("visibilitychange", syncLoop);
-      window.removeEventListener("pointermove", onPointer);
-      instance?.remove();
-      instance = null;
+      desktop.removeEventListener("change", syncViewport);
+      const unmount = dispose;
+      dispose = undefined;
+      unmount?.();
     };
   }, [enabled, continuous, interactive, seed, factory, containerRef]);
 }

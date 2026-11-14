@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import type { MapCity } from "@moonwitness/types";
 import { useP5, useReducedMotion } from "./use-p5";
 import { makeFactory, type AtmosphereVariant } from "./sketches";
@@ -29,20 +29,12 @@ export function AtmosphereField({
 }: AtmosphereFieldProps) {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
-  const [isMobile, setIsMobile] = useState(true);
-  useEffect(() => {
-    const media = window.matchMedia("(max-width: 767px)");
-    const sync = () => setIsMobile(media.matches);
-    sync();
-    media.addEventListener("change", sync);
-    return () => media.removeEventListener("change", sync);
-  }, []);
   const factory = useMemo(
     () => makeFactory(variant, { seed, interactive, density, cities }),
     [variant, seed, interactive, density, cities],
   );
   useP5(ref, factory, {
-    enabled: !reduced && !isMobile,
+    enabled: !reduced,
     continuous: variant !== "brush",
     interactive,
     seed,
