@@ -260,6 +260,16 @@ describe("BaseRepository", () => {
     await expect(taskModel.repository.find({ nope: 1 })).rejects.toThrow(/Unknown column/);
   });
 
+  it("filters nullable columns by null", async () => {
+    const withNull = await taskModel.repository.create(sample({ note: null }));
+    await taskModel.repository.create(sample({ title: "with note", note: "hello" }));
+
+    const found = await taskModel.repository.find({ note: null });
+    expect(found.map((row) => row.id)).toEqual([withNull.id]);
+    expect(found[0]?.note).toBeNull();
+    expect(await taskModel.repository.count({ note: null })).toBe(1);
+  });
+
   it("persists across close and reopen of the same file", async () => {
     const dbPath = join(dir, "persist.db");
     closeDb();
