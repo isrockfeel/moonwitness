@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import Fastify, { type FastifyInstance } from "fastify";
+import FastifyCors from "@fastify/cors";
 
 async function loadRoutes(max: string) {
   vi.resetModules();
@@ -87,6 +88,31 @@ describe("control routes auth rate limiting", () => {
       });
       expect(res.statusCode).not.toBe(429);
     }
+  });
+
+  it("allows CORS preflight for DELETE on control routes", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    const { controlRoutes } = await loadRoutes("1");
+    app = Fastify({ logger: false });
+    await app.register(FastifyCors, {
+      origin: true,
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      credentials: true,
+    });
+    await app.register(controlRoutes);
+    await app.ready();
+
+    const deletePreflight = await app.inject({
+      method: "OPTIONS",
+      url: "/control/portforwards",
+      headers: {
+        origin: "http://localhost:3000",
+        "access-control-request-method": "DELETE",
+        "access-control-request-headers": "content-type",
+      },
+    });
+    expect([200, 204]).toContain(deletePreflight.statusCode);
+    expect(deletePreflight.headers["access-control-allow-methods"]).toContain("DELETE");
   });
 
   it("memakai token admin untuk operasi tulis tanpa sesi", async () => {
