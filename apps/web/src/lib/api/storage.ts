@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const API_BASE = "/api/v1";
 
-async function requestXml<T>(url: string, init?: RequestInit): Promise<string> {
+async function requestXml(url: string, init?: RequestInit): Promise<string> {
   const res = await fetch(url, { ...init, credentials: "include" });
   const text = await res.text();
   if (!res.ok) {
