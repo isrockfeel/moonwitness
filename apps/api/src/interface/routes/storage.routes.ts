@@ -2,9 +2,28 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 const STORAGE_URL = process.env.STORAGE_URL ?? "http://127.0.0.1:8091";
 
+// Allow application/octet-stream and other binary content types for storage uploads
+function configureContentTypeParsers(fastify: FastifyInstance): void {
+  fastify.addContentTypeParser(
+    "application/octet-stream",
+    { parseAs: "buffer" },
+    (request, payload, done) => {
+      done(null, payload);
+    },
+  );
+  fastify.addContentTypeParser("*/*", { parseAs: "buffer" }, (request, payload, done) => {
+    done(null, payload);
+  });
+}
+
 function forwardHeaders(request: FastifyRequest): Record<string, string> {
   const headers: Record<string, string> = {};
-  if (request.body) headers["content-type"] = "application/json";
+  const incomingContentType = request.headers["content-type"];
+  if (typeof incomingContentType === "string" && incomingContentType.length > 0) {
+    headers["content-type"] = incomingContentType;
+  } else if (request.body) {
+    headers["content-type"] = "application/json";
+  }
   return headers;
 }
 
@@ -16,10 +35,17 @@ async function forward(
 ) {
   let upstream: Response;
   try {
+    const body = request.body;
+    const serializedBody =
+      typeof body === "string" || body instanceof Buffer
+        ? body
+        : body
+          ? JSON.stringify(body)
+          : undefined;
     upstream = await fetch(`${STORAGE_URL}${target}`, {
       method,
       headers: forwardHeaders(request),
-      body: request.body ? JSON.stringify(request.body) : undefined,
+      body: serializedBody,
       signal: AbortSignal.timeout(15_000),
     });
   } catch (error) {
@@ -57,6 +83,8 @@ function queryOf(request: FastifyRequest): string {
 }
 
 export async function storageRoutes(fastify: FastifyInstance) {
+  configureContentTypeParsers(fastify);
+
   fastify.get("/storage/health", async (request, reply) =>
     forward(request, reply, "/health", "GET"),
   );
