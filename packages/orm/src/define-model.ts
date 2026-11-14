@@ -301,9 +301,15 @@ export class BaseRepository<TBusiness extends ZodObjectLike = ZodObjectLike> {
       clauses.push("status != 'deleted'");
     }
     for (const [key, value] of Object.entries(filters)) {
+      if (value === undefined) continue;
       this.validateColumn(key);
-      clauses.push(`${key} = ?`);
-      params.push(encodeFilterValue(value));
+      const encoded = encodeFilterValue(value);
+      if (encoded === null) {
+        clauses.push(`${key} IS NULL`);
+      } else {
+        clauses.push(`${key} = ?`);
+        params.push(encoded);
+      }
     }
 
     return { where: clauses.length ? ` WHERE ${clauses.join(" AND ")}` : "", params };

@@ -53,12 +53,12 @@ async function forward(
     return reply.code(502).send({ error: "storage tidak dapat dihubungi", reachable: false });
   }
 
-  const text = await upstream.text();
+  const body = Buffer.from(await upstream.arrayBuffer());
   return reply
     .code(upstream.status)
     .header("content-type", upstream.headers.get("content-type") ?? "application/xml")
     .header("cache-control", "no-store")
-    .send(text);
+    .send(body);
 }
 
 interface WildcardParams {
@@ -72,7 +72,7 @@ interface WildcardParams {
  * - `mybucket/path/to.js` → bucket="mybucket", key="path/to.js"
  */
 function parseBucketKey(wildcard: string): { bucket: string; key: string } {
-  const trimmed = wildcard.replace(/^\/+/, "");
+  const trimmed = wildcard.replace(/^\/+/, "").split("?")[0] ?? "";
   const slash = trimmed.indexOf("/");
   if (slash === -1) return { bucket: trimmed, key: "" };
   return { bucket: trimmed.slice(0, slash), key: trimmed.slice(slash + 1) };
@@ -119,15 +119,26 @@ export async function storageRoutes(fastify: FastifyInstance) {
 
   fastify.post<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {
     const { bucket, key } = parseBucketKey(request.params["*"]);
-    return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "POST");
+    if (key) {
+      return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "POST");
+    }
+    return forward(request, reply, `/${bucket}${queryOf(request)}`, "POST");
   });
 
   fastify.get<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {
     const { bucket, key } = parseBucketKey(request.params["*"]);
-    if (key) {
-      return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "GET");
+    const query = queryOf(request);
+    const isListingAlias =
+      key === "objects" &&
+      /[?&](list-type|prefix|delimiter|max-keys|continuation-token|start-after|key-marker|marker|encoding-type|fetch-owner|versions)=/i.test(
+        query,
+      );
+
+    if (!key || isListingAlias) {
+      // Bucket listing: GET /storage/buckets/:bucket?list-type=2
+      // Also accept /storage/buckets/:bucket/objects?... used by the web client.
+      return forward(request, reply, `/${bucket}${query}`, "GET");
     }
-    // Bucket listing: GET /storage/buckets/:bucket?list-type=2
-    return forward(request, reply, `/${bucket}${queryOf(request)}`, "GET");
+    return forward(request, reply, `/${bucket}/${key}${query}`, "GET");
   });
 }

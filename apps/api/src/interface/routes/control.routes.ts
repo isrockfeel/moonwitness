@@ -97,7 +97,10 @@ async function forwardAuth(request: FastifyRequest, reply: FastifyReply, subPath
     upstream = await fetch(target, {
       method: request.method,
       headers: upstreamHeaders(request),
-      body: request.body ? JSON.stringify(request.body) : undefined,
+      body: (() => {
+        const b = request.body;
+        return typeof b === "string" || b instanceof Buffer ? b : b ? JSON.stringify(b) : undefined;
+      })(),
       signal: AbortSignal.timeout(15_000),
     });
   } catch (error) {
@@ -166,7 +169,10 @@ async function forward(request: FastifyRequest, reply: FastifyReply, subPath: st
     response = await fetch(target, {
       method: request.method,
       headers,
-      body: request.body ? JSON.stringify(request.body) : undefined,
+      body: (() => {
+        const b = request.body;
+        return typeof b === "string" || b instanceof Buffer ? b : b ? JSON.stringify(b) : undefined;
+      })(),
       signal: AbortSignal.timeout(30_000),
     });
   } catch (error) {

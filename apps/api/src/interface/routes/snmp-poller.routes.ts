@@ -19,7 +19,10 @@ async function forward(
     upstream = await fetch(`${SNMP_POLLER_URL}${target}`, {
       method,
       headers: forwardHeaders(request),
-      body: request.body ? JSON.stringify(request.body) : undefined,
+      body: (() => {
+        const b = request.body;
+        return typeof b === "string" || b instanceof Buffer ? b : b ? JSON.stringify(b) : undefined;
+      })(),
       signal: AbortSignal.timeout(15_000),
     });
   } catch (error) {
