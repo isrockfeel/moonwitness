@@ -478,10 +478,10 @@ function NetworkDashboard({ shell = "empire" }: { shell?: "empire" | "operations
                   </div>
                 )}
                 <p className="mt-2 text-[11px] text-zinc-500">
-                  <strong className="text-zinc-300">SPLIT</strong> hanya subnet VPN — internet
-                  tetap lewat ISP. <strong className="text-zinc-300">FULL</strong> semua trafik
-                  lewat VPS. <strong className="text-zinc-300">SITE</strong> untuk router kantor:
-                  LAN di balik router ikut terhubung.
+                  <strong className="text-zinc-300">SPLIT</strong> hanya subnet VPN — internet tetap
+                  lewat ISP. <strong className="text-zinc-300">FULL</strong> semua trafik lewat VPS.{" "}
+                  <strong className="text-zinc-300">SITE</strong> untuk router kantor: LAN di balik
+                  router ikut terhubung.
                 </p>
               </ZineCard>
 
@@ -546,11 +546,7 @@ function NetworkDashboard({ shell = "empire" }: { shell?: "empire" | "operations
           )}
 
           {config && (
-            <ConfigPanel
-              name={config.name}
-              config={config.text}
-              onClose={() => setConfig(null)}
-            />
+            <ConfigPanel name={config.name} config={config.text} onClose={() => setConfig(null)} />
           )}
 
           <PortForwardPanel />
