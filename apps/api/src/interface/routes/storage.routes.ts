@@ -35,13 +35,25 @@ async function forward(
     .send(text);
 }
 
-interface BucketParams {
-  bucket: string;
+interface WildcardParams {
+  "*": string;
 }
 
-interface ObjectParams {
-  bucket: string;
-  "*": string;
+/**
+ * Parse the wildcard tail into bucket + optional key.
+ * `/storage/buckets/*` captures everything after `/storage/buckets/`.
+ * - `mybucket`            → bucket="mybucket", key=""
+ * - `mybucket/path/to.js` → bucket="mybucket", key="path/to.js"
+ */
+function parseBucketKey(wildcard: string): { bucket: string; key: string } {
+  const trimmed = wildcard.replace(/^\/+/, "");
+  const slash = trimmed.indexOf("/");
+  if (slash === -1) return { bucket: trimmed, key: "" };
+  return { bucket: trimmed.slice(0, slash), key: trimmed.slice(slash + 1) };
+}
+
+function queryOf(request: FastifyRequest): string {
+  return request.url.includes("?") ? request.url.slice(request.url.indexOf("?")) : "";
 }
 
 export async function storageRoutes(fastify: FastifyInstance) {
@@ -51,58 +63,43 @@ export async function storageRoutes(fastify: FastifyInstance) {
 
   fastify.get("/storage/buckets", async (request, reply) => forward(request, reply, "/", "GET"));
 
-  fastify.put<{ Params: BucketParams }>("/storage/buckets/:bucket", async (request, reply) =>
-    forward(request, reply, `/${request.params.bucket}`, "PUT"),
-  );
-
-  fastify.head<{ Params: BucketParams }>("/storage/buckets/:bucket", async (request, reply) =>
-    forward(request, reply, `/${request.params.bucket}`, "HEAD"),
-  );
-
-  fastify.delete<{ Params: BucketParams }>("/storage/buckets/:bucket", async (request, reply) =>
-    forward(request, reply, `/${request.params.bucket}`, "DELETE"),
-  );
-
-  fastify.get<{ Params: BucketParams }>(
-    "/storage/buckets/:bucket/objects",
-    async (request, reply) => {
-      const query = request.url.includes("?") ? request.url.slice(request.url.indexOf("?")) : "";
-      return forward(request, reply, `/${request.params.bucket}/objects${query}`, "GET");
-    },
-  );
-
-  fastify.put<{ Params: ObjectParams }>("/storage/buckets/:bucket/*", async (request, reply) => {
-    const params = request.params as ObjectParams;
-    const key = params["*"] ?? "";
-    const query = request.url.includes("?") ? request.url.slice(request.url.indexOf("?")) : "";
-    return forward(request, reply, `/${params.bucket}/${key}${query}`, "PUT");
+  // All bucket/object operations share one wildcard route to avoid Fastify
+  // route conflicts between `/:bucket` and `/:bucket/*`.
+  fastify.put<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {
+    const { bucket, key } = parseBucketKey(request.params["*"]);
+    if (key) {
+      return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "PUT");
+    }
+    return forward(request, reply, `/${bucket}`, "PUT");
   });
 
-  fastify.post<{ Params: ObjectParams }>("/storage/buckets/:bucket/*", async (request, reply) => {
-    const params = request.params as ObjectParams;
-    const key = params["*"] ?? "";
-    const query = request.url.includes("?") ? request.url.slice(request.url.indexOf("?")) : "";
-    return forward(request, reply, `/${params.bucket}/${key}${query}`, "POST");
+  fastify.head<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {
+    const { bucket, key } = parseBucketKey(request.params["*"]);
+    if (key) {
+      return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "HEAD");
+    }
+    return forward(request, reply, `/${bucket}`, "HEAD");
   });
 
-  fastify.get<{ Params: ObjectParams }>("/storage/buckets/:bucket/*", async (request, reply) => {
-    const params = request.params as ObjectParams;
-    const key = params["*"] ?? "";
-    const query = request.url.includes("?") ? request.url.slice(request.url.indexOf("?")) : "";
-    return forward(request, reply, `/${params.bucket}/${key}${query}`, "GET");
+  fastify.delete<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {
+    const { bucket, key } = parseBucketKey(request.params["*"]);
+    if (key) {
+      return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "DELETE");
+    }
+    return forward(request, reply, `/${bucket}`, "DELETE");
   });
 
-  fastify.head<{ Params: ObjectParams }>("/storage/buckets/:bucket/*", async (request, reply) => {
-    const params = request.params as ObjectParams;
-    const key = params["*"] ?? "";
-    const query = request.url.includes("?") ? request.url.slice(request.url.indexOf("?")) : "";
-    return forward(request, reply, `/${params.bucket}/${key}${query}`, "HEAD");
+  fastify.post<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {
+    const { bucket, key } = parseBucketKey(request.params["*"]);
+    return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "POST");
   });
 
-  fastify.delete<{ Params: ObjectParams }>("/storage/buckets/:bucket/*", async (request, reply) => {
-    const params = request.params as ObjectParams;
-    const key = params["*"] ?? "";
-    const query = request.url.includes("?") ? request.url.slice(request.url.indexOf("?")) : "";
-    return forward(request, reply, `/${params.bucket}/${key}${query}`, "DELETE");
+  fastify.get<{ Params: WildcardParams }>("/storage/buckets/*", async (request, reply) => {
+    const { bucket, key } = parseBucketKey(request.params["*"]);
+    if (key) {
+      return forward(request, reply, `/${bucket}/${key}${queryOf(request)}`, "GET");
+    }
+    // Bucket listing: GET /storage/buckets/:bucket?list-type=2
+    return forward(request, reply, `/${bucket}${queryOf(request)}`, "GET");
   });
 }
