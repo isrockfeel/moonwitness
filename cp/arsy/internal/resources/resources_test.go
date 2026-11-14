@@ -183,6 +183,66 @@ func TestDockerPlanDetectsImageChange(t *testing.T) {
 	}
 }
 
+func TestDockerPlanDetectsConfigDrift(t *testing.T) {
+	d := &Docker{}
+	r := Resource{
+		Kind:        "docker",
+		Name:        "web",
+		Image:       "img:1",
+		Volumes:     []string{"/h:/c"},
+		Env:         map[string]string{"A": "1"},
+		Network:     "mynet",
+		CPULimit:    "0.5",
+		MemoryLimit: "512m",
+		Healthcheck: "curl -f localhost",
+		Restart:     "always",
+	}
+	obs := Observation{Exists: true, Fields: map[string]string{
+		"state":        "running",
+		"image":        "img:1",
+		"volumes":      "/other:/c",
+		"env":          "A=2",
+		"network":      "bridge2",
+		"cpu_limit":    "1",
+		"memory_limit": "536870912",
+		"healthcheck":  "CMD-SHELL curl -f other",
+		"restart":      "on-failure",
+	}}
+	change, err := d.Plan(r, obs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if change.Action != ActionUpdate {
+		t.Fatalf("harusnya update, dapat %s (%+v)", change.Action, change.Fields)
+	}
+	if len(change.Fields) == 0 {
+		t.Fatal("drift config harus terdeteksi")
+	}
+}
+
+func TestDockerObserveParsesInspect(t *testing.T) {
+	fake := &host.FakeRunner{Results: map[string]host.Result{
+		"docker ps -a --format {{json .}}": {
+			Stdout: "{\"Names\":\"web\",\"Image\":\"img:1\",\"State\":\"running\"}\n",
+		},
+		"docker inspect web": {
+			Stdout: `[{"Config":{"Image":"img:1","Env":["A=1"],"Healthcheck":{"Test":["CMD-SHELL","curl -f localhost"]}},"State":{"Status":"running"},"HostConfig":{"Binds":["/h:/c"],"NetworkMode":"mynet","NanoCpus":500000000,"Memory":536870912,"RestartPolicy":{"Name":"always"}}}]`,
+		},
+	}}
+	d := &Docker{Runner: fake}
+	obs, err := d.Observe(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	o := obs["web"]
+	if !o.Exists {
+		t.Fatal("container harus terdeteksi")
+	}
+	if o.Fields["volumes"] != "/h:/c" || o.Fields["network"] != "mynet" || o.Fields["restart"] != "always" {
+		t.Fatalf("inspect fields salah: %+v", o.Fields)
+	}
+}
+
 func TestPortForwardValidate(t *testing.T) {
 	p := &PortForward{}
 	valid := Resource{Kind: "portforward", Port: "8080", Proto: "tcp", To: "10.66.0.2:80"}
@@ -386,5 +446,251 @@ func TestPortForwardSkipsUFWWhenInactive(t *testing.T) {
 		if strings.HasPrefix(joined, "ufw ") && joined != "ufw status" {
 			t.Fatalf("ufw tidak aktif, tidak boleh mengubah aturan: %v", call)
 		}
+	}
+}
+
+func TestKubernetesValidate(t *testing.T) {
+	k := &Kubernetes{}
+	valid := []Resource{
+		{Kind: "kubernetes", ResourceType: "deployment", Name: "web", Image: "nginx:1.25"},
+		{Kind: "kubernetes", ResourceType: "service", Name: "web", Port: "80"},
+		{Kind: "kubernetes", ResourceType: "pod", Name: "worker", Image: "busybox"},
+		{Kind: "kubernetes", ResourceType: "ingress", Name: "web", Host: "example.com"},
+	}
+	for _, r := range valid {
+		if err := k.Validate(r); err != nil {
+			t.Fatalf("resource %+v harus valid, dapat %v", r, err)
+		}
+	}
+
+	bad := []Resource{
+		{Kind: "kubernetes", ResourceType: "deployment", Name: "", Image: "nginx"},
+		{Kind: "kubernetes", ResourceType: "deployment", Name: "web"},
+		{Kind: "kubernetes", ResourceType: "service", Name: "web"},
+		{Kind: "kubernetes", ResourceType: "ingress", Name: "web"},
+		{Kind: "kubernetes", ResourceType: "unknownkind", Name: "web"},
+		{Kind: "kubernetes", ResourceType: "deployment", Name: "web", Image: "nginx", State: "bogus"},
+	}
+	for i, r := range bad {
+		if err := k.Validate(r); err == nil {
+			t.Fatalf("kasus %d harus ditolak: %+v", i, r)
+		}
+	}
+}
+
+func TestKubernetesPlanCreateWhenMissing(t *testing.T) {
+	k := &Kubernetes{}
+	r := Resource{Kind: "kubernetes", ResourceType: "deployment", Name: "web", Image: "nginx:1.25"}
+
+	c, err := k.Plan(r, Observation{Exists: false})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.Action != ActionCreate {
+		t.Fatalf("harus create, dapat %s", c.Action)
+	}
+}
+
+func TestKubernetesPlanDetectsImageChange(t *testing.T) {
+	k := &Kubernetes{}
+	r := Resource{Kind: "kubernetes", ResourceType: "deployment", Name: "web", Image: "nginx:2.0"}
+	obs := Observation{Exists: true, Fields: map[string]string{"image": "nginx:1.25", "replicas": "1"}}
+
+	c, err := k.Plan(r, obs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.Action != ActionUpdate {
+		t.Fatalf("harus update, dapat %s", c.Action)
+	}
+	found := false
+	for _, f := range c.Fields {
+		if f.Field == "image" && f.Want == "nginx:2.0" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("diff image tidak terdeteksi: %+v", c.Fields)
+	}
+}
+
+func TestKubernetesPlanDetectsReplicaChange(t *testing.T) {
+	k := &Kubernetes{}
+	r := Resource{Kind: "kubernetes", ResourceType: "deployment", Name: "web", Image: "nginx:1.25", Replicas: 3}
+	obs := Observation{Exists: true, Fields: map[string]string{"image": "nginx:1.25", "replicas": "1"}}
+
+	c, err := k.Plan(r, obs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.Action != ActionUpdate {
+		t.Fatalf("harus update, dapat %s", c.Action)
+	}
+	found := false
+	for _, f := range c.Fields {
+		if f.Field == "replicas" && f.Want == "3" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("diff replicas tidak terdeteksi: %+v", c.Fields)
+	}
+}
+
+func TestKubernetesPlanNoChangeForSameState(t *testing.T) {
+	k := &Kubernetes{}
+	r := Resource{Kind: "kubernetes", ResourceType: "deployment", Name: "web", Image: "nginx:1.25"}
+	obs := Observation{Exists: true, Fields: map[string]string{"image": "nginx:1.25", "replicas": "1"}}
+
+	c, err := k.Plan(r, obs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.Action != ActionNone {
+		t.Fatalf("harus none, dapat %s (%+v)", c.Action, c.Fields)
+	}
+}
+
+func TestKubernetesPlanDeleteWhenAbsent(t *testing.T) {
+	k := &Kubernetes{}
+	r := Resource{Kind: "kubernetes", ResourceType: "service", Name: "web", State: "absent"}
+
+	c, err := k.Plan(r, Observation{Exists: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.Action != ActionDelete {
+		t.Fatalf("state absent harus delete, dapat %s", c.Action)
+	}
+
+	c, err = k.Plan(r, Observation{Exists: false})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.Action != ActionNone {
+		t.Fatalf("resource yang sudah tidak ada harus no-op, dapat %s", c.Action)
+	}
+}
+
+func TestKubernetesApplyDeployment(t *testing.T) {
+	fake := &host.FakeRunner{}
+	k := &Kubernetes{Runner: fake}
+	r := Resource{Kind: "kubernetes", ResourceType: "deployment", Name: "web", Image: "nginx:1.25", Replicas: 2, Ports: []string{"80"}}
+
+	if err := k.Apply(context.Background(), r); err != nil {
+		t.Fatal(err)
+	}
+	if len(fake.Calls) != 1 {
+		t.Fatalf("harus 1 pemanggilan kubectl, dapat %d", len(fake.Calls))
+	}
+	argv := fake.Calls[0]
+	if argv[0] != "kubectl" || argv[1] != "apply" {
+		t.Fatalf("harus kubectl apply, dapat %v", argv)
+	}
+	if !strings.Contains(fake.Stdin[0], "kind: Deployment") {
+		t.Fatalf("manifest harus Deployment, dapat:\n%s", fake.Stdin[0])
+	}
+	if !strings.Contains(fake.Stdin[0], "replicas: 2") {
+		t.Fatalf("replicas harus 2, dapat:\n%s", fake.Stdin[0])
+	}
+	if !strings.Contains(fake.Stdin[0], "image: nginx:1.25") {
+		t.Fatalf("image harus nginx:1.25, dapat:\n%s", fake.Stdin[0])
+	}
+}
+
+func TestKubernetesApplyDelete(t *testing.T) {
+	fake := &host.FakeRunner{}
+	k := &Kubernetes{Runner: fake}
+	r := Resource{Kind: "kubernetes", ResourceType: "ingress", Name: "web", State: "absent"}
+
+	if err := k.Apply(context.Background(), r); err != nil {
+		t.Fatal(err)
+	}
+	if len(fake.Calls) != 1 {
+		t.Fatalf("harus 1 pemanggilan kubectl, dapat %d", len(fake.Calls))
+	}
+	argv := fake.Calls[0]
+	if argv[0] != "kubectl" || argv[1] != "delete" || argv[2] != "ingress" || argv[3] != "web" {
+		t.Fatalf("harus kubectl delete ingress web, dapat %v", argv)
+	}
+}
+
+func TestKubernetesObserveParsesItems(t *testing.T) {
+	fake := &host.FakeRunner{Results: map[string]host.Result{
+		"kubectl get deployment,service,pod,ingress -o json": {
+			Stdout: `{
+  "items": [
+    {
+      "kind": "Deployment",
+      "metadata": {"name": "web"},
+      "spec": {
+        "replicas": 2,
+        "template": {"spec": {"containers": [{"image": "nginx:1.25"}]}}
+      }
+    },
+    {
+      "kind": "Service",
+      "metadata": {"name": "web"},
+      "spec": {
+        "type": "ClusterIP",
+        "ports": [{"port": 80, "targetPort": "8080"}]
+      }
+    },
+    {
+      "kind": "Ingress",
+      "metadata": {"name": "web"},
+      "spec": {
+        "rules": [{"host": "example.com"}],
+        "tls": [{"secretName": "web-tls"}]
+      }
+    }
+  ]
+}`,
+		},
+	}}
+	k := &Kubernetes{Runner: fake}
+	obs, err := k.Observe(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(obs) != 3 {
+		t.Fatalf("harus 3 resource, dapat %d: %v", len(obs), obs)
+	}
+	if got := obs["deployment:web"]; got.Fields["image"] != "nginx:1.25" || got.Fields["replicas"] != "2" {
+		t.Fatalf("deployment web salah: %+v", got.Fields)
+	}
+	if got := obs["service:web"]; got.Fields["port"] != "80" || got.Fields["target_port"] != "8080" {
+		t.Fatalf("service web salah: %+v", got.Fields)
+	}
+	if got := obs["ingress:web"]; got.Fields["host"] != "example.com" || got.Fields["tls"] != "web-tls" {
+		t.Fatalf("ingress web salah: %+v", got.Fields)
+	}
+}
+
+func TestKubernetesBuildIngressWithBackendRules(t *testing.T) {
+	k := &Kubernetes{}
+	r := Resource{
+		Kind:         "kubernetes",
+		ResourceType: "ingress",
+		Name:         "web",
+		Host:         "example.com",
+		TLS:          "web-tls",
+		BackendRules: map[string]string{
+			"/api": "api:8080",
+			"/":    "web:80",
+		},
+	}
+	manifest := k.buildIngress(r)
+	if !strings.Contains(manifest, "host: example.com") {
+		t.Fatalf("host tidak ada: %s", manifest)
+	}
+	if !strings.Contains(manifest, "secretName: web-tls") {
+		t.Fatalf("tls secret tidak ada: %s", manifest)
+	}
+	if !strings.Contains(manifest, "name: api") || !strings.Contains(manifest, "number: 8080") {
+		t.Fatalf("backend rule /api tidak ada: %s", manifest)
+	}
+	if !strings.Contains(manifest, "name: web") || !strings.Contains(manifest, "number: 80") {
+		t.Fatalf("backend rule / tidak ada: %s", manifest)
 	}
 }

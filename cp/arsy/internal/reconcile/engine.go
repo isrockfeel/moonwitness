@@ -80,11 +80,11 @@ func ParseState(data []byte) (State, error) {
 
 func validateBasic(r resources.Resource) error {
 	switch r.Kind {
-	case "systemd", "docker", "cron", "user":
+	case "systemd", "docker", "cron", "user", "network", "ssh", "cert", "alert", "kubernetes", "gitdeploy", "webhook", "dockercompose", "package", "backup":
 		if r.Name == "" {
 			return fmt.Errorf("%s butuh name", r.Kind)
 		}
-	case "file", "dir":
+	case "file", "dir", "mount":
 		if r.Path == "" {
 			return fmt.Errorf("%s butuh path", r.Kind)
 		}

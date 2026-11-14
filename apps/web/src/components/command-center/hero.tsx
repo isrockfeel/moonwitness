@@ -1,73 +1,70 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Crown, Splatter } from "@moonwitness/ui/icons";
 import { DistressedSticker, Staple, TactileTape } from "@moonwitness/ui";
+import type { Project } from "@moonwitness/types";
 import { artSrc } from "@/lib/art";
 import { AtmosphereField } from "@/components/atmosphere";
 
-const STRIP = ["OFF-GRID PIRATE CONSOLE", "CREATE · CURATE · TRANSMIT", "FREQUENCY: 1420.4 MHz"];
-
-export function CommandHero() {
+export function CommandHero({ project }: { project: Project }) {
   return (
     <div className="grain relative overflow-hidden border-b-2 border-black bg-black">
       <Image
-        src={artSrc("shadow-command")}
+        src={artSrc(project.image)}
         alt=""
         fill
         priority
-        className="object-cover object-[65%_35%] filter contrast-125"
+        className="object-cover object-[65%_50%] filter contrast-125"
         sizes="(max-width: 1024px) 100vw, 80vw"
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-[rgba(7,7,12,0.96)] via-[rgba(7,7,12,0.65)] to-[rgba(7,7,12,0.3)]" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[rgba(7,7,12,0.94)] via-[rgba(7,7,12,0.64)] to-[rgba(7,7,12,0.2)]" />
       <AtmosphereField
         variant="hero"
         interactive
-        className="inset-0 z-[1] mix-blend-screen opacity-75"
+        className="inset-0 z-[1] mix-blend-screen opacity-55"
       />
       <AtmosphereField
         variant="brush"
         seed={11}
-        className="inset-0 z-[2] mix-blend-screen opacity-55"
+        className="inset-0 z-[2] mix-blend-screen opacity-35"
       />
       <Splatter className="absolute -left-6 top-6 h-40 w-40 text-[var(--pink)] opacity-70" />
 
-      {/* Tactile tape accents on hero boundary */}
-      <TactileTape
-        variant="yellow"
-        label="AUTHORIZED OPERATIVES ONLY"
-        width={220}
-        className="-top-1 right-12 rotate-2 text-[10px]"
-      />
       <Staple className="top-3 left-4 -rotate-45" />
 
-      <div className="relative z-10 px-4 py-12 sm:px-8">
-        <div className="flex flex-wrap items-center gap-3 mb-3">
-          <DistressedSticker variant="hazard" text="SECRET BASE // OPS DECK" />
-          <DistressedSticker variant="barcode" code="SCC-NODE-00" className="rotate-2" />
-        </div>
-
-        <div className="relative inline-block">
+      <TactileTape
+        variant="yellow"
+        label="FEATURED PROJECT"
+        width={190}
+        className="-top-1 right-8 rotate-2 text-[10px]"
+      />
+      <div className="relative z-10 flex min-h-[280px] items-center px-6 py-10 sm:min-h-[320px] sm:px-10 lg:px-12">
+        <div className="max-w-2xl">
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <DistressedSticker variant="hazard" text="IN PROGRESS" />
+            <DistressedSticker
+              variant="barcode"
+              code={`${project.progress}% COMPLETE`}
+              className="rotate-2"
+            />
+          </div>
           <h1
             id="cc-top"
-            className="cmyk-slip scroll-mt-24 font-brush text-4xl leading-none text-white drop-shadow-[4px_4px_0_rgba(0,0,0,0.9)] sm:text-6xl"
+            className="cmyk-slip scroll-mt-24 max-w-full font-brush text-5xl leading-[0.95] text-white drop-shadow-[4px_4px_0_rgba(0,0,0,0.9)] sm:text-6xl lg:text-7xl"
           >
-            SHADOW <span className="text-[var(--pink)]">COMMAND</span> CENTER
+            {project.title.toUpperCase()}
           </h1>
-          <Crown className="absolute -top-7 right-0 h-8 w-12 -rotate-12 text-[var(--yellow)]" />
+          <p className="mt-4 font-mono text-xs font-bold tracking-[0.18em] text-[var(--yellow)]">
+            {project.status.toUpperCase()} // STORY WORLD
+          </p>
+          <Link
+            href={`/dock?q=${encodeURIComponent(project.title)}`}
+            className="btn-zine mt-5 inline-flex min-h-11 items-center gap-2 px-5 py-2.5 text-sm"
+          >
+            OPEN PROJECT <span aria-hidden="true">→</span>
+          </Link>
         </div>
-
-        <p className="mt-4 max-w-xl font-mono text-xs leading-relaxed text-zinc-300">
-          Coordinate pirate stories, field surveillance, clandestine audio feeds, and automated leak
-          workflows. Broadcast unfiltered perspectives directly to the nocturnal mesh.
-        </p>
-
-        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-[var(--yellow)] font-bold">
-          {STRIP.map((w, i) => (
-            <span key={w} className="flex items-center gap-3">
-              {i > 0 && <span className="text-zinc-600">//</span>}
-              {w}
-            </span>
-          ))}
-        </div>
+        <Crown className="absolute right-[20%] top-12 h-10 w-14 -rotate-12 text-[var(--yellow)]" />
       </div>
     </div>
   );

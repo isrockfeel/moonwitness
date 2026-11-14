@@ -39,6 +39,17 @@ Release tags are created by Release Please from reviewed commits on `main`. SBOM
 attestation are not produced yet: they require a build/publish pipeline with a package or image
 artifact to attest. Do not claim them until that pipeline exists.
 
+## Storage service (`services/storage`)
+
+- S3-compatible object storage (Rust) with filesystem-backed blobs and SQLite metadata.
+- Authentication: AWS Signature V4 (header and presigned URL). For local development only,
+  `STORAGE_ALLOW_ANONYMOUS=true` disables signature verification and must never be used in
+  production.
+- Path safety: object keys are validated and resolved against `STORAGE_ROOT` to prevent traversal
+  outside the storage root.
+- Transport/TLS and at-rest encryption are deployment responsibilities (reverse proxy/infra); do not
+  expose the service directly without appropriate controls.
+
 ## Known gaps
 
 These are owner decisions, not oversights:

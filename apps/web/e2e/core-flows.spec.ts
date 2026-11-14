@@ -30,7 +30,12 @@ test.describe("VPN Setup Flow", () => {
 test.describe("Dashboard", () => {
   test("should load dashboard page", async ({ page }) => {
     await page.goto("/mission-control");
-    await expect(page.locator("h1")).toContainText("Mission Control");
+    await expect(page.locator("h1")).toContainText("THE BATTERIES");
+    await page.getByRole("button", { name: /NEW EPISODE/ }).click();
+    const storyForge = page.getByRole("dialog", { name: "Story Forge console" });
+    await expect(storyForge).toBeVisible();
+    await storyForge.getByRole("button", { name: "Close module console" }).click();
+    await expect(storyForge).toBeHidden();
   });
 
   test("should display dock", async ({ page }) => {

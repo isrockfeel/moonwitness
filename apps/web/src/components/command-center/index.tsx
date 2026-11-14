@@ -21,6 +21,11 @@ import { useCommandCenter } from "./use-command-center";
 
 export function CommandCenter() {
   const cc = useCommandCenter();
+  const featuredProject = projects[0];
+
+  if (!featuredProject) {
+    throw new Error("Command center requires a featured project.");
+  }
 
   return (
     <EmpireShell
@@ -31,7 +36,7 @@ export function CommandCenter() {
         placeholder: "Search projects, stories, research, or people…",
       }}
     >
-      <CommandHero />
+      <CommandHero project={featuredProject} />
       <div className="px-4 py-6 sm:px-8">
         {/* Row 1: Universe Status | Quick Actions | Ideas In Motion */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)]">

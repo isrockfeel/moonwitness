@@ -34,6 +34,20 @@ pnpm gate:doctor       # cek toolchain, git identity, remote, branch
 pnpm dev               # jalankan app dalam mode watch
 ```
 
+## Jalankan dengan Docker Compose
+
+Butuh Docker Engine/Desktop dengan Docker Compose:
+
+```sh
+docker compose up --build
+```
+
+Buka web di <http://localhost:3000>; API tersedia di <http://localhost:3002/api/v1/healthz>.
+Compose membangun dan menjalankan aplikasi dalam mode production, mengisi demo data saat API
+start, dan menyimpan SQLite di volume `moonwitness-data`. Hentikan dengan `Ctrl+C` atau
+`docker compose down`; data tetap tersimpan. Untuk menghapus volume dan data demo, jalankan
+`docker compose down -v`.
+
 Kerja dilakukan di branch `dev`. `main` hanya menerima promosi lewat pull request, `master`
 dibekukan. Detail: [docs/engineering/BRANCHING.md](docs/engineering/BRANCHING.md).
 
