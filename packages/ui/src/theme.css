@@ -10,6 +10,10 @@
   --red: #ff3b3b;
   --green: #3ddc84;
   --line: #2a2a38;
+  --hero-headline-paper: var(--pink);
+  --hero-caption-paper: var(--paper);
+  --hero-print-shadow: 4px 5px 0 var(--ink);
+  --hero-rule: 3px solid var(--paper);
   /* Font variables (--font-brush/hand/mono) are supplied by next/font/local in
      apps/web (Saksi proprietary family). They are intentionally NOT defined here
      so this :root block cannot override the loader's hashed family names. */

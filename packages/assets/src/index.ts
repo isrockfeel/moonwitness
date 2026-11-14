@@ -1,13 +1,36 @@
 import type { ArtKey } from "@moonwitness/types";
-import { srcSetFor } from "./optimize";
+import { ART_SOURCE_WIDTHS, effectiveWidths, legacySrcSetFor, srcSetFor } from "./optimize";
+import catalogue from "./catalogue.json";
+
+function heroLayer(layer: (typeof catalogue.hero)[keyof typeof catalogue.hero]) {
+  const widths = effectiveWidths(layer.width);
+  return {
+    ...layer,
+    widths,
+    derivatives: widths.map((width) => ({
+      width,
+      height: Math.round((layer.height * width) / layer.width),
+      avif: `/art/${layer.key}-${width}.avif`,
+      webp: `/art/${layer.key}-${width}.webp`,
+    })),
+    srcSet: srcSetFor(layer.key, "avif", widths),
+    fallbackSrcSet: srcSetFor(layer.key, "webp", widths),
+  };
+}
+
+export const HERO_LAYERS = {
+  city: heroLayer(catalogue.hero.city),
+  moon: heroLayer(catalogue.hero.moon),
+  character: heroLayer(catalogue.hero.character),
+};
 
 export interface ArtEntry {
   /** PNG sumber di public/art — inilah yang dipakai next/image di apps/web. */
   source: string;
-  /** AVIF 1440w — src default untuk <picture> di packages/ui. */
+  /** AVIF default source untuk <picture> di packages/ui. */
   src: string;
   srcSet: string;
-  /** WebP 1440w — fallback bila browser tidak mendukung AVIF. */
+  /** WebP default source bila browser tidak mendukung AVIF. */
   fallback: string;
   fallbackSrcSet: string;
   alt: string;
@@ -20,9 +43,9 @@ function entry(key: ArtKey, alt: string, position: string | undefined, credit: s
   return {
     source: `/art/${key}.png`,
     src: `/art/${key}-1440.avif`,
-    srcSet: srcSetFor(key, "avif"),
+    srcSet: legacySrcSetFor(key, "avif", ART_SOURCE_WIDTHS[key]),
     fallback: `/art/${key}-1440.webp`,
-    fallbackSrcSet: srcSetFor(key, "webp"),
+    fallbackSrcSet: legacySrcSetFor(key, "webp", ART_SOURCE_WIDTHS[key]),
     alt,
     position,
     credit,

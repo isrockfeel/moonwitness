@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { MapCity } from "@moonwitness/types";
+import { useMotionPaused } from "@/lib/motion/motion-pause";
 import { useP5, useReducedMotion } from "./use-p5";
 import { makeFactory, type AtmosphereVariant } from "./sketches";
 
@@ -29,6 +30,7 @@ export function AtmosphereField({
 }: AtmosphereFieldProps) {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
+  const paused = useMotionPaused();
   const [isMobile, setIsMobile] = useState(true);
   useEffect(() => {
     const media = window.matchMedia("(max-width: 767px)");
@@ -46,6 +48,7 @@ export function AtmosphereField({
     continuous: variant !== "brush",
     interactive,
     seed,
+    paused,
   });
 
   return (

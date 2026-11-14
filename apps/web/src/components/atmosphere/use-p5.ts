@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import type p5 from "p5";
 import { readPalette, type Palette } from "./palette";
 
@@ -19,6 +19,7 @@ interface UseP5Options {
   continuous: boolean;
   interactive: boolean;
   seed: number;
+  paused?: boolean;
 }
 
 /**
@@ -29,8 +30,16 @@ interface UseP5Options {
 export function useP5(
   containerRef: RefObject<HTMLDivElement | null>,
   factory: SketchFactory,
-  { enabled, continuous, interactive, seed }: UseP5Options,
+  { enabled, continuous, interactive, seed, paused = false }: UseP5Options,
 ) {
+  const pausedRef = useRef(paused);
+  const syncRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    pausedRef.current = paused;
+    syncRef.current();
+  }, [paused]);
+
   useEffect(() => {
     if (!enabled) return;
     const el = containerRef.current;
@@ -64,11 +73,12 @@ export function useP5(
     const syncLoop = () => {
       if (!instance || !continuous) return;
       const visible = io ? lastIntersecting : true;
-      if (document.hidden || !visible) instance.noLoop();
+      if (document.hidden || !visible || pausedRef.current) instance.noLoop();
       else instance.loop();
     };
 
     let lastIntersecting = true;
+    syncRef.current = syncLoop;
 
     void import("p5")
       .then((mod) => {
@@ -113,6 +123,7 @@ export function useP5(
       io?.disconnect();
       document.removeEventListener("visibilitychange", syncLoop);
       window.removeEventListener("pointermove", onPointer);
+      syncRef.current = () => {};
       instance?.remove();
       instance = null;
     };

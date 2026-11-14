@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Crown, SearchIcon, GlobeIcon } from "@moonwitness/ui/icons";
 import { links } from "./links";
 import { MobileMenu } from "./mobile-menu";
@@ -13,8 +13,13 @@ export function SiteNav() {
   const [active, setActive] = useState("home");
   const [menuOpen, setMenuOpen] = useState(false);
   const menuToggleRef = useRef<HTMLButtonElement>(null);
+  const searchTriggerRef = useRef<HTMLButtonElement>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const dismissSearch = useCallback(() => {
+    setSearchOpen(false);
+    requestAnimationFrame(() => searchTriggerRef.current?.focus());
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -83,6 +88,7 @@ export function SiteNav() {
           <div className="ml-auto flex items-center gap-2">
             <button
               onClick={() => setSearchOpen(true)}
+              ref={searchTriggerRef}
               aria-label="Search the archive"
               className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md p-2 text-zinc-300 transition-colors hover:bg-[var(--panel-2)] hover:text-white"
             >
@@ -141,7 +147,7 @@ export function SiteNav() {
           query={query}
           onQueryChange={setQuery}
           onSubmit={submitSearch}
-          onClose={() => setSearchOpen(false)}
+          onClose={dismissSearch}
         />
       )}
     </>
